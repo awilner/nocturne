@@ -193,15 +193,23 @@ jobs:
           COPY --from=builder /app/packages/bridge/package.json ./packages/bridge/
           COPY --from=builder /app/packages/bridge/dist ./packages/bridge/dist
 
-          # Install production dependencies with shamefully-hoist to create flat structure
-          # This avoids symlink resolution issues in Docker
-          RUN pnpm install --prod --frozen-lockfile --shamefully-hoist
+          # Install only runtime dependencies required by the app workspace package.
+          # This ensures server-side imports (e.g. zod) are installed in packages/app/node_modules
+          # where the adapter-node build resolves modules at runtime.
+          RUN pnpm install --prod --frozen-lockfile --filter @nocturne/app...
+
+          # Run from the app package directory so Node resolves dependencies from
+          # /app/packages/app/node_modules instead of relying on root hoisting.
+          WORKDIR /app/packages/app
 
           # Copy built artifacts
           COPY --from=builder /app/packages/app/build ./build
 
           # Copy custom server that integrates WebSocket bridge
           COPY --from=builder /app/packages/app/server.js ./server.js
+
+          # Smoke test critical runtime imports used by SvelteKit server chunks.
+          RUN node -e "import('zod'); import('@nocturne/bridge')"
 
           ENV NODE_ENV=production
           ENV PORT=5173
