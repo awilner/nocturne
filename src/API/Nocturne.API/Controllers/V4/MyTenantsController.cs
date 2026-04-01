@@ -63,6 +63,7 @@ public class MyTenantsController : ControllerBase
     }
 
     [HttpGet("validate-slug")]
+    [AllowAnonymous]
     [RemoteQuery]
     [ProducesResponseType(typeof(SlugValidationResult), StatusCodes.Status200OK)]
     public async Task<IActionResult> ValidateSlug([FromQuery] string slug, CancellationToken ct)
