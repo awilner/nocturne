@@ -4,6 +4,23 @@
  */
 
 // =============================================================================
+// Class Name Utility
+// =============================================================================
+
+type ClassValue = string | number | boolean | null | undefined | ClassValue[];
+
+/**
+ * Combines class values into a single class string, filtering out falsy values.
+ * Lightweight alternative to clsx/twMerge for the standalone package.
+ */
+export function cn(...inputs: ClassValue[]): string {
+  return inputs
+    .flat(Infinity as 1)
+    .filter((v): v is string => typeof v === 'string' && v.length > 0)
+    .join(' ');
+}
+
+// =============================================================================
 // Glucose Formatting (mg/dL only)
 // =============================================================================
 
