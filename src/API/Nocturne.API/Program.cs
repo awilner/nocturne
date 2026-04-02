@@ -237,6 +237,9 @@ app.UseMiddleware<RecoveryModeMiddleware>();
 // Resolve tenant from subdomain (must run before authentication)
 app.UseMiddleware<TenantResolutionMiddleware>();
 
+// Block API traffic for freshly provisioned tenants with no passkey credentials
+app.UseMiddleware<TenantSetupMiddleware>();
+
 // Add Nightscout authentication middleware
 app.UseMiddleware<AuthenticationMiddleware>();
 

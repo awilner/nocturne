@@ -30,6 +30,7 @@ public class PasskeyControllerTests : IDisposable
     private readonly Mock<IRefreshTokenService> _refreshTokenService;
     private readonly Mock<ISubjectService> _subjectService;
     private readonly Mock<ITenantAccessor> _tenantAccessor;
+    private readonly Mock<ITenantService> _tenantService;
     private readonly PasskeyController _controller;
 
     private readonly Guid _tenantId = Guid.CreateVersion7();
@@ -69,7 +70,7 @@ public class PasskeyControllerTests : IDisposable
 
         var auditService = new Mock<IAuthAuditService>();
 
-        var tenantService = new Mock<ITenantService>();
+        _tenantService = new Mock<ITenantService>();
 
         _controller = new PasskeyController(
             _passkeyService.Object,
@@ -79,7 +80,7 @@ public class PasskeyControllerTests : IDisposable
             _subjectService.Object,
             auditService.Object,
             _tenantAccessor.Object,
-            tenantService.Object,
+            _tenantService.Object,
             _dbContext,
             oidcOptions,
             logger.Object);
@@ -449,6 +450,212 @@ public class PasskeyControllerTests : IDisposable
 
         var objectResult = Assert.IsType<ObjectResult>(result.Result);
         objectResult.StatusCode.Should().Be(400);
+    }
+
+    #endregion
+
+    #region Multi-Tenant Setup Flow
+
+    [Fact]
+    public async Task SetupOptions_MultiTenant_CreatesUserInResolvedTenant()
+    {
+        // Arrange — seed the resolved tenant (not IsDefault)
+        var tenant = new TenantEntity
+        {
+            Id = _tenantId,
+            Slug = "rhys",
+            DisplayName = "Rhys",
+            IsDefault = false,
+        };
+        var ownerRole = new TenantRoleEntity
+        {
+            Id = Guid.CreateVersion7(),
+            TenantId = _tenantId,
+            Slug = "owner",
+            Name = "Owner",
+            IsSystem = true,
+            SysCreatedAt = DateTime.UtcNow,
+            SysUpdatedAt = DateTime.UtcNow,
+        };
+        _dbContext.Tenants.Add(tenant);
+        _dbContext.TenantRoles.Add(ownerRole);
+        await _dbContext.SaveChangesAsync();
+
+        // IsSetupRequired is false (multi-tenant mode — global flag is never set)
+        var state = new RecoveryModeState { IsSetupRequired = false };
+
+        _tenantAccessor.Setup(t => t.IsResolved).Returns(true);
+
+        _tenantService
+            .Setup(s => s.AddMemberAsync(_tenantId, It.IsAny<Guid>(), It.IsAny<List<Guid>>(), null, null, false, default))
+            .Callback<Guid, Guid, List<Guid>, List<string>?, string?, bool, CancellationToken>((tenantId, subjectId, _, _, _, _, _) =>
+            {
+                _dbContext.TenantMembers.Add(new TenantMemberEntity
+                {
+                    Id = Guid.CreateVersion7(),
+                    TenantId = tenantId,
+                    SubjectId = subjectId,
+                    SysCreatedAt = DateTime.UtcNow,
+                    SysUpdatedAt = DateTime.UtcNow,
+                });
+                _dbContext.SaveChanges();
+            })
+            .Returns(Task.CompletedTask);
+
+        _passkeyService
+            .Setup(s => s.GenerateRegistrationOptionsAsync(
+                It.IsAny<Guid>(), "rhys", _tenantId))
+            .ReturnsAsync(new PasskeyRegistrationOptions("{\"challenge\":\"mt\"}", "mt-token"));
+
+        _subjectService
+            .Setup(s => s.AssignRoleAsync(It.IsAny<Guid>(), "admin", null))
+            .ReturnsAsync(true);
+
+        var request = new SetupOptionsRequest
+        {
+            Username = "rhys",
+            DisplayName = "Rhys",
+        };
+
+        // Act
+        var result = await _controller.SetupOptions(request, state);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var response = Assert.IsType<PasskeyOptionsResponse>(okResult.Value);
+        response.ChallengeToken.Should().Be("mt-token");
+
+        var members = await _dbContext.TenantMembers
+            .IgnoreQueryFilters()
+            .Where(tm => tm.TenantId == _tenantId)
+            .ToListAsync();
+        members.Should().HaveCount(1);
+
+        // Assert — subject was persisted with correct properties
+        var subjects = await _dbContext.Subjects
+            .IgnoreQueryFilters()
+            .Where(s => !s.IsSystemSubject)
+            .ToListAsync();
+        subjects.Should().HaveCount(1);
+        subjects[0].Username.Should().Be("rhys");
+        subjects[0].Name.Should().Be("Rhys");
+        subjects[0].IsActive.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SetupComplete_MultiTenant_UsesResolvedTenant()
+    {
+        // Arrange
+        var tenant = new TenantEntity
+        {
+            Id = _tenantId,
+            Slug = "rhys",
+            DisplayName = "Rhys",
+            IsDefault = false,
+        };
+        _dbContext.Tenants.Add(tenant);
+        await _dbContext.SaveChangesAsync();
+
+        var state = new RecoveryModeState { IsSetupRequired = false };
+        var subjectId = Guid.CreateVersion7();
+
+        _tenantAccessor.Setup(t => t.IsResolved).Returns(true);
+
+        _passkeyService
+            .Setup(s => s.CompleteRegistrationAsync("{}", "token", _tenantId))
+            .ReturnsAsync(new PasskeyCredentialResult(Guid.CreateVersion7(), subjectId));
+
+        _recoveryCodeService
+            .Setup(s => s.GenerateCodesAsync(subjectId))
+            .ReturnsAsync(["CODE1", "CODE2", "CODE3"]);
+
+        _subjectService
+            .Setup(s => s.GetSubjectByIdAsync(subjectId))
+            .ReturnsAsync(new Subject { Id = subjectId, Name = "Rhys" });
+
+        _subjectService
+            .Setup(s => s.GetSubjectRolesAsync(subjectId))
+            .ReturnsAsync([]);
+
+        _subjectService
+            .Setup(s => s.GetSubjectPermissionsAsync(subjectId))
+            .ReturnsAsync([]);
+
+        _jwtService
+            .Setup(s => s.GenerateAccessToken(
+                It.IsAny<SubjectInfo>(),
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<IEnumerable<string>>(),
+                null))
+            .Returns("access-token");
+
+        _jwtService
+            .Setup(s => s.GetAccessTokenLifetime())
+            .Returns(TimeSpan.FromMinutes(15));
+
+        _refreshTokenService
+            .Setup(s => s.CreateRefreshTokenAsync(
+                subjectId, null, It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string?>()))
+            .ReturnsAsync("refresh-token");
+
+        var request = new SetupCompleteRequest
+        {
+            ChallengeToken = "token",
+            AttestationResponseJson = "{}",
+        };
+
+        // Act
+        var result = await _controller.SetupComplete(request, state);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var response = Assert.IsType<SetupCompleteResponse>(okResult.Value);
+        response.Success.Should().BeTrue();
+        response.RecoveryCodes.Should().HaveCount(3);
+        response.AccessToken.Should().Be("access-token");
+        response.RefreshToken.Should().Be("refresh-token");
+
+        // Global state is not mutated in multi-tenant mode
+        state.IsSetupRequired.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SetupOptions_MultiTenant_WhenAlreadyHasCredential_ReturnsForbidden()
+    {
+        // Arrange — tenant already has a passkey credential (setup already done)
+        var subjectId = Guid.CreateVersion7();
+        _dbContext.Subjects.Add(new SubjectEntity
+        {
+            Id = subjectId,
+            Name = "Existing",
+            Username = "existing",
+            IsActive = true,
+            IsSystemSubject = false,
+        });
+        _dbContext.PasskeyCredentials.Add(new PasskeyCredentialEntity
+        {
+            Id = Guid.CreateVersion7(),
+            TenantId = _tenantId,
+            SubjectId = subjectId,
+            CredentialId = System.Text.Encoding.UTF8.GetBytes("existing-cred"),
+            PublicKey = [],
+            SignCount = 0,
+        });
+        await _dbContext.SaveChangesAsync();
+
+        var state = new RecoveryModeState { IsSetupRequired = false };
+        var request = new SetupOptionsRequest { Username = "admin", DisplayName = "Admin" };
+
+        _tenantAccessor.Setup(t => t.IsResolved).Returns(true);
+        // Set the DbContext tenant so the query filter sees the seeded credential
+        _dbContext.TenantId = _tenantId;
+
+        // Act
+        var result = await _controller.SetupOptions(request, state);
+
+        // Assert
+        var objectResult = Assert.IsType<ObjectResult>(result.Result);
+        objectResult.StatusCode.Should().Be(403);
     }
 
     #endregion
