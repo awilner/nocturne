@@ -173,7 +173,7 @@ public class ParityTestFixture : IAsyncLifetime
                             ["ConnectionStrings:DefaultConnection"] = connectionString,
                             ["PostgreSql:ConnectionString"] = connectionString,
                             ["PostgreSql:DatabaseName"] = "nocturne_parity",
-                            ["API_SECRET"] = "test-api-secret-12chars",
+                            ["INSTANCE_KEY"] = "test-api-secret-12chars",
                             ["NIGHTSCOUT_API_SECRET"] = "test-api-secret-12chars",
                             ["DISPLAY_UNITS"] = "mg/dl",
                             ["Features:EnableExternalConnectors"] = "false",

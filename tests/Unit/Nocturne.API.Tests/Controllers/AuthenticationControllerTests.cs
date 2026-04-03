@@ -59,7 +59,7 @@ public class AuthenticationControllerTests : IClassFixture<AuthenticationTestFac
                             {
                                 InitialData = new[]
                                 {
-                                    new KeyValuePair<string, string?>("API_SECRET", apiSecret),
+                                    new KeyValuePair<string, string?>("INSTANCE_KEY", apiSecret),
                                 },
                             }
                         );
@@ -89,7 +89,7 @@ public class AuthenticationControllerTests : IClassFixture<AuthenticationTestFac
         var client = _factory
             .WithWebHostBuilder(builder =>
             {
-                builder.UseSetting("API_SECRET", apiSecret);
+                builder.UseSetting("INSTANCE_KEY", apiSecret);
             })
             .CreateClient();
 

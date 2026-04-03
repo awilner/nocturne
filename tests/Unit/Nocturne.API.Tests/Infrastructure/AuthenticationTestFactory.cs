@@ -46,7 +46,7 @@ public class AuthenticationTestFactory : WebApplicationFactory<Nocturne.API.Prog
                         ["Logging:LogLevel:Microsoft"] = "Error",
                         ["Logging:LogLevel:System"] = "Error",
 
-                        ["API_SECRET"] = "test-api-secret-for-authentication-tests",
+                        ["INSTANCE_KEY"] = "test-api-secret-for-authentication-tests",
                     }
                 );
             }

@@ -42,7 +42,7 @@ public class V1AuthenticationRegressionTests : IClassFixture<AuthenticationTestF
                         {
                             InitialData = new[]
                             {
-                                new KeyValuePair<string, string?>("API_SECRET", TestApiSecret),
+                                new KeyValuePair<string, string?>("INSTANCE_KEY", TestApiSecret),
                             },
                         });
                 });
@@ -60,7 +60,7 @@ public class V1AuthenticationRegressionTests : IClassFixture<AuthenticationTestF
                         {
                             InitialData = new[]
                             {
-                                new KeyValuePair<string, string?>("API_SECRET", TestApiSecret),
+                                new KeyValuePair<string, string?>("INSTANCE_KEY", TestApiSecret),
                             },
                         });
                 });
@@ -288,7 +288,7 @@ public class V1AuthenticationRegressionTests : IClassFixture<AuthenticationTestF
                         {
                             InitialData = new[]
                             {
-                                new KeyValuePair<string, string?>("API_SECRET", TestApiSecret),
+                                new KeyValuePair<string, string?>("INSTANCE_KEY", TestApiSecret),
                             },
                         });
                 });
