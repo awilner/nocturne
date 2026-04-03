@@ -386,11 +386,10 @@ public class PasskeyServiceTests
         var fido2 = new Fido2NetLib.Fido2(fido2Config);
 
         var dataProtectionProvider = new EphemeralDataProtectionProvider();
-        var httpContextAccessor = new HttpContextAccessor();
         var fido2Options = Options.Create(fido2Config);
         var logger = NullLogger<PasskeyService>.Instance;
 
-        return new PasskeyService(_dbContext, fido2, dataProtectionProvider, httpContextAccessor, fido2Options, logger);
+        return new PasskeyService(_dbContext, fido2, dataProtectionProvider, fido2Options, logger);
     }
 
     private static PasskeyCredentialEntity CreateCredentialEntity(
