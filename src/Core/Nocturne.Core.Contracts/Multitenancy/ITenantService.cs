@@ -46,6 +46,7 @@ public record ProvisionCredentialData(
     string PublicKey,
     uint SignCount,
     List<string> Transports,
-    Guid? AaGuid);
+    Guid? AaGuid,
+    Guid? SubjectId);
 
 public record ProvisionResult(Guid TenantId, Guid SubjectId, string Slug);

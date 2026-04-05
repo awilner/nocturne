@@ -374,7 +374,7 @@ public partial class TenantService : ITenantService
                 {
                     subject = new SubjectEntity
                     {
-                        Id = Guid.CreateVersion7(),
+                        Id = credential.SubjectId ?? Guid.CreateVersion7(),
                         Name = ownerUsername,
                         Username = ownerUsername.ToLowerInvariant(),
                         Email = ownerEmail,
