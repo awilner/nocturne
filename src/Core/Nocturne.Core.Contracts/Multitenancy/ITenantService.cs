@@ -7,6 +7,7 @@ public interface ITenantService
     Task<List<TenantDto>> GetAllAsync(CancellationToken ct = default);
     Task<TenantDetailDto?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<TenantDto> UpdateAsync(Guid id, string displayName, bool isActive, bool? allowAccessRequests = null, CancellationToken ct = default);
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
     Task AddMemberAsync(Guid tenantId, Guid subjectId, List<Guid> roleIds, List<string>? directPermissions = null, string? label = null, bool limitTo24Hours = false, CancellationToken ct = default);
     Task RemoveMemberAsync(Guid tenantId, Guid subjectId, CancellationToken ct = default);
     Task<List<TenantDto>> GetTenantsForSubjectAsync(Guid subjectId, CancellationToken ct = default);

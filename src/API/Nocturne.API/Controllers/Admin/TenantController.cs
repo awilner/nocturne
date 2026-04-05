@@ -150,6 +150,16 @@ public class TenantController : ControllerBase
         return revoked ? NoContent() : NotFound();
     }
 
+    [HttpDelete("{id:guid}")]
+    [RemoteCommand(Invalidates = ["GetAll"])]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await _tenantService.DeleteAsync(id, ct);
+        return NoContent();
+    }
+
     [HttpPost("provision")]
     [RemoteCommand(Invalidates = ["GetAll"])]
     [ProducesResponseType(typeof(ProvisionResult), StatusCodes.Status201Created)]

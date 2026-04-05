@@ -154,6 +154,22 @@ public partial class TenantService : ITenantService
         return ToDto(tenant);
     }
 
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        await using var context = await _factory.CreateDbContextAsync(ct);
+        var tenant = await context.Tenants.FindAsync([id], ct)
+            ?? throw new KeyNotFoundException($"Tenant {id} not found");
+
+        if (tenant.IsDefault)
+            throw new InvalidOperationException("Cannot delete the default tenant");
+
+        context.Tenants.Remove(tenant);
+        await context.SaveChangesAsync(ct);
+
+        // Invalidate cached tenant context
+        _cache.Remove($"tenant:{tenant.Slug}");
+    }
+
     public async Task AddMemberAsync(
         Guid tenantId, Guid subjectId, List<Guid> roleIds, List<string>? directPermissions = null,
         string? label = null, bool limitTo24Hours = false, CancellationToken ct = default)
