@@ -40,4 +40,7 @@ public class HomeAssistantConnectorConfiguration : BaseConnectorConfiguration
 
     [ConnectorProperty(ConnectorPropertyKey.WebhookEnabled)]
     public bool WebhookEnabled { get; set; } = false;
+
+    [ConnectorProperty(ConnectorPropertyKey.WebhookSecret, Secret = true)]
+    public string WebhookSecret { get; set; } = string.Empty;
 }
