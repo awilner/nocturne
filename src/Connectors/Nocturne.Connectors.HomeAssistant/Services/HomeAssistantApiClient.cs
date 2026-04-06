@@ -16,6 +16,8 @@ public class HomeAssistantApiClient(HttpClient httpClient, ILogger<HomeAssistant
     public virtual async Task<HomeAssistantStateResponse?> GetStateAsync(
         string entityId, CancellationToken ct = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(entityId);
+
         var response = await httpClient.GetAsync($"/api/states/{entityId}", ct);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
@@ -32,6 +34,8 @@ public class HomeAssistantApiClient(HttpClient httpClient, ILogger<HomeAssistant
         string entityId, string state, Dictionary<string, object> attributes,
         CancellationToken ct = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(entityId);
+
         var payload = new { state, attributes };
         var response = await httpClient.PostAsJsonAsync(
             $"/api/states/{entityId}", payload, JsonOptions, ct);

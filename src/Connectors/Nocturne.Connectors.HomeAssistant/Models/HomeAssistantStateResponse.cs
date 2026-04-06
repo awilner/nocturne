@@ -14,8 +14,8 @@ public class HomeAssistantStateResponse
     public Dictionary<string, object?> Attributes { get; init; } = new();
 
     [JsonPropertyName("last_changed")]
-    public DateTime LastChanged { get; init; }
+    public DateTimeOffset LastChanged { get; init; }
 
     [JsonPropertyName("last_updated")]
-    public DateTime LastUpdated { get; init; }
+    public DateTimeOffset LastUpdated { get; init; }
 }
