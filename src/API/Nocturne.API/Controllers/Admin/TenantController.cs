@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OpenApi.Remote.Attributes;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models.Authorization;
+using Nocturne.Infrastructure.Data;
 
 namespace Nocturne.API.Controllers.Admin;
 
@@ -90,10 +92,21 @@ public class TenantController : ControllerBase
     [RemoteCommand(Invalidates = ["GetById"])]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> RemoveMember(Guid id, Guid subjectId, CancellationToken ct)
+    public async Task<IActionResult> RemoveMember(
+        Guid id, Guid subjectId,
+        [FromServices] NocturneDbContext dbContext,
+        CancellationToken ct)
     {
         if (!await IsCallerTenantOwnerAsync(id, ct))
             return Forbid();
+
+        var member = await dbContext.TenantMembers
+            .Include(m => m.Subject)
+            .Where(m => m.TenantId == id && m.SubjectId == subjectId)
+            .FirstOrDefaultAsync(ct);
+
+        if (member?.Subject?.IsSystemSubject == true)
+            return Problem(detail: "Cannot remove system subject memberships", statusCode: 400, title: "Bad Request");
 
         await _tenantService.RemoveMemberAsync(id, subjectId, ct);
         return NoContent();

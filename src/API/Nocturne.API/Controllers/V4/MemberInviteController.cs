@@ -5,6 +5,7 @@ using OpenApi.Remote.Attributes;
 using Nocturne.API.Extensions;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models.Authorization;
+using Nocturne.API.Services.Auth;
 using Nocturne.Infrastructure.Data;
 using Nocturne.Infrastructure.Data.Entities;
 
@@ -123,7 +124,11 @@ public class MemberInviteController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> SetMemberRoles(Guid id, [FromBody] SetMemberRolesRequest request, CancellationToken ct)
+    public async Task<IActionResult> SetMemberRoles(
+        Guid id,
+        [FromBody] SetMemberRolesRequest request,
+        [FromServices] PublicAccessCacheService publicAccessCache,
+        CancellationToken ct)
     {
         if (!HasPermission(TenantPermissions.MembersManage))
             return Forbid();
@@ -131,6 +136,7 @@ public class MemberInviteController : ControllerBase
         var tenantId = _tenantAccessor.TenantId;
         var member = await _dbContext.TenantMembers
             .Include(m => m.MemberRoles)
+            .Include(m => m.Subject)
             .Where(m => m.Id == id && m.TenantId == tenantId && m.RevokedAt == null)
             .FirstOrDefaultAsync(ct);
 
@@ -168,6 +174,9 @@ public class MemberInviteController : ControllerBase
         member.SysUpdatedAt = now;
         await _dbContext.SaveChangesAsync(ct);
 
+        if (member.Subject?.IsSystemSubject == true && member.Subject.Name == "Public")
+            publicAccessCache.Evict(tenantId);
+
         return NoContent();
     }
 
@@ -179,7 +188,11 @@ public class MemberInviteController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> SetMemberPermissions(Guid id, [FromBody] SetMemberPermissionsRequest request, CancellationToken ct)
+    public async Task<IActionResult> SetMemberPermissions(
+        Guid id,
+        [FromBody] SetMemberPermissionsRequest request,
+        [FromServices] PublicAccessCacheService publicAccessCache,
+        CancellationToken ct)
     {
         if (!HasPermission(TenantPermissions.MembersManage))
             return Forbid();
@@ -187,6 +200,7 @@ public class MemberInviteController : ControllerBase
         var tenantId = _tenantAccessor.TenantId;
         var member = await _dbContext.TenantMembers
             .Include(m => m.MemberRoles)
+            .Include(m => m.Subject)
             .Where(m => m.Id == id && m.TenantId == tenantId && m.RevokedAt == null)
             .FirstOrDefaultAsync(ct);
 
@@ -199,6 +213,9 @@ public class MemberInviteController : ControllerBase
         member.DirectPermissions = request.DirectPermissions;
         member.SysUpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(ct);
+
+        if (member.Subject?.IsSystemSubject == true && member.Subject.Name == "Public")
+            publicAccessCache.Evict(tenantId);
 
         return NoContent();
     }
@@ -228,6 +245,42 @@ public class MemberInviteController : ControllerBase
         return Ok(permissions);
     }
 
+    /// <summary>
+    /// Update the 24-hour data limit for a member.
+    /// </summary>
+    [HttpPut("members/{id:guid}/limit-to-24-hours")]
+    [RemoteCommand(Invalidates = ["GetMembers"])]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetMemberLimitTo24Hours(
+        Guid id,
+        [FromBody] SetMemberLimitTo24HoursRequest request,
+        [FromServices] PublicAccessCacheService publicAccessCache,
+        CancellationToken ct)
+    {
+        if (!HasPermission(TenantPermissions.MembersManage))
+            return Forbid();
+
+        var tenantId = _tenantAccessor.TenantId;
+        var member = await _dbContext.TenantMembers
+            .Include(m => m.Subject)
+            .Where(m => m.Id == id && m.TenantId == tenantId && m.RevokedAt == null)
+            .FirstOrDefaultAsync(ct);
+
+        if (member == null)
+            return NotFound();
+
+        member.LimitTo24Hours = request.LimitTo24Hours;
+        member.SysUpdatedAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(ct);
+
+        if (member.Subject?.IsSystemSubject == true && member.Subject.Name == "Public")
+            publicAccessCache.Evict(tenantId);
+
+        return NoContent();
+    }
+
     private bool HasPermission(string permission)
     {
         var grantedScopes = HttpContext.Items["GrantedScopes"] as IReadOnlySet<string>;
@@ -238,3 +291,4 @@ public class MemberInviteController : ControllerBase
 
 public record SetMemberRolesRequest(List<Guid> RoleIds);
 public record SetMemberPermissionsRequest(List<string>? DirectPermissions);
+public record SetMemberLimitTo24HoursRequest(bool LimitTo24Hours);
