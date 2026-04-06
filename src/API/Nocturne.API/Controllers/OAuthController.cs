@@ -23,11 +23,9 @@ public class OAuthController : ControllerBase
     private readonly IOAuthGrantService _grantService;
     private readonly IOAuthTokenService _tokenService;
     private readonly IOAuthDeviceCodeService _deviceCodeService;
-    private readonly IFollowerInviteService _inviteService;
     private readonly ISubjectService _subjectService;
     private readonly IJwtService _jwtService;
     private readonly IOAuthTokenRevocationCache _revocationCache;
-    private readonly ILocalIdentityService _localIdentityService;
     private readonly ILogger<OAuthController> _logger;
 
     /// <summary>
@@ -38,11 +36,9 @@ public class OAuthController : ControllerBase
         IOAuthGrantService grantService,
         IOAuthTokenService tokenService,
         IOAuthDeviceCodeService deviceCodeService,
-        IFollowerInviteService inviteService,
         ISubjectService subjectService,
         IJwtService jwtService,
         IOAuthTokenRevocationCache revocationCache,
-        ILocalIdentityService localIdentityService,
         ILogger<OAuthController> logger
     )
     {
@@ -50,11 +46,9 @@ public class OAuthController : ControllerBase
         _grantService = grantService;
         _tokenService = tokenService;
         _deviceCodeService = deviceCodeService;
-        _inviteService = inviteService;
         _subjectService = subjectService;
         _jwtService = jwtService;
         _revocationCache = revocationCache;
-        _localIdentityService = localIdentityService;
         _logger = logger;
     }
 
@@ -714,167 +708,6 @@ public class OAuthController : ControllerBase
     }
 
     /// <summary>
-    /// Create a follower grant (share data with another user by email).
-    /// </summary>
-    [HttpPost("grants/follower")]
-    [Consumes("application/json")]
-    [ProducesResponseType(typeof(OAuthGrantDto), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(OAuthError), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<OAuthGrantDto>> CreateFollowerGrant(
-        [FromBody] CreateFollowerGrantRequest request
-    )
-    {
-        if (!HttpContext.IsAuthenticated())
-        {
-            return Unauthorized(new OAuthError
-            {
-                Error = "access_denied",
-                ErrorDescription = "User is not authenticated.",
-            });
-        }
-
-        var subjectId = HttpContext.GetSubjectId();
-        if (subjectId == null)
-        {
-            return Unauthorized(new OAuthError
-            {
-                Error = "access_denied",
-                ErrorDescription = "Could not determine authenticated user.",
-            });
-        }
-
-        // Validate required fields
-        if (string.IsNullOrWhiteSpace(request.FollowerEmail))
-        {
-            return BadRequest(new OAuthError
-            {
-                Error = "invalid_request",
-                ErrorDescription = "Follower email is required.",
-            });
-        }
-
-        if (request.Scopes == null || request.Scopes.Count == 0)
-        {
-            return BadRequest(new OAuthError
-            {
-                Error = "invalid_request",
-                ErrorDescription = "At least one scope is required.",
-            });
-        }
-
-        // Look up follower subject by email
-        var subjects = await _subjectService.GetSubjectsAsync(new SubjectFilter
-        {
-            EmailContains = request.FollowerEmail,
-            Limit = 100,
-        });
-        var follower = subjects.FirstOrDefault(s =>
-            string.Equals(s.Email, request.FollowerEmail, StringComparison.OrdinalIgnoreCase));
-
-        // If follower doesn't exist and a temporary password is provided, create them
-        if (follower == null && !string.IsNullOrWhiteSpace(request.TemporaryPassword))
-        {
-            try
-            {
-                var registrationResult = await _localIdentityService.RegisterAsync(
-                    email: request.FollowerEmail,
-                    password: request.TemporaryPassword,
-                    displayName: request.FollowerDisplayName ?? request.FollowerEmail,
-                    skipAllowlistCheck: true,
-                    autoVerifyEmail: true
-                );
-
-                if (!registrationResult.Success)
-                {
-                    return BadRequest(new OAuthError
-                    {
-                        Error = "registration_failed",
-                        ErrorDescription = registrationResult.ErrorMessage ?? "Failed to create follower account.",
-                    });
-                }
-
-                // Set temporary password flag
-                await _localIdentityService.SetTemporaryPasswordAsync(
-                    registrationResult.User!.Id,
-                    request.TemporaryPassword,
-                    subjectId.Value
-                );
-
-                // Assign follower role
-                if (registrationResult.SubjectId.HasValue)
-                {
-                    await _subjectService.AssignRoleAsync(
-                        registrationResult.SubjectId.Value,
-                        "follower",
-                        subjectId.Value
-                    );
-                }
-
-                // Get the newly created subject
-                follower = await _subjectService.GetSubjectByIdAsync(registrationResult.SubjectId!.Value);
-
-                _logger.LogInformation(
-                    "Created follower account for {Email} by admin {AdminId}",
-                    request.FollowerEmail,
-                    subjectId.Value
-                );
-            }
-            catch (OperationCanceledException)
-            {
-                // Preserve cancellation semantics so upstream middleware can handle it appropriately.
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to create follower account for {Email}", request.FollowerEmail);
-                return BadRequest(new OAuthError
-                {
-                    Error = "creation_failed",
-                    ErrorDescription = "Failed to create follower account.",
-                });
-            }
-        }
-
-        if (follower == null)
-        {
-            return BadRequest(new OAuthError
-            {
-                Error = "invalid_request",
-                ErrorDescription = "Follower not found.",
-            });
-        }
-
-        if (follower.Id == subjectId.Value)
-        {
-            return BadRequest(new OAuthError
-            {
-                Error = "invalid_request",
-                ErrorDescription = "Cannot create a follower grant for yourself.",
-            });
-        }
-
-        try
-        {
-            var grant = await _grantService.CreateFollowerGrantAsync(
-                subjectId.Value,
-                follower.Id,
-                request.Scopes,
-                request.Label
-            );
-
-            return StatusCode(StatusCodes.Status201Created, MapToDto(grant));
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new OAuthError
-            {
-                Error = "invalid_scope",
-                ErrorDescription = ex.Message,
-            });
-        }
-    }
-
-    /// <summary>
     /// Update a grant's label and/or scopes.
     /// </summary>
     [HttpPatch("grants/{grantId}")]
@@ -936,294 +769,6 @@ public class OAuthController : ControllerBase
     }
 
     /// <summary>
-    /// List data owners that the authenticated user can view as a follower.
-    /// Used by the frontend to populate the "Viewing data for:" selector.
-    /// </summary>
-    [HttpGet("follower-targets")]
-    [ProducesResponseType(typeof(FollowerTargetListResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult<FollowerTargetListResponse>> GetFollowerTargets()
-    {
-        if (!HttpContext.IsAuthenticated())
-        {
-            return Unauthorized(new OAuthError
-            {
-                Error = "access_denied",
-                ErrorDescription = "User is not authenticated.",
-            });
-        }
-
-        var subjectId = HttpContext.GetSubjectId();
-        if (subjectId == null)
-        {
-            return Unauthorized(new OAuthError
-            {
-                Error = "access_denied",
-                ErrorDescription = "Could not determine authenticated user.",
-            });
-        }
-
-        var grants = await _grantService.GetGrantsAsFollowerAsync(subjectId.Value);
-
-        var targets = new List<FollowerTargetDto>();
-        foreach (var grant in grants)
-        {
-            // Look up the data owner's info
-            var owner = await _subjectService.GetSubjectByIdAsync(grant.SubjectId);
-            targets.Add(new FollowerTargetDto
-            {
-                SubjectId = grant.SubjectId,
-                DisplayName = owner?.Name,
-                Email = owner?.Email,
-                Scopes = grant.Scopes,
-                Label = grant.Label,
-            });
-        }
-
-        return Ok(new FollowerTargetListResponse { Targets = targets });
-    }
-
-    // ============================================================================
-    // Follower Invite Endpoints
-    // ============================================================================
-
-    /// <summary>
-    /// Create a follower invite link.
-    /// The link can be shared with someone who doesn't have an account yet.
-    /// </summary>
-    [HttpPost("invites")]
-    [Consumes("application/json")]
-    [ProducesResponseType(typeof(CreateInviteResponse), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(OAuthError), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<CreateInviteResponse>> CreateInvite(
-        [FromBody] CreateInviteRequest request)
-    {
-        if (!HttpContext.IsAuthenticated())
-        {
-            return Unauthorized(new OAuthError
-            {
-                Error = "access_denied",
-                ErrorDescription = "User is not authenticated.",
-            });
-        }
-
-        var subjectId = HttpContext.GetSubjectId();
-        if (subjectId == null)
-        {
-            return Unauthorized(new OAuthError
-            {
-                Error = "access_denied",
-                ErrorDescription = "Could not determine authenticated user.",
-            });
-        }
-
-        if (request.Scopes == null || request.Scopes.Count == 0)
-        {
-            return BadRequest(new OAuthError
-            {
-                Error = "invalid_request",
-                ErrorDescription = "At least one scope is required.",
-            });
-        }
-
-        try
-        {
-            TimeSpan? expiresIn = request.ExpiresInDays.HasValue
-                ? TimeSpan.FromDays(request.ExpiresInDays.Value)
-                : null;
-
-            var result = await _inviteService.CreateInviteAsync(
-                subjectId.Value,
-                request.Scopes,
-                request.Label,
-                expiresIn,
-                request.MaxUses,
-                request.LimitTo24Hours);
-
-            return StatusCode(StatusCodes.Status201Created, new CreateInviteResponse
-            {
-                Id = result.Id,
-                Token = result.Token,
-                InviteUrl = result.InviteUrl,
-                ExpiresAt = result.ExpiresAt,
-            });
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new OAuthError
-            {
-                Error = "invalid_scope",
-                ErrorDescription = ex.Message,
-            });
-        }
-    }
-
-    /// <summary>
-    /// List invites created by the authenticated user.
-    /// </summary>
-    [HttpGet("invites")]
-    [ProducesResponseType(typeof(InviteListResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult<InviteListResponse>> ListInvites()
-    {
-        if (!HttpContext.IsAuthenticated())
-        {
-            return Unauthorized(new OAuthError
-            {
-                Error = "access_denied",
-                ErrorDescription = "User is not authenticated.",
-            });
-        }
-
-        var subjectId = HttpContext.GetSubjectId();
-        if (subjectId == null)
-        {
-            return Unauthorized(new OAuthError
-            {
-                Error = "access_denied",
-                ErrorDescription = "Could not determine authenticated user.",
-            });
-        }
-
-        var invites = await _inviteService.GetInvitesForOwnerAsync(subjectId.Value);
-
-        return Ok(new InviteListResponse
-        {
-            Invites = invites.Select(i => new InviteDto
-            {
-                Id = i.Id,
-                Scopes = i.Scopes,
-                Label = i.Label,
-                ExpiresAt = i.ExpiresAt,
-                MaxUses = i.MaxUses,
-                UseCount = i.UseCount,
-                CreatedAt = i.CreatedAt,
-                IsValid = i.IsValid,
-                IsExpired = i.IsExpired,
-                IsRevoked = i.IsRevoked,
-                LimitTo24Hours = i.LimitTo24Hours,
-                UsedBy = i.UsedBy.Select(u => new InviteUsageDto
-                {
-                    FollowerSubjectId = u.FollowerSubjectId,
-                    FollowerName = u.FollowerName,
-                    FollowerEmail = u.FollowerEmail,
-                    UsedAt = u.UsedAt,
-                }).ToList(),
-            }).ToList(),
-        });
-    }
-
-    /// <summary>
-    /// Revoke an invite so it can no longer be used.
-    /// </summary>
-    [HttpDelete("invites/{inviteId}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> RevokeInvite(Guid inviteId)
-    {
-        if (!HttpContext.IsAuthenticated())
-        {
-            return Unauthorized(new OAuthError
-            {
-                Error = "access_denied",
-                ErrorDescription = "User is not authenticated.",
-            });
-        }
-
-        var subjectId = HttpContext.GetSubjectId();
-        if (subjectId == null)
-        {
-            return Unauthorized(new OAuthError
-            {
-                Error = "access_denied",
-                ErrorDescription = "Could not determine authenticated user.",
-            });
-        }
-
-        await _inviteService.RevokeInviteAsync(inviteId, subjectId.Value);
-        return NoContent();
-    }
-
-    /// <summary>
-    /// Get invite details by token (for the accept page).
-    /// This is a public endpoint so invitees can see what they're accepting.
-    /// </summary>
-    [HttpGet("invites/{token}/info")]
-    [AllowAnonymous]
-    [ProducesResponseType(typeof(InviteInfoResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<InviteInfoResponse>> GetInviteInfo(string token)
-    {
-        var invite = await _inviteService.GetInviteByTokenAsync(token);
-
-        if (invite == null)
-        {
-            return NotFound(new OAuthError
-            {
-                Error = "not_found",
-                ErrorDescription = "Invite not found or has expired.",
-            });
-        }
-
-        return Ok(new InviteInfoResponse
-        {
-            OwnerName = invite.OwnerName,
-            OwnerEmail = invite.OwnerEmail,
-            Scopes = invite.Scopes,
-            Label = invite.Label,
-            ExpiresAt = invite.ExpiresAt,
-            IsValid = invite.IsValid,
-            IsExpired = invite.IsExpired,
-            IsRevoked = invite.IsRevoked,
-            LimitTo24Hours = invite.LimitTo24Hours,
-        });
-    }
-
-    /// <summary>
-    /// Accept an invite and create the follower grant.
-    /// Requires authentication - the invitee must be logged in.
-    /// </summary>
-    [HttpPost("invites/{token}/accept")]
-    [ProducesResponseType(typeof(AcceptInviteResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(OAuthError), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<AcceptInviteResponse>> AcceptInvite(string token)
-    {
-        if (!HttpContext.IsAuthenticated())
-        {
-            return Unauthorized(new OAuthError
-            {
-                Error = "access_denied",
-                ErrorDescription = "You must be logged in to accept an invite.",
-            });
-        }
-
-        var subjectId = HttpContext.GetSubjectId();
-        if (subjectId == null)
-        {
-            return Unauthorized(new OAuthError
-            {
-                Error = "access_denied",
-                ErrorDescription = "Could not determine authenticated user.",
-            });
-        }
-
-        var result = await _inviteService.AcceptInviteAsync(token, subjectId.Value);
-
-        if (!result.Success)
-        {
-            return BadRequest(new OAuthError
-            {
-                Error = result.Error ?? "accept_failed",
-                ErrorDescription = result.ErrorDescription ?? "Failed to accept invite.",
-            });
-        }
-
-        return Ok(new AcceptInviteResponse
-        {
-            Success = true,
-            GrantId = result.GrantId,
-        });
-    }
-
-    /// <summary>
     /// Token introspection endpoint (RFC 7662).
     /// Returns metadata about a token including its active status, scopes, and subject.
     /// Per RFC 7662, always returns 200 OK; invalid tokens get active=false.
@@ -1282,14 +827,10 @@ public class OAuthController : ControllerBase
         ClientId = info.ClientId,
         ClientDisplayName = info.ClientDisplayName,
         IsKnownClient = info.IsKnownClient,
-        FollowerSubjectId = info.FollowerSubjectId,
-        FollowerName = info.FollowerName,
-        FollowerEmail = info.FollowerEmail,
         Scopes = info.Scopes,
         Label = info.Label,
         CreatedAt = info.CreatedAt,
         LastUsedAt = info.LastUsedAt,
         LastUsedUserAgent = info.LastUsedUserAgent,
-        LimitTo24Hours = info.LimitTo24Hours,
     };
 }

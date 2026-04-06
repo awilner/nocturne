@@ -135,12 +135,11 @@ public class OAuthTokenService : IOAuthTokenService
         // Mark as redeemed
         authCode.RedeemedAt = DateTime.UtcNow;
 
-        // Create or update grant with 24-hour limit if specified
+        // Create or update grant
         var grant = await _grantService.CreateOrUpdateGrantAsync(
             authCode.ClientEntityId,
             authCode.SubjectId,
             authCode.Scopes,
-            limitTo24Hours: authCode.LimitTo24Hours,
             ct: ct
         );
 
@@ -420,8 +419,7 @@ public class OAuthTokenService : IOAuthTokenService
             permissions,
             roles,
             grant.Scopes,
-            grant.ClientId,
-            grant.LimitTo24Hours
+            grant.ClientId
         );
 
         // Generate and store refresh token

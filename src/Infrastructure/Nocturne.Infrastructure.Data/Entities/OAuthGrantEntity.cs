@@ -91,29 +91,6 @@ public class OAuthGrantEntity
     [Column("token_hash")]
     public string? TokenHash { get; set; }
 
-    // ------------------------------------------------------------------
-    // Legacy follower properties (removed from DB by UnifyFollowerGrantsWithTenantMembers migration).
-    // Kept as [NotMapped] to satisfy existing service code until it is fully cleaned up.
-    // ------------------------------------------------------------------
-
-    /// <summary>
-    /// [Legacy - not mapped] Follower subject ID. Follower sharing now uses TenantMembers.
-    /// </summary>
-    [NotMapped]
-    public Guid? FollowerSubjectId { get; set; }
-
-    /// <summary>
-    /// [Legacy - not mapped] Invite ID that created this grant.
-    /// </summary>
-    [NotMapped]
-    public Guid? CreatedFromInviteId { get; set; }
-
-    /// <summary>
-    /// [Legacy - not mapped] 24-hour data limit. Now tracked on TenantMemberEntity.
-    /// </summary>
-    [NotMapped]
-    public bool LimitTo24Hours { get; set; }
-
     /// <summary>
     /// Whether this grant has been revoked
     /// </summary>
@@ -131,18 +108,6 @@ public class OAuthGrantEntity
     /// The subject (user) who approved this grant
     /// </summary>
     public SubjectEntity? Subject { get; set; }
-
-    /// <summary>
-    /// [Legacy - not mapped] Follower subject navigation. Follower sharing now uses TenantMembers.
-    /// </summary>
-    [NotMapped]
-    public SubjectEntity? FollowerSubject { get; set; }
-
-    /// <summary>
-    /// [Legacy - not mapped] Invite navigation. Follower invites replaced by MemberInvites.
-    /// </summary>
-    [NotMapped]
-    public FollowerInviteEntity? CreatedFromInvite { get; set; }
 
     /// <summary>
     /// Refresh tokens issued under this grant

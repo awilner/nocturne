@@ -741,11 +741,7 @@
                             {/if}
                           </div>
                           <div class="text-sm text-muted-foreground">
-                            {#if grant.followerName}
-                              Follower: {grant.followerName}
-                            {:else}
-                              User: {grant.clientId}
-                            {/if}
+                            Client: {grant.clientId}
                           </div>
                           <div class="text-sm text-muted-foreground">
                             Scopes: {grant.scopes.join(", ")}

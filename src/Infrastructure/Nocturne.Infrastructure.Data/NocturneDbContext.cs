@@ -254,12 +254,6 @@ public class NocturneDbContext : DbContext
     public DbSet<OAuthAuthorizationCodeEntity> OAuthAuthorizationCodes { get; set; }
 
     /// <summary>
-    /// [Legacy] FollowerInvites DbSet - table dropped by UnifyFollowerGrantsWithTenantMembers migration.
-    /// Kept for compilation of legacy FollowerInviteService. Entity is ignored by EF model builder.
-    /// </summary>
-    public DbSet<FollowerInviteEntity> FollowerInvites { get; set; }
-
-    /// <summary>
     /// Gets or sets the MemberInvites table for tenant membership invite links
     /// </summary>
     public DbSet<MemberInviteEntity> MemberInvites { get; set; } = null!;
@@ -2350,10 +2344,6 @@ public class NocturneDbContext : DbContext
                 .HasForeignKey(e => e.SubjectId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-
-        // FollowerInviteEntity table was dropped by UnifyFollowerGrantsWithTenantMembers migration.
-        // Ignore it so EF doesn't try to re-create the table.
-        modelBuilder.Ignore<FollowerInviteEntity>();
 
         // Configure Member Invite entity
         modelBuilder.Entity<MemberInviteEntity>(entity =>
