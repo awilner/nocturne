@@ -254,7 +254,8 @@ public class NocturneDbContext : DbContext
     public DbSet<OAuthAuthorizationCodeEntity> OAuthAuthorizationCodes { get; set; }
 
     /// <summary>
-    /// Gets or sets the FollowerInvites table for shareable invite links
+    /// [Legacy] FollowerInvites DbSet - table dropped by UnifyFollowerGrantsWithTenantMembers migration.
+    /// Kept for compilation of legacy FollowerInviteService. Entity is ignored by EF model builder.
     /// </summary>
     public DbSet<FollowerInviteEntity> FollowerInvites { get; set; }
 
@@ -1245,18 +1246,7 @@ public class NocturneDbContext : DbContext
             .HasDatabaseName("ix_oauth_grants_revoked_at")
             .HasFilter("revoked_at IS NULL");
 
-        modelBuilder
-            .Entity<OAuthGrantEntity>()
-            .HasIndex(g => g.FollowerSubjectId)
-            .HasDatabaseName("ix_oauth_grants_follower_subject_id")
-            .HasFilter("follower_subject_id IS NOT NULL");
-
-        modelBuilder
-            .Entity<OAuthGrantEntity>()
-            .HasIndex(g => new { g.SubjectId, g.FollowerSubjectId })
-            .HasDatabaseName("ix_oauth_grants_subject_follower")
-            .HasFilter("follower_subject_id IS NOT NULL AND revoked_at IS NULL")
-            .IsUnique();
+        // FollowerSubjectId indexes removed - follower sharing now uses TenantMembers
 
         // OAuth Refresh Token indexes
         modelBuilder
@@ -2298,7 +2288,8 @@ public class NocturneDbContext : DbContext
                 .HasOne(e => e.Client)
                 .WithMany(c => c.Grants)
                 .HasForeignKey(e => e.ClientEntityId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired(false);
 
             entity
                 .HasOne(e => e.Subject)
@@ -2306,12 +2297,6 @@ public class NocturneDbContext : DbContext
                 .HasForeignKey(e => e.SubjectId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity
-                .HasOne(e => e.FollowerSubject)
-                .WithMany()
-                .HasForeignKey(e => e.FollowerSubjectId)
-                .OnDelete(DeleteBehavior.SetNull)
-                .IsRequired(false);
         });
 
         // Configure OAuth Refresh Token entity
@@ -2366,22 +2351,9 @@ public class NocturneDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // Configure Follower Invite entity
-        modelBuilder.Entity<FollowerInviteEntity>(entity =>
-        {
-            entity.Property(e => e.Id).HasValueGenerator<GuidV7ValueGenerator>();
-            entity.Property(e => e.UseCount).HasDefaultValue(0);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            entity
-                .HasOne(e => e.Owner)
-                .WithMany()
-                .HasForeignKey(e => e.OwnerSubjectId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasIndex(e => e.TokenHash);
-            entity.HasIndex(e => e.OwnerSubjectId);
-        });
+        // FollowerInviteEntity table was dropped by UnifyFollowerGrantsWithTenantMembers migration.
+        // Ignore it so EF doesn't try to re-create the table.
+        modelBuilder.Ignore<FollowerInviteEntity>();
 
         // Configure Member Invite entity
         modelBuilder.Entity<MemberInviteEntity>(entity =>

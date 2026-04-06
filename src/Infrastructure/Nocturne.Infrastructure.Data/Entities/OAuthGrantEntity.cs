@@ -18,11 +18,10 @@ public class OAuthGrantEntity
     public Guid Id { get; set; }
 
     /// <summary>
-    /// Foreign key to the OAuth client
+    /// Foreign key to the OAuth client (null for direct grants)
     /// </summary>
-    [Required]
     [Column("client_id")]
-    public Guid ClientEntityId { get; set; }
+    public Guid? ClientEntityId { get; set; }
 
     /// <summary>
     /// Foreign key to the subject (user) who approved this grant
@@ -79,29 +78,40 @@ public class OAuthGrantEntity
     public string? LastUsedUserAgent { get; set; }
 
     /// <summary>
-    /// For follower grants: the subject ID of the follower receiving access.
-    /// Null for app grants. SubjectId remains the data owner.
-    /// </summary>
-    [Column("follower_subject_id")]
-    public Guid? FollowerSubjectId { get; set; }
-
-    /// <summary>
-    /// For follower grants created from an invite: the invite ID
-    /// </summary>
-    [Column("created_from_invite_id")]
-    public Guid? CreatedFromInviteId { get; set; }
-
-    /// <summary>
     /// When this grant was revoked (soft delete for audit trail)
     /// </summary>
     [Column("revoked_at")]
     public DateTime? RevokedAt { get; set; }
 
     /// <summary>
-    /// When true, data requests using this grant should only return data from
-    /// the last 24 hours (rolling window from current request time).
+    /// SHA-256 hash of the plaintext token (for direct grants only).
+    /// Used to look up grants by token without storing the plaintext.
     /// </summary>
-    [Column("limit_to_24_hours")]
+    [MaxLength(128)]
+    [Column("token_hash")]
+    public string? TokenHash { get; set; }
+
+    // ------------------------------------------------------------------
+    // Legacy follower properties (removed from DB by UnifyFollowerGrantsWithTenantMembers migration).
+    // Kept as [NotMapped] to satisfy existing service code until it is fully cleaned up.
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// [Legacy - not mapped] Follower subject ID. Follower sharing now uses TenantMembers.
+    /// </summary>
+    [NotMapped]
+    public Guid? FollowerSubjectId { get; set; }
+
+    /// <summary>
+    /// [Legacy - not mapped] Invite ID that created this grant.
+    /// </summary>
+    [NotMapped]
+    public Guid? CreatedFromInviteId { get; set; }
+
+    /// <summary>
+    /// [Legacy - not mapped] 24-hour data limit. Now tracked on TenantMemberEntity.
+    /// </summary>
+    [NotMapped]
     public bool LimitTo24Hours { get; set; }
 
     /// <summary>
@@ -123,13 +133,15 @@ public class OAuthGrantEntity
     public SubjectEntity? Subject { get; set; }
 
     /// <summary>
-    /// The follower subject (for follower grants only)
+    /// [Legacy - not mapped] Follower subject navigation. Follower sharing now uses TenantMembers.
     /// </summary>
+    [NotMapped]
     public SubjectEntity? FollowerSubject { get; set; }
 
     /// <summary>
-    /// The invite this grant was created from (for follower grants only)
+    /// [Legacy - not mapped] Invite navigation. Follower invites replaced by MemberInvites.
     /// </summary>
+    [NotMapped]
     public FollowerInviteEntity? CreatedFromInvite { get; set; }
 
     /// <summary>
@@ -146,4 +158,5 @@ public static class OAuthGrantTypes
 {
     public const string App = OAuthScopes.GrantTypeApp;
     public const string Follower = OAuthScopes.GrantTypeFollower;
+    public const string Direct = OAuthScopes.GrantTypeDirect;
 }
