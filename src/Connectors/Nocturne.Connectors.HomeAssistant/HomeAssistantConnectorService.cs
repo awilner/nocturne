@@ -107,7 +107,26 @@ public class HomeAssistantConnectorService : BaseConnectorService<HomeAssistantC
                 if (entry == null) return false;
                 return await PublishGlucoseDataAsync([entry], config, ct);
 
-            // Additional data types added in Task 11
+            case SyncDataType.Boluses:
+                var bolus = _mapper.MapToBolus(state);
+                if (bolus == null) return false;
+                return await PublishTreatmentDataAsync([bolus], config, ct);
+
+            case SyncDataType.CarbIntake:
+                var carbs = _mapper.MapToCarbIntake(state);
+                if (carbs == null) return false;
+                return await PublishTreatmentDataAsync([carbs], config, ct);
+
+            case SyncDataType.Activity:
+                var activity = _mapper.MapToActivity(state);
+                if (activity == null) return false;
+                return await PublishActivityDataAsync([activity], config, ct);
+
+            case SyncDataType.ManualBG:
+                var bg = _mapper.MapToManualBg(state);
+                if (bg == null) return false;
+                return await PublishTreatmentDataAsync([bg], config, ct);
+
             default:
                 _logger.LogWarning("Unsupported data type {DataType} for HA sync", dataType);
                 return false;

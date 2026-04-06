@@ -9,8 +9,7 @@ namespace Nocturne.Connectors.HomeAssistant.Mappers;
 
 /// <summary>
 ///     Maps Home Assistant state responses to Nocturne domain models.
-///     Currently supports glucose sensor entities; additional data types
-///     (bolus, carbs, activity, manual BG) will be added in a future task.
+///     Supports glucose, bolus, carb intake, activity, and manual BG entities.
 /// </summary>
 public class HomeAssistantEntityMapper
 {
@@ -40,19 +39,8 @@ public class HomeAssistantEntityMapper
     /// </returns>
     public Entry? MapToEntry(HomeAssistantStateResponse state)
     {
-        if (InvalidStates.Contains(state.State))
-        {
+        if (!TryParseNumericState(state, out var value))
             return null;
-        }
-
-        if (!double.TryParse(state.State, CultureInfo.InvariantCulture, out var value))
-        {
-            _logger.LogDebug(
-                "Non-numeric state value '{State}' for entity {EntityId}, skipping",
-                state.State,
-                state.EntityId);
-            return null;
-        }
 
         var mgdl = ConvertToMgdl(value, state.Attributes);
 
@@ -64,6 +52,128 @@ public class HomeAssistantEntityMapper
             Device = DataSources.HomeAssistantConnector,
             Type = "sgv"
         };
+    }
+
+    /// <summary>
+    ///     Maps a Home Assistant state response representing a bolus insulin delivery
+    ///     to a Nocturne <see cref="Treatment" /> with <see cref="Treatment.Insulin" /> set.
+    /// </summary>
+    /// <param name="state">The Home Assistant state response to convert.</param>
+    /// <returns>
+    ///     A <see cref="Treatment" /> with the insulin value in units, or <c>null</c>
+    ///     if the state is unavailable, unknown, or non-numeric.
+    /// </returns>
+    public Treatment? MapToBolus(HomeAssistantStateResponse state)
+    {
+        if (!TryParseNumericState(state, out var value))
+            return null;
+
+        return new Treatment
+        {
+            EventType = "Correction Bolus",
+            Insulin = value,
+            Mills = state.LastChanged.ToUnixTimeMilliseconds(),
+            DataSource = DataSources.HomeAssistantConnector,
+            EnteredBy = DataSources.HomeAssistantConnector
+        };
+    }
+
+    /// <summary>
+    ///     Maps a Home Assistant state response representing a carbohydrate intake
+    ///     to a Nocturne <see cref="Treatment" /> with <see cref="Treatment.Carbs" /> set.
+    /// </summary>
+    /// <param name="state">The Home Assistant state response to convert.</param>
+    /// <returns>
+    ///     A <see cref="Treatment" /> with the carbs value in grams, or <c>null</c>
+    ///     if the state is unavailable, unknown, or non-numeric.
+    /// </returns>
+    public Treatment? MapToCarbIntake(HomeAssistantStateResponse state)
+    {
+        if (!TryParseNumericState(state, out var value))
+            return null;
+
+        return new Treatment
+        {
+            EventType = "Carb Correction",
+            Carbs = value,
+            Mills = state.LastChanged.ToUnixTimeMilliseconds(),
+            DataSource = DataSources.HomeAssistantConnector,
+            EnteredBy = DataSources.HomeAssistantConnector
+        };
+    }
+
+    /// <summary>
+    ///     Maps a Home Assistant state response representing an activity sensor
+    ///     to a Nocturne <see cref="Activity" />.
+    /// </summary>
+    /// <param name="state">The Home Assistant state response to convert.</param>
+    /// <returns>
+    ///     An <see cref="Activity" /> with the duration set, or <c>null</c>
+    ///     if the state is unavailable, unknown, or non-numeric.
+    /// </returns>
+    public Activity? MapToActivity(HomeAssistantStateResponse state)
+    {
+        if (!TryParseNumericState(state, out var value))
+            return null;
+
+        return new Activity
+        {
+            Mills = state.LastChanged.ToUnixTimeMilliseconds(),
+            Duration = value,
+            EnteredBy = DataSources.HomeAssistantConnector
+        };
+    }
+
+    /// <summary>
+    ///     Maps a Home Assistant state response representing a manual blood glucose reading
+    ///     to a Nocturne <see cref="Treatment" /> with <see cref="Treatment.Glucose" /> set.
+    ///     Performs mmol/L to mg/dL conversion when the unit_of_measurement attribute indicates mmol/L.
+    /// </summary>
+    /// <param name="state">The Home Assistant state response to convert.</param>
+    /// <returns>
+    ///     A <see cref="Treatment" /> with the glucose value in mg/dL, or <c>null</c>
+    ///     if the state is unavailable, unknown, or non-numeric.
+    /// </returns>
+    public Treatment? MapToManualBg(HomeAssistantStateResponse state)
+    {
+        if (!TryParseNumericState(state, out var value))
+            return null;
+
+        var mgdl = ConvertToMgdl(value, state.Attributes);
+
+        return new Treatment
+        {
+            EventType = "BG Check",
+            Glucose = mgdl,
+            GlucoseType = "Finger",
+            Units = "mg/dl",
+            Mills = state.LastChanged.ToUnixTimeMilliseconds(),
+            DataSource = DataSources.HomeAssistantConnector,
+            EnteredBy = DataSources.HomeAssistantConnector
+        };
+    }
+
+    /// <summary>
+    ///     Attempts to parse the state value as a numeric double.
+    ///     Returns false for unavailable, unknown, or non-numeric states.
+    /// </summary>
+    private bool TryParseNumericState(HomeAssistantStateResponse state, out double value)
+    {
+        value = 0;
+
+        if (InvalidStates.Contains(state.State))
+            return false;
+
+        if (!double.TryParse(state.State, CultureInfo.InvariantCulture, out value))
+        {
+            _logger.LogDebug(
+                "Non-numeric state value '{State}' for entity {EntityId}, skipping",
+                state.State,
+                state.EntityId);
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>
