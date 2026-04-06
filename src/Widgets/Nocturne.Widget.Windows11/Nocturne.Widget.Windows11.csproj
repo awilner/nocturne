@@ -18,6 +18,7 @@
     <RootNamespace>Nocturne.Widget.Windows11</RootNamespace>
     <AssemblyName>Nocturne.Widget.Windows11</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
 
     <!-- Windows App SDK Configuration - Single-project MSIX packaging -->
     <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
