@@ -39,12 +39,6 @@ public static class HttpContextExtensions
     /// <returns>True if permission is granted</returns>
     public static bool HasPermission(this HttpContext context, string permission)
     {
-        var authContext = context.GetAuthContext();
-        if (authContext == null || !authContext.IsAuthenticated)
-        {
-            return false;
-        }
-
         var permissionTrie = context.Items["PermissionTrie"] as PermissionTrie;
         if (permissionTrie == null)
         {
