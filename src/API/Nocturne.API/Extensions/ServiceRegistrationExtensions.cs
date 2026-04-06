@@ -157,6 +157,7 @@ public static class ServiceRegistrationExtensions
 
         // Recovery mode (detects orphaned subjects on upgrade)
         services.AddSingleton<RecoveryModeState>();
+        services.AddSingleton<PublicAccessCacheService>();
         services.AddHostedService<RecoveryModeCheckService>();
 
         // Passkey (WebAuthn/FIDO2) services

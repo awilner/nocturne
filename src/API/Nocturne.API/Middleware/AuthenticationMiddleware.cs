@@ -1,7 +1,10 @@
+using Microsoft.Extensions.Options;
 using Nocturne.API.Middleware.Handlers;
+using Nocturne.API.Services.Auth;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models;
 using Nocturne.Core.Models.Authorization;
+using Nocturne.Core.Models.Configuration;
 using OAuthScopes = Nocturne.Core.Models.Authorization.OAuthScopes;
 using ScopeTranslator = Nocturne.Core.Models.Authorization.ScopeTranslator;
 
@@ -18,6 +21,9 @@ public class AuthenticationMiddleware
     private readonly ILogger<AuthenticationMiddleware> _logger;
     private readonly IAuthHandler[] _handlers;
     private readonly bool _isDevelopment;
+    private readonly PublicAccessCacheService _publicAccessCacheService;
+    private readonly string _accessTokenCookieName;
+    private readonly string _refreshTokenCookieName;
 
     /// <summary>
     /// Creates a new instance of AuthenticationMiddleware
@@ -26,12 +32,17 @@ public class AuthenticationMiddleware
         RequestDelegate next,
         ILogger<AuthenticationMiddleware> logger,
         IEnumerable<IAuthHandler> handlers,
-        IHostEnvironment environment
+        IHostEnvironment environment,
+        PublicAccessCacheService publicAccessCacheService,
+        IOptions<OidcOptions> oidcOptions
     )
     {
         _next = next;
         _logger = logger;
         _isDevelopment = environment.IsDevelopment();
+        _publicAccessCacheService = publicAccessCacheService;
+        _accessTokenCookieName = oidcOptions.Value.Cookie.AccessTokenName;
+        _refreshTokenCookieName = oidcOptions.Value.Cookie.RefreshTokenName;
 
         // Sort handlers by priority (lowest first)
         _handlers = handlers.OrderBy(h => h.Priority).ToArray();
@@ -142,6 +153,40 @@ public class AuthenticationMiddleware
             }
         }
 
+        // For unauthenticated requests with a resolved tenant, try to resolve
+        // the Public system subject's permissions for public/read-only access
+        resolvedAuth = context.Items["AuthContext"] as AuthContext;
+        if (resolvedAuth is { IsAuthenticated: false }
+            && context.Items["TenantContext"] is TenantContext publicTenantCtx)
+        {
+            var publicAccess = await _publicAccessCacheService.GetPublicAccessAsync(publicTenantCtx.TenantId);
+            if (publicAccess != null)
+            {
+                var publicAuthContext = new AuthContext
+                {
+                    IsAuthenticated = false,
+                    AuthType = AuthType.None,
+                    SubjectId = publicAccess.SubjectId,
+                    TenantId = publicTenantCtx.TenantId,
+                    LimitTo24Hours = publicAccess.LimitTo24Hours,
+                };
+                context.Items["AuthContext"] = publicAuthContext;
+
+                var publicPermissionTrie = new PermissionTrie();
+                publicPermissionTrie.Add(publicAccess.EffectivePermissions.ToList());
+                context.Items["PermissionTrie"] = publicPermissionTrie;
+
+                var publicScopes = ScopeTranslator.FromPermissions(publicAccess.EffectivePermissions.ToList());
+                context.Items["GrantedScopes"] = publicScopes;
+
+                context.Items["AuthenticationContext"] = MapToLegacyContext(publicAuthContext);
+
+                _logger.LogDebug(
+                    "Public access resolved for tenant {TenantId} with {Count} permissions",
+                    publicTenantCtx.TenantId, publicAccess.EffectivePermissions.Count);
+            }
+        }
+
         await _next(context);
     }
 
@@ -184,18 +229,27 @@ public class AuthenticationMiddleware
             }
         }
 
-        // In development mode, auto-authenticate as admin when no credentials are provided
+        // In development mode, auto-authenticate as admin when a session cookie is present
+        // but no handler succeeded (e.g., expired token without refresh).
+        // When no session cookie is present, fall through to public access or unauthenticated.
         if (_isDevelopment)
         {
-            _logger.LogDebug("Development mode: auto-authenticating as admin");
-            return new AuthContext
+            var hasSessionCookie =
+                context.Request.Cookies.ContainsKey(_accessTokenCookieName) ||
+                context.Request.Cookies.ContainsKey(_refreshTokenCookieName);
+
+            if (hasSessionCookie)
             {
-                IsAuthenticated = true,
-                AuthType = AuthType.ApiSecret,
-                SubjectName = "dev-admin",
-                Permissions = ["*"],
-                Roles = ["admin"],
-            };
+                _logger.LogDebug("Development mode: auto-authenticating as admin (session cookie present)");
+                return new AuthContext
+                {
+                    IsAuthenticated = true,
+                    AuthType = AuthType.ApiSecret,
+                    SubjectName = "dev-admin",
+                    Permissions = ["*"],
+                    Roles = ["admin"],
+                };
+            }
         }
 
         return AuthContext.Unauthenticated();
