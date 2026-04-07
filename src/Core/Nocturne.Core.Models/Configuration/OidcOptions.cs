@@ -30,6 +30,12 @@ public class OidcOptions
     /// State parameter settings for CSRF protection
     /// </summary>
     public StateOptions State { get; set; } = new();
+
+    /// <summary>
+    /// Operator-defined providers. When non-empty, bypasses the database entirely
+    /// and hides provider management UI.
+    /// </summary>
+    public List<OidcProviderConfig> Providers { get; set; } = [];
 }
 
 /// <summary>

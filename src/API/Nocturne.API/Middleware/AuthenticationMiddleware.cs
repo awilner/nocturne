@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Nocturne.API.Middleware.Handlers;
 using Nocturne.API.Services.Auth;
@@ -24,6 +25,7 @@ public class AuthenticationMiddleware
     private readonly PublicAccessCacheService _publicAccessCacheService;
     private readonly string _accessTokenCookieName;
     private readonly string _refreshTokenCookieName;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     /// <summary>
     /// Creates a new instance of AuthenticationMiddleware
@@ -34,7 +36,8 @@ public class AuthenticationMiddleware
         IEnumerable<IAuthHandler> handlers,
         IHostEnvironment environment,
         PublicAccessCacheService publicAccessCacheService,
-        IOptions<OidcOptions> oidcOptions
+        IOptions<OidcOptions> oidcOptions,
+        IServiceScopeFactory scopeFactory
     )
     {
         _next = next;
@@ -43,6 +46,7 @@ public class AuthenticationMiddleware
         _publicAccessCacheService = publicAccessCacheService;
         _accessTokenCookieName = oidcOptions.Value.Cookie.AccessTokenName;
         _refreshTokenCookieName = oidcOptions.Value.Cookie.RefreshTokenName;
+        _scopeFactory = scopeFactory;
 
         // Sort handlers by priority (lowest first)
         _handlers = handlers.OrderBy(h => h.Priority).ToArray();
@@ -115,6 +119,11 @@ public class AuthenticationMiddleware
                     claims.Add(new(System.Security.Claims.ClaimTypes.Role, role));
                 }
 
+                if (authContext.IsPlatformAdmin)
+                {
+                    claims.Add(new(System.Security.Claims.ClaimTypes.Role, "platform_admin"));
+                }
+
                 foreach (var permission in authContext.Permissions)
                 {
                     claims.Add(new("permission", permission));
@@ -151,6 +160,18 @@ public class AuthenticationMiddleware
                     SetUnauthenticated(context);
                 }
             }
+        }
+
+        // Load platform admin flag from subject
+        if (resolvedAuth is { IsAuthenticated: true, SubjectId: not null })
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<Nocturne.Infrastructure.Data.NocturneDbContext>();
+            var isPlatformAdmin = await db.Subjects
+                .Where(s => s.Id == resolvedAuth.SubjectId.Value)
+                .Select(s => s.IsPlatformAdmin)
+                .FirstOrDefaultAsync();
+            resolvedAuth.IsPlatformAdmin = isPlatformAdmin;
         }
 
         // For unauthenticated requests with a resolved tenant, try to resolve
@@ -247,7 +268,8 @@ public class AuthenticationMiddleware
                     AuthType = AuthType.ApiSecret,
                     SubjectName = "dev-admin",
                     Permissions = ["*"],
-                    Roles = ["admin"],
+                    Roles = ["admin", "platform_admin"],
+                    IsPlatformAdmin = true,
                 };
             }
         }

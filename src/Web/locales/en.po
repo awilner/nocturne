@@ -1149,6 +1149,7 @@ msgstr "Delete the attribution entries entirely."
 #: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/admin/+page.svelte
+#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/admin/tenants/+page.svelte
 #: src/routes/settings/alerts/+page.svelte
 #: src/routes/settings/alerts/setup/+page.svelte
@@ -1345,6 +1346,7 @@ msgstr "Energy (kJ)"
 #: src/lib/components/profile/ProfileEditDialog.svelte
 #: src/lib/components/treatments/TreatmentEditDialog.svelte
 #: src/routes/food/FoodEditor.svelte
+#: src/routes/settings/admin/+page.svelte
 msgid "Save Changes"
 msgstr "Save Changes"
 
@@ -1508,6 +1510,7 @@ msgstr "Show hidden <0/>"
 #: src/routes/food/QuickPicksList.svelte
 #: src/routes/settings/account/+page.svelte
 #: src/routes/settings/admin/+page.svelte
+#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/security/+page.svelte
 #: src/routes/settings/trackers/+page.svelte
 #: src/routes/settings/trackers/+page.svelte
@@ -1581,6 +1584,7 @@ msgid "Untitled"
 msgstr "Untitled"
 
 #: src/routes/clock/+page.svelte
+#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/members/+page.svelte
 msgid "Edit"
 msgstr "Edit"
@@ -2814,8 +2818,6 @@ msgid "Font"
 msgstr "Font"
 
 #: src/lib/components/clock-builder/TextStyleControls.svelte
-#: src/routes/settings/admin/+page.svelte
-#: src/routes/settings/admin/+page.svelte
 msgid "System"
 msgstr "System"
 
@@ -3059,6 +3061,7 @@ msgid "Off"
 msgstr "Off"
 
 #: src/lib/components/dashboard/PredictionSettings.svelte
+#: src/routes/settings/admin/+page.svelte
 msgid "Disable"
 msgstr "Disable"
 
@@ -3071,16 +3074,19 @@ msgid "30 min"
 msgstr "30 min"
 
 #: src/lib/components/dashboard/PredictionSettings.svelte
+#: src/routes/settings/appearance/+page.svelte
 #: src/routes/settings/features/+page.svelte
 msgid "1 hour"
 msgstr "1 hour"
 
 #: src/lib/components/dashboard/PredictionSettings.svelte
+#: src/routes/settings/appearance/+page.svelte
 #: src/routes/settings/features/+page.svelte
 msgid "2 hours"
 msgstr "2 hours"
 
 #: src/lib/components/dashboard/PredictionSettings.svelte
+#: src/routes/settings/appearance/+page.svelte
 #: src/routes/settings/features/+page.svelte
 msgid "3 hours"
 msgstr "3 hours"
@@ -3535,6 +3541,7 @@ msgstr "<0/> Saving..."
 
 #: src/lib/components/entries/EntryEditDialog.svelte
 #: src/lib/components/food/AddFoodDialog.svelte
+#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/trackers/+page.svelte
 msgid "Create"
@@ -4142,7 +4149,6 @@ msgstr "Logged time"
 #: src/lib/components/layout/UserMenu.svelte
 #: src/routes/settings/access-requests/+page.svelte
 #: src/routes/settings/admin/+page.svelte
-#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/members/+page.svelte
 #: src/routes/settings/members/+page.svelte
 #: src/routes/settings/roles/+page.svelte
@@ -4259,6 +4265,7 @@ msgid "Profile Name"
 msgstr "Profile Name"
 
 #: src/lib/components/profile/ProfileEditDialog.svelte
+#: src/routes/settings/admin/+page.svelte
 msgid "Icon"
 msgstr "Icon"
 
@@ -6106,6 +6113,7 @@ msgstr "Click \"Upload Sound\" to add your own"
 #: src/lib/components/settings/CustomSoundUpload.svelte
 #: src/lib/components/treatments/TreatmentsDataTable.svelte
 #: src/routes/reports/treatments/+page.svelte
+#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/trackers/+page.svelte
 #: src/routes/settings/trackers/+page.svelte
 #: src/routes/settings/trackers/+page.svelte
@@ -6549,7 +6557,6 @@ msgstr "Adjust if you started this earlier."
 
 #: src/lib/components/trackers/TrackerCompletionDialog.svelte
 #: src/lib/components/trackers/TrackerStartDialog.svelte
-#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/admin/+page.svelte
 msgid "Notes (optional)"
@@ -10646,8 +10653,9 @@ msgstr "Public"
 msgid "Delete this subject? This action cannot be undone."
 msgstr "Delete this subject? This action cannot be undone."
 
-#~ msgid "Delete this role? This action cannot be undone."
-#~ msgstr "Delete this role? This action cannot be undone."
+#: src/routes/settings/admin/+page.svelte
+msgid "Delete this role? This action cannot be undone."
+msgstr "Delete this role? This action cannot be undone."
 
 #: src/routes/settings/admin/+page.svelte
 msgid "API - Entries"
@@ -10694,8 +10702,9 @@ msgstr "Administration"
 #~ msgid "<0/> Tokens"
 #~ msgstr "<0/> Tokens"
 
-#~ msgid "<0/> Password Resets <1/>"
-#~ msgstr "<0/> Password Resets <1/>"
+#: src/routes/settings/admin/+page.svelte
+msgid "<0/> Password Resets <1/>"
+msgstr "<0/> Password Resets <1/>"
 
 #~ msgid "Subjects"
 #~ msgstr "Subjects"
@@ -10786,26 +10795,35 @@ msgstr "{0} permission{1}"
 #~ msgid "<0/> Copy Token"
 #~ msgstr "<0/> Copy Token"
 
-#~ msgid "Pending Password Resets"
-#~ msgstr "Pending Password Resets"
+#: src/routes/settings/admin/+page.svelte
+msgid "Pending Password Resets"
+msgstr "Pending Password Resets"
 
-#~ msgid "Review password reset requests and provide temporary access."
-#~ msgstr "Review password reset requests and provide temporary access."
+#: src/routes/settings/admin/+page.svelte
+msgid "Review password reset requests and provide temporary access."
+msgstr "Review password reset requests and provide temporary access."
 
-#~ msgid "No pending password reset requests"
-#~ msgstr "No pending password reset requests"
+#: src/routes/settings/admin/+page.svelte
+msgid "No pending password reset requests"
+msgstr "No pending password reset requests"
 
-#~ msgid "IP: {0}"
-#~ msgstr "IP: {0}"
+#. placeholder {0}: request.requestedFromIp
+#: src/routes/settings/admin/+page.svelte
+msgid "IP: {0}"
+msgstr "IP: {0}"
 
-#~ msgid "Requested: {0} <0/>"
-#~ msgstr "Requested: {0} <0/>"
+#. placeholder {0}: formatDate(request.createdAt)
+#: src/routes/settings/admin/+page.svelte
+msgid "Requested: {0} <0/>"
+msgstr "Requested: {0} <0/>"
 
-#~ msgid "Set Password"
-#~ msgstr "Set Password"
+#: src/routes/settings/admin/+page.svelte
+msgid "Set Password"
+msgstr "Set Password"
 
-#~ msgid "Generate Link"
-#~ msgstr "Generate Link"
+#: src/routes/settings/admin/+page.svelte
+msgid "Generate Link"
+msgstr "Generate Link"
 
 #~ msgid "New Subject"
 #~ msgstr "New Subject"
@@ -10819,55 +10837,43 @@ msgstr "{0} permission{1}"
 #~ msgid "Update subject details and role assignments."
 #~ msgstr "Update subject details and role assignments."
 
-#: src/routes/settings/admin/+page.svelte
-#: src/routes/settings/admin/+page.svelte
-msgid "Description or notes about this subject"
-msgstr "Description or notes about this subject"
+#~ msgid "Description or notes about this subject"
+#~ msgstr "Description or notes about this subject"
 
-#: src/routes/settings/admin/+page.svelte
-#: src/routes/settings/admin/+page.svelte
-msgid "<0/> Create New Role"
-msgstr "<0/> Create New Role"
+#~ msgid "<0/> Create New Role"
+#~ msgstr "<0/> Create New Role"
 
-#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/admin/+page.svelte
 msgid "No roles available"
 msgstr "No roles available"
 
-#: src/routes/settings/admin/+page.svelte
-#: src/routes/settings/admin/+page.svelte
-msgid ""
-"For fine-grained access control, create a custom role with only the\n"
-"necessary permissions."
-msgstr ""
-"For fine-grained access control, create a custom role with only the\n"
-"necessary permissions."
+#~ msgid ""
+#~ "For fine-grained access control, create a custom role with only the\n"
+#~ "necessary permissions."
+#~ msgstr ""
+#~ "For fine-grained access control, create a custom role with only the\n"
+#~ "necessary permissions."
 
-#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/admin/+page.svelte
 msgid "Full Admin Access"
 msgstr "Full Admin Access"
 
-#: src/routes/settings/admin/+page.svelte
-#: src/routes/settings/admin/+page.svelte
-msgid ""
-"The selected role(s) grant complete control of this Nocturne\n"
-"instance, including the ability to create and delete other subjects,\n"
-"modify all data, and change system settings. Only assign this to\n"
-"trusted subjects."
-msgstr ""
-"The selected role(s) grant complete control of this Nocturne\n"
-"instance, including the ability to create and delete other subjects,\n"
-"modify all data, and change system settings. Only assign this to\n"
-"trusted subjects."
+#~ msgid ""
+#~ "The selected role(s) grant complete control of this Nocturne\n"
+#~ "instance, including the ability to create and delete other subjects,\n"
+#~ "modify all data, and change system settings. Only assign this to\n"
+#~ "trusted subjects."
+#~ msgstr ""
+#~ "The selected role(s) grant complete control of this Nocturne\n"
+#~ "instance, including the ability to create and delete other subjects,\n"
+#~ "modify all data, and change system settings. Only assign this to\n"
+#~ "trusted subjects."
 
-#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/roles/+page.svelte
 msgid "<0/> Create"
 msgstr "<0/> Create"
 
 #: src/lib/components/settings/ConnectorConfigForm.svelte
-#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/admin/tenants/+page.svelte
 #: src/routes/settings/alerts/+page.svelte
 #: src/routes/settings/roles/+page.svelte
@@ -10935,10 +10941,12 @@ msgstr "Selected Permissions ({0})"
 #~ msgstr "Use this token to authenticate API requests."
 
 #: src/routes/settings/admin/+page.svelte
+#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/support/+page.svelte
 msgid "<0/> Copied!"
 msgstr "<0/> Copied!"
 
+#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/support/+page.svelte
 msgid "<0/> Copy to Clipboard"
@@ -10957,6 +10965,7 @@ msgstr "<0/> Copy to Clipboard"
 #: src/lib/components/ui/dialog/dialog-content.svelte
 #: src/lib/components/ui/sheet/sheet-content.svelte
 #: src/routes/settings/admin/+page.svelte
+#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/connectors/+page.svelte
 #: src/routes/settings/connectors/+page.svelte
 #: src/routes/settings/connectors/+page.svelte
@@ -10965,37 +10974,46 @@ msgstr "<0/> Copy to Clipboard"
 msgid "Close"
 msgstr "Close"
 
-#~ msgid "Set Temporary Password"
-#~ msgstr "Set Temporary Password"
+#: src/routes/settings/admin/+page.svelte
+msgid "Set Temporary Password"
+msgstr "Set Temporary Password"
 
-#~ msgid ""
-#~ "Set a temporary password for {0}. They will be\n"
-#~ "required to change it on next login."
-#~ msgstr ""
-#~ "Set a temporary password for {0}. They will be\n"
-#~ "required to change it on next login."
+#. placeholder {0}: selectedResetRequest?.email
+#: src/routes/settings/admin/+page.svelte
+msgid ""
+"Set a temporary password for {0}. They will be\n"
+"required to change it on next login."
+msgstr ""
+"Set a temporary password for {0}. They will be\n"
+"required to change it on next login."
 
-#~ msgid "Temporary Password"
-#~ msgstr "Temporary Password"
+#: src/routes/settings/admin/+page.svelte
+msgid "Temporary Password"
+msgstr "Temporary Password"
 
-#~ msgid "Leave empty for no password"
-#~ msgstr "Leave empty for no password"
+#: src/routes/settings/admin/+page.svelte
+msgid "Leave empty for no password"
+msgstr "Leave empty for no password"
 
-#~ msgid ""
-#~ "Leave empty to allow login with no password. The user must set a new\n"
-#~ "password on their next login."
-#~ msgstr ""
-#~ "Leave empty to allow login with no password. The user must set a new\n"
-#~ "password on their next login."
+#: src/routes/settings/admin/+page.svelte
+msgid ""
+"Leave empty to allow login with no password. The user must set a new\n"
+"password on their next login."
+msgstr ""
+"Leave empty to allow login with no password. The user must set a new\n"
+"password on their next login."
 
-#~ msgid "<0/> Set Password"
-#~ msgstr "<0/> Set Password"
+#: src/routes/settings/admin/+page.svelte
+msgid "<0/> Set Password"
+msgstr "<0/> Set Password"
 
-#~ msgid "Password Reset Link"
-#~ msgstr "Password Reset Link"
+#: src/routes/settings/admin/+page.svelte
+msgid "Password Reset Link"
+msgstr "Password Reset Link"
 
-#~ msgid "Share this link securely with the user."
-#~ msgstr "Share this link securely with the user."
+#: src/routes/settings/admin/+page.svelte
+msgid "Share this link securely with the user."
+msgstr "Share this link securely with the user."
 
 #: src/routes/settings/data-quality/+page.svelte
 msgid "Data Quality - Settings - Nocturne"
@@ -11073,35 +11091,43 @@ msgstr "Features - Settings - Nocturne"
 msgid "Customize display options, plugins, and dashboard widgets"
 msgstr "Customize display options, plugins, and dashboard widgets"
 
+#: src/routes/settings/appearance/+page.svelte
 #: src/routes/settings/features/+page.svelte
 msgid "<0/> Chart Options"
 msgstr "<0/> Chart Options"
 
+#: src/routes/settings/appearance/+page.svelte
 #: src/routes/settings/features/+page.svelte
 msgid "Configure chart display preferences"
 msgstr "Configure chart display preferences"
 
+#: src/routes/settings/appearance/+page.svelte
 #: src/routes/settings/features/+page.svelte
 msgid "Default chart range"
 msgstr "Default chart range"
 
-#. placeholder {0}: store.features.display?.focusHours ?? 3
+#. placeholder {0}: store.features?.display?.focusHours ?? 3
 #. placeholder {0}: therapy.dia ?? "-"
 #. placeholder {0}: therapy.dia ?? "-"
+#. placeholder {0}: therapy.dia ?? "-"
+#: src/routes/settings/appearance/+page.svelte
 #: src/routes/settings/features/+page.svelte
 #: src/routes/settings/profile/+page.svelte
 #: src/routes/settings/profile/+page.svelte
 msgid "{0} hours"
 msgstr "{0} hours"
 
+#: src/routes/settings/appearance/+page.svelte
 #: src/routes/settings/features/+page.svelte
 msgid "6 hours"
 msgstr "6 hours"
 
+#: src/routes/settings/appearance/+page.svelte
 #: src/routes/settings/features/+page.svelte
 msgid "12 hours"
 msgstr "12 hours"
 
+#: src/routes/settings/appearance/+page.svelte
 #: src/routes/settings/features/+page.svelte
 msgid "24 hours"
 msgstr "24 hours"
@@ -11238,6 +11264,7 @@ msgid "BackingOff"
 msgstr "BackingOff"
 
 #: src/lib/components/connectors/ConnectorSetup.svelte
+#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/alerts/+page.svelte
 #: src/routes/settings/connectors/+page.svelte
 #: src/routes/settings/connectors/+page.svelte
@@ -11979,6 +12006,8 @@ msgstr "Emergency Contacts"
 
 #: src/lib/components/alerts/RuleEditorSheet.svelte
 #: src/lib/components/connectors/ConnectorSetup.svelte
+#: src/routes/settings/admin/+page.svelte
+#: src/routes/settings/admin/+page.svelte
 msgid "Enabled"
 msgstr "Enabled"
 
@@ -12603,10 +12632,12 @@ msgstr "Connection Failed"
 msgid "Connected successfully! Found {0} entries and {1} treatments."
 msgstr "Connected successfully! Found {0} entries and {1} treatments."
 
+#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/migration/+page.svelte
 msgid "Connection test failed"
 msgstr "Connection test failed"
 
+#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/migration/+page.svelte
 msgid "<0/> Test Connection"
 msgstr "<0/> Test Connection"
@@ -16337,17 +16368,13 @@ msgstr "Devices will appear here after users authorize them"
 msgid "Verified"
 msgstr "Verified"
 
-#. placeholder {0}: grant.followerName
-#: src/routes/settings/admin/+page.svelte
-msgid "Follower: {0}"
-msgstr "Follower: {0}"
+#~ msgid "Follower: {0}"
+#~ msgstr "Follower: {0}"
 
-#. placeholder {0}: grant.clientId
-#: src/routes/settings/admin/+page.svelte
-msgid "User: {0}"
-msgstr "User: {0}"
+#~ msgid "User: {0}"
+#~ msgstr "User: {0}"
 
-#. placeholder {0}: (grant.scopes ?? []).join(", ")
+#. placeholder {0}: grant.scopes.join(", ")
 #: src/routes/settings/admin/+page.svelte
 msgid "Scopes: {0}"
 msgstr "Scopes: {0}"
@@ -16652,6 +16679,7 @@ msgid "Label"
 msgstr "Label"
 
 #: src/lib/components/settings/ApiTokens.svelte
+#: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/api-access/+page.svelte
 msgid "Scopes"
 msgstr "Scopes"
@@ -18717,3 +18745,190 @@ msgstr ""
 #: src/routes/settings/setup/permissions/+page.svelte
 msgid "You can change these settings at any time in Settings > Members."
 msgstr "You can change these settings at any time in Settings > Members."
+
+#. placeholder {0}: grant.clientId
+#: src/routes/settings/admin/+page.svelte
+msgid "Client: {0}"
+msgstr "Client: {0}"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Additional information about this user"
+msgstr "Additional information about this user"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Predefined"
+msgstr "Predefined"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Custom Roles"
+msgstr "Custom Roles"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Use predefined roles for standard access levels. OAuth scopes provide fine-grained device permissions."
+msgstr "Use predefined roles for standard access levels. OAuth scopes provide fine-grained device permissions."
+
+#: src/routes/settings/admin/+page.svelte
+msgid ""
+"This user will have complete control of this Nocturne instance,\n"
+"including the ability to manage other users, modify all data,\n"
+"and change system settings. Only assign admin access to trusted users."
+msgstr ""
+"This user will have complete control of this Nocturne instance,\n"
+"including the ability to manage other users, modify all data,\n"
+"and change system settings. Only assign admin access to trusted users."
+
+#: src/lib/components/auth/ProviderIcon.svelte
+msgid "Provider icon"
+msgstr "Provider icon"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Failed to load identity providers"
+msgstr "Failed to load identity providers"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Failed to save provider"
+msgstr "Failed to save provider"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "This change would lock out all users. Ensure at least one authentication method remains available."
+msgstr "This change would lock out all users. Ensure at least one authentication method remains available."
+
+#. placeholder {0}: p.name
+#: src/routes/settings/admin/+page.svelte
+msgid "Delete provider \"{0}\"?"
+msgstr "Delete provider \"{0}\"?"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Failed to delete provider"
+msgstr "Failed to delete provider"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Deleting this provider would lock out all users."
+msgstr "Deleting this provider would lock out all users."
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Failed to toggle provider"
+msgstr "Failed to toggle provider"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Disabling this provider would lock out all users."
+msgstr "Disabling this provider would lock out all users."
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Test failed"
+msgstr "Test failed"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "<0/> Identity Providers <1/>"
+msgstr "<0/> Identity Providers <1/>"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Identity Providers"
+msgstr "Identity Providers"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Configure OpenID Connect providers for single sign-on."
+msgstr "Configure OpenID Connect providers for single sign-on."
+
+#: src/routes/settings/admin/+page.svelte
+msgid "<0/> Add Provider"
+msgstr "<0/> Add Provider"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "No identity providers configured."
+msgstr "No identity providers configured."
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Enable"
+msgstr "Enable"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Edit Identity Provider"
+msgstr "Edit Identity Provider"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Add Identity Provider"
+msgstr "Add Identity Provider"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Configure an OpenID Connect provider for single sign-on."
+msgstr "Configure an OpenID Connect provider for single sign-on."
+
+#: src/routes/settings/admin/+page.svelte
+msgid "My Provider"
+msgstr "My Provider"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Issuer URL"
+msgstr "Issuer URL"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Client ID"
+msgstr "Client ID"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Client Secret"
+msgstr "Client Secret"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Leave blank to keep existing"
+msgstr "Leave blank to keep existing"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Comma or space separated"
+msgstr "Comma or space separated"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Default Roles"
+msgstr "Default Roles"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Comma-separated roles assigned to new users from this provider"
+msgstr "Comma-separated roles assigned to new users from this provider"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Button Color"
+msgstr "Button Color"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Display Order"
+msgstr "Display Order"
+
+#. placeholder {0}: testResult.responseTime ? ` (${testResult.responseTime})` : ""
+#: src/routes/settings/admin/+page.svelte
+msgid "Connection successful{0}. <0/>"
+msgstr "Connection successful{0}. <0/>"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Create Provider"
+msgstr "Create Provider"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Cannot demote the last platform admin. Promote another user first."
+msgstr "Cannot demote the last platform admin. Promote another user first."
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Failed to update platform admin status."
+msgstr "Failed to update platform admin status."
+
+#: src/routes/settings/admin/+page.svelte
+msgid "<0/> Platform Admin"
+msgstr "<0/> Platform Admin"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Revoke platform admin"
+msgstr "Revoke platform admin"
+
+#: src/routes/settings/admin/+page.svelte
+msgid "Grant platform admin"
+msgstr "Grant platform admin"
+
+#. placeholder {0}: subject.name
+#: src/routes/settings/admin/+page.svelte
+msgid "Revoke platform admin from {0}"
+msgstr "Revoke platform admin from {0}"
+
+#. placeholder {0}: subject.name
+#: src/routes/settings/admin/+page.svelte
+msgid "Grant platform admin to {0}"
+msgstr "Grant platform admin to {0}"

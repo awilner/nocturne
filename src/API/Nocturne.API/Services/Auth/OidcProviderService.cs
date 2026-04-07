@@ -1,9 +1,12 @@
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Nocturne.Core.Contracts;
 using Nocturne.Core.Models.Authorization;
+using Nocturne.Core.Models.Configuration;
 using Nocturne.Infrastructure.Data;
 using Nocturne.Infrastructure.Data.Entities;
 
@@ -18,6 +21,7 @@ public class OidcProviderService : IOidcProviderService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<OidcProviderService> _logger;
     private readonly IDataProtector _clientSecretProtector;
+    private readonly OidcOptions _oidcOptions;
 
     /// <summary>
     /// Creates a new instance of OidcProviderService
@@ -26,7 +30,8 @@ public class OidcProviderService : IOidcProviderService
         NocturneDbContext dbContext,
         IHttpClientFactory httpClientFactory,
         ILogger<OidcProviderService> logger,
-        IDataProtectionProvider dataProtectionProvider
+        IDataProtectionProvider dataProtectionProvider,
+        IOptions<OidcOptions> oidcOptions
     )
     {
         _dbContext = dbContext;
@@ -35,11 +40,23 @@ public class OidcProviderService : IOidcProviderService
         _clientSecretProtector = dataProtectionProvider.CreateProtector(
             "Nocturne.API.Services.Auth.OidcProviderService.ClientSecret.v1"
         );
+        _oidcOptions = oidcOptions.Value;
     }
+
+    /// <inheritdoc />
+    public bool IsConfigManaged => _oidcOptions.Providers.Count > 0;
 
     /// <inheritdoc />
     public async Task<List<OidcProvider>> GetEnabledProvidersAsync()
     {
+        if (IsConfigManaged)
+            return _oidcOptions.Providers
+                .Where(p => p.IsEnabled)
+                .OrderBy(p => p.DisplayOrder)
+                .ThenBy(p => p.Name)
+                .Select(MapConfigToModel)
+                .ToList();
+
         var entities = await _dbContext
             .OidcProviders.Where(p => p.IsEnabled)
             .OrderBy(p => p.DisplayOrder)
@@ -52,6 +69,13 @@ public class OidcProviderService : IOidcProviderService
     /// <inheritdoc />
     public async Task<List<OidcProvider>> GetAllProvidersAsync()
     {
+        if (IsConfigManaged)
+            return _oidcOptions.Providers
+                .OrderBy(p => p.DisplayOrder)
+                .ThenBy(p => p.Name)
+                .Select(MapConfigToModel)
+                .ToList();
+
         var entities = await _dbContext
             .OidcProviders.OrderBy(p => p.DisplayOrder)
             .ThenBy(p => p.Name)
@@ -63,6 +87,11 @@ public class OidcProviderService : IOidcProviderService
     /// <inheritdoc />
     public async Task<OidcProvider?> GetProviderByIdAsync(Guid providerId)
     {
+        if (IsConfigManaged)
+            return _oidcOptions.Providers
+                .Select(MapConfigToModel)
+                .FirstOrDefault(p => p.Id == providerId);
+
         var entity = await _dbContext.OidcProviders.FindAsync(providerId);
         return entity != null ? MapToModel(entity) : null;
     }
@@ -93,7 +122,7 @@ public class OidcProviderService : IOidcProviderService
             ClientSecretEncrypted = !string.IsNullOrEmpty(provider.ClientSecret)
                 ? EncryptSecret(provider.ClientSecret)
                 : null,
-            Scopes = provider.Scopes,
+            Scopes = EnsureOpenIdScope(provider.Scopes),
             ClaimMappingsJson = JsonSerializer.Serialize(provider.ClaimMappings),
             DefaultRoles = provider.DefaultRoles,
             IsEnabled = provider.IsEnabled,
@@ -125,7 +154,7 @@ public class OidcProviderService : IOidcProviderService
             entity.ClientSecretEncrypted = EncryptSecret(provider.ClientSecret);
         }
 
-        entity.Scopes = provider.Scopes;
+        entity.Scopes = EnsureOpenIdScope(provider.Scopes);
         entity.ClaimMappingsJson = JsonSerializer.Serialize(provider.ClaimMappings);
         entity.DefaultRoles = provider.DefaultRoles;
         entity.IsEnabled = provider.IsEnabled;
@@ -180,6 +209,17 @@ public class OidcProviderService : IOidcProviderService
         bool forceRefresh = false
     )
     {
+        if (IsConfigManaged)
+        {
+            var configProvider = _oidcOptions.Providers
+                .Select(MapConfigToModel)
+                .FirstOrDefault(p => p.Id == providerId);
+            if (configProvider == null)
+                return null;
+
+            return await FetchDiscoveryDocumentAsync(configProvider.IssuerUrl);
+        }
+
         var entity = await _dbContext.OidcProviders.FindAsync(providerId);
         if (entity == null)
             return null;
@@ -222,8 +262,8 @@ public class OidcProviderService : IOidcProviderService
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         var result = new OidcProviderTestResult { Warnings = new List<string>() };
 
-        var entity = await _dbContext.OidcProviders.FindAsync(providerId);
-        if (entity == null)
+        var provider = await GetProviderByIdAsync(providerId);
+        if (provider == null)
         {
             result.Success = false;
             result.Error = "Provider not found";
@@ -232,7 +272,7 @@ public class OidcProviderService : IOidcProviderService
 
         try
         {
-            var document = await FetchDiscoveryDocumentAsync(entity.IssuerUrl);
+            var document = await FetchDiscoveryDocumentAsync(provider.IssuerUrl);
             stopwatch.Stop();
 
             if (document == null)
@@ -258,10 +298,17 @@ public class OidcProviderService : IOidcProviderService
                 result.Warnings.Add("Provider does not support RP-initiated logout");
             }
 
-            // Cache the document
-            entity.DiscoveryDocumentJson = JsonSerializer.Serialize(document);
-            entity.DiscoveryCachedAt = DateTime.UtcNow;
-            await _dbContext.SaveChangesAsync();
+            // Cache the document (DB providers only)
+            if (!IsConfigManaged)
+            {
+                var entity = await _dbContext.OidcProviders.FindAsync(providerId);
+                if (entity != null)
+                {
+                    entity.DiscoveryDocumentJson = JsonSerializer.Serialize(document);
+                    entity.DiscoveryCachedAt = DateTime.UtcNow;
+                    await _dbContext.SaveChangesAsync();
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -321,6 +368,40 @@ public class OidcProviderService : IOidcProviderService
             return null;
         }
     }
+
+    /// <summary>
+    /// Creates a deterministic GUID from an input string using SHA-1.
+    /// Used for config-defined providers so IDs survive app restarts.
+    /// </summary>
+    private static Guid CreateDeterministicGuid(string input)
+    {
+        var hash = SHA1.HashData(Encoding.UTF8.GetBytes("nocturne-oidc-provider:" + input));
+        var bytes = hash[..16];
+        bytes[6] = (byte)((bytes[6] & 0x0F) | 0x50); // version 5
+        bytes[8] = (byte)((bytes[8] & 0x3F) | 0x80); // variant
+        return new Guid(bytes);
+    }
+
+    private static List<string> EnsureOpenIdScope(List<string> scopes)
+    {
+        if (scopes.Contains("openid")) return scopes;
+        return ["openid", ..scopes];
+    }
+
+    private static OidcProvider MapConfigToModel(OidcProviderConfig config) => new()
+    {
+        Id = CreateDeterministicGuid(config.IssuerUrl),
+        Name = config.Name,
+        IssuerUrl = config.IssuerUrl.TrimEnd('/'),
+        ClientId = config.ClientId,
+        ClientSecret = config.ClientSecret,
+        Scopes = EnsureOpenIdScope(config.Scopes),
+        DefaultRoles = config.DefaultRoles,
+        IsEnabled = config.IsEnabled,
+        DisplayOrder = config.DisplayOrder,
+        Icon = config.Icon,
+        ButtonColor = config.ButtonColor,
+    };
 
     /// <summary>
     /// Map entity to domain model

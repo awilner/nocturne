@@ -16,6 +16,7 @@
   import { Checkbox } from "$lib/components/ui/checkbox";
   import {
     Shield,
+    ShieldCheck,
     Users,
     Key,
     KeyRound,
@@ -33,16 +34,63 @@
     TriangleAlert,
     Smartphone,
     Monitor,
+    ToggleLeft,
+    ToggleRight,
   } from "lucide-svelte";
   import * as Alert from "$lib/components/ui/alert";
   import * as authorizationRemote from "$lib/data/generated/authorizations.generated.remote";
   import * as adminRemote from "$lib/data/generated/localauths.generated.remote";
   import * as grantsRemote from "$lib/data/oauth.remote";
+  import * as oidcRemote from "./oidc-providers.remote";
+  import * as adminSubjectsRemote from "./admin-subjects.remote";
+  import type { PageProps } from "./$types";
+  import ProviderIcon from "$lib/components/auth/ProviderIcon.svelte";
   import { getRealtimeStore } from "$lib/stores/realtime-store.svelte";
-  import type { Subject, Role, PasswordResetRequestDto, OAuthGrantDto } from "$api";
+  import type {
+    Subject,
+    Role,
+    PasswordResetRequestDto,
+    OAuthGrantDto,
+    OidcProviderResponse,
+    OidcProviderTestResult,
+  } from "$api";
+
+  let { data }: PageProps = $props();
+  const currentUserSubjectId = $derived(data?.user?.subjectId);
 
   // Get the realtime store for reactive admin events
   const realtimeStore = getRealtimeStore();
+
+  // Platform admin toggle state
+  let platformAdminError = $state<string | null>(null);
+  let platformAdminSavingId = $state<string | null>(null);
+
+  async function togglePlatformAdmin(subject: Subject) {
+    if (!subject.id) return;
+    platformAdminError = null;
+    platformAdminSavingId = subject.id;
+    const next = !subject.isPlatformAdmin;
+    try {
+      await adminSubjectsRemote.setPlatformAdmin({
+        subjectId: subject.id,
+        isPlatformAdmin: next,
+      });
+      subjects = subjects.map((s) =>
+        s.id === subject.id ? { ...s, isPlatformAdmin: next } : s
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.includes("last_platform_admin")) {
+        platformAdminError =
+          "Cannot demote the last platform admin. Promote another user first.";
+      } else {
+        platformAdminError = "Failed to update platform admin status.";
+      }
+      console.error("Failed to set platform admin:", err);
+    } finally {
+      platformAdminSavingId = null;
+    }
+  }
 
   // State
   let activeTab = $state("users");
@@ -109,6 +157,188 @@
   const subjectCount = $derived(subjects.length);
   const roleCount = $derived(roles.length);
 
+  // ============================================================================
+  // Identity Providers (OIDC) state
+  // ============================================================================
+  let oidcProviders = $state<OidcProviderResponse[]>([]);
+  let oidcConfigManaged = $state(false);
+  let oidcLoading = $state(false);
+  let oidcError = $state<string | null>(null);
+
+  // Provider dialog
+  let isProviderDialogOpen = $state(false);
+  let editingProvider = $state<OidcProviderResponse | null>(null);
+  let providerSaving = $state(false);
+  let providerDialogError = $state<string | null>(null);
+
+  // Form fields
+  let providerName = $state("");
+  let providerIssuerUrl = $state("");
+  let providerClientId = $state("");
+  let providerClientSecret = $state("");
+  let providerScopes = $state("openid profile email");
+  let providerDefaultRoles = $state("readable");
+  let providerIcon = $state("");
+  let providerButtonColor = $state("");
+  let providerDisplayOrder = $state(0);
+  let providerIsEnabled = $state(true);
+
+  // Test connection state
+  let testingProvider = $state(false);
+  let testResult = $state<OidcProviderTestResult | null>(null);
+
+  function resetProviderForm() {
+    editingProvider = null;
+    providerName = "";
+    providerIssuerUrl = "";
+    providerClientId = "";
+    providerClientSecret = "";
+    providerScopes = "openid profile email";
+    providerDefaultRoles = "readable";
+    providerIcon = "";
+    providerButtonColor = "";
+    providerDisplayOrder = 0;
+    providerIsEnabled = true;
+    providerDialogError = null;
+    testResult = null;
+  }
+
+  function openCreateProviderDialog() {
+    resetProviderForm();
+    isProviderDialogOpen = true;
+  }
+
+  function openEditProviderDialog(p: OidcProviderResponse) {
+    resetProviderForm();
+    editingProvider = p;
+    providerName = p.name ?? "";
+    providerIssuerUrl = p.issuerUrl ?? "";
+    providerClientId = p.clientId ?? "";
+    providerClientSecret = "";
+    providerScopes = (p.scopes ?? ["openid", "profile", "email"]).join(", ");
+    providerDefaultRoles = (p.defaultRoles ?? ["readable"]).join(", ");
+    providerIcon = p.icon ?? "";
+    providerButtonColor = p.buttonColor ?? "";
+    providerDisplayOrder = p.displayOrder ?? 0;
+    providerIsEnabled = p.isEnabled ?? true;
+    isProviderDialogOpen = true;
+  }
+
+  function parseList(value: string): string[] {
+    return value
+      .split(/[,\s]+/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+  }
+
+  async function loadOidcData() {
+    oidcLoading = true;
+    oidcError = null;
+    try {
+      const [managed, providers] = await Promise.all([
+        oidcRemote.getConfigManaged(),
+        oidcRemote.getOidcProviders(),
+      ]);
+      oidcConfigManaged = managed;
+      oidcProviders = providers ?? [];
+    } catch (err) {
+      console.error("Failed to load OIDC providers:", err);
+      oidcError = "Failed to load identity providers";
+    } finally {
+      oidcLoading = false;
+    }
+  }
+
+  async function saveProvider() {
+    providerSaving = true;
+    providerDialogError = null;
+    try {
+      const scopes = parseList(providerScopes);
+      const defaultRoles = parseList(providerDefaultRoles);
+      const base = {
+        name: providerName,
+        issuerUrl: providerIssuerUrl,
+        clientId: providerClientId,
+        clientSecret: providerClientSecret || undefined,
+        scopes: scopes.length > 0 ? scopes : undefined,
+        defaultRoles: defaultRoles.length > 0 ? defaultRoles : undefined,
+        icon: providerIcon || undefined,
+        buttonColor: providerButtonColor || undefined,
+        displayOrder: providerDisplayOrder,
+        isEnabled: providerIsEnabled,
+      };
+
+      if (editingProvider?.id) {
+        await oidcRemote.updateOidcProvider({ id: editingProvider.id, ...base });
+      } else {
+        await oidcRemote.createOidcProvider(base);
+      }
+      isProviderDialogOpen = false;
+      await loadOidcData();
+    } catch (err: unknown) {
+      console.error("Failed to save provider:", err);
+      const message =
+        err instanceof Error ? err.message : "Failed to save provider";
+      providerDialogError = message.includes("would_lock_out_users")
+        ? "This change would lock out all users. Ensure at least one authentication method remains available."
+        : message;
+    } finally {
+      providerSaving = false;
+    }
+  }
+
+  async function deleteProvider(p: OidcProviderResponse) {
+    if (!p.id) return;
+    if (!confirm(`Delete provider "${p.name}"?`)) return;
+    try {
+      await oidcRemote.deleteOidcProvider(p.id);
+      await loadOidcData();
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to delete provider";
+      oidcError = message.includes("would_lock_out_users")
+        ? "Deleting this provider would lock out all users."
+        : message;
+    }
+  }
+
+  async function toggleProvider(p: OidcProviderResponse) {
+    if (!p.id) return;
+    try {
+      if (p.isEnabled) {
+        await oidcRemote.disableOidcProvider(p.id);
+      } else {
+        await oidcRemote.enableOidcProvider(p.id);
+      }
+      await loadOidcData();
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to toggle provider";
+      oidcError = message.includes("would_lock_out_users")
+        ? "Disabling this provider would lock out all users."
+        : message;
+    }
+  }
+
+  async function testProviderConnection() {
+    testingProvider = true;
+    testResult = null;
+    try {
+      testResult = await oidcRemote.testOidcProviderConfig({
+        issuerUrl: providerIssuerUrl,
+        clientId: providerClientId,
+        clientSecret: providerClientSecret || undefined,
+      });
+    } catch (err: unknown) {
+      testResult = {
+        success: false,
+        error: err instanceof Error ? err.message : "Test failed",
+      };
+    } finally {
+      testingProvider = false;
+    }
+  }
+
   // Load data
   async function loadData() {
     loading = true;
@@ -120,6 +350,7 @@
         adminRemote.getPendingPasswordResets(),
         loadAllGrants(),
       ]);
+      await loadOidcData();
       subjects = subs || [];
       roles = rols || [];
       pendingResets = resetSummary?.requests ?? [];
@@ -551,7 +782,7 @@
     </Card>
   {:else}
     <Tabs.Root bind:value={activeTab} class="space-y-6">
-      <Tabs.List class="grid w-full grid-cols-3">
+      <Tabs.List class={oidcConfigManaged ? "grid w-full grid-cols-3" : "grid w-full grid-cols-4"}>
         <Tabs.Trigger value="users" class="gap-2">
           <Users class="h-4 w-4" />
           Users
@@ -575,6 +806,15 @@
             </Badge>
           {/if}
         </Tabs.Trigger>
+        {#if !oidcConfigManaged}
+          <Tabs.Trigger value="identity-providers" class="gap-2">
+            <Shield class="h-4 w-4" />
+            Identity Providers
+            {#if oidcProviders.length > 0}
+              <Badge variant="secondary" class="ml-1">{oidcProviders.length}</Badge>
+            {/if}
+          </Tabs.Trigger>
+        {/if}
       </Tabs.List>
 
       <!-- Users Tab -->
@@ -593,6 +833,12 @@
             </Button>
           </CardHeader>
           <CardContent>
+            {#if platformAdminError}
+              <Alert.Root variant="destructive" class="mb-4">
+                <TriangleAlert class="h-4 w-4" />
+                <Alert.Description>{platformAdminError}</Alert.Description>
+              </Alert.Root>
+            {/if}
             {#if subjects.length === 0}
               <div class="text-center py-8 text-muted-foreground">
                 <Users class="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -636,6 +882,12 @@
                               Admin
                             </Badge>
                           {/if}
+                          {#if subject.isPlatformAdmin}
+                            <Badge variant="default" class="text-xs">
+                              <ShieldCheck class="h-3 w-3 mr-1" />
+                              Platform Admin
+                            </Badge>
+                          {/if}
                         </div>
                         {#if isPublicSubject}
                           <div class="text-sm text-muted-foreground">
@@ -659,6 +911,26 @@
                       </div>
                     </div>
                     <div class="flex items-center gap-2">
+                      {#if !isSystemSubjectCheck(subject) && subject.id !== currentUserSubjectId}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={platformAdminSavingId === subject.id}
+                          onclick={() => togglePlatformAdmin(subject)}
+                          title={subject.isPlatformAdmin
+                            ? "Revoke platform admin"
+                            : "Grant platform admin"}
+                          aria-label={subject.isPlatformAdmin
+                            ? `Revoke platform admin from ${subject.name}`
+                            : `Grant platform admin to ${subject.name}`}
+                        >
+                          {#if subject.isPlatformAdmin}
+                            <ShieldCheck class="h-4 w-4 text-primary" />
+                          {:else}
+                            <Shield class="h-4 w-4 text-muted-foreground" />
+                          {/if}
+                        </Button>
+                      {/if}
                       <Button
                         variant="ghost"
                         size="icon"
@@ -869,8 +1141,258 @@
           </CardContent>
         </Card>
       </Tabs.Content>
+
+      {#if !oidcConfigManaged}
+        <Tabs.Content value="identity-providers">
+          <Card>
+            <CardHeader class="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Identity Providers</CardTitle>
+                <CardDescription>
+                  Configure OpenID Connect providers for single sign-on.
+                </CardDescription>
+              </div>
+              <Button onclick={openCreateProviderDialog} class="gap-2">
+                <Plus class="h-4 w-4" />
+                Add Provider
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {#if oidcLoading}
+                <div class="flex items-center justify-center py-8">
+                  <Loader2 class="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              {:else if oidcError}
+                <Alert.Root variant="destructive">
+                  <AlertTriangle class="h-4 w-4" />
+                  <Alert.Description>{oidcError}</Alert.Description>
+                </Alert.Root>
+              {:else if oidcProviders.length === 0}
+                <div class="text-center py-8 text-muted-foreground">
+                  <Shield class="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No identity providers configured.</p>
+                </div>
+              {:else}
+                <div class="space-y-2">
+                  {#each oidcProviders as provider (provider.id)}
+                    <div class="flex items-center justify-between gap-3 rounded-md border p-3">
+                      <div class="flex items-center gap-3 min-w-0">
+                        <ProviderIcon slug={provider.icon} />
+                        <div class="min-w-0">
+                          <div class="flex items-center gap-2">
+                            <span class="font-medium truncate">{provider.name}</span>
+                            {#if provider.isEnabled}
+                              <Badge variant="secondary">Enabled</Badge>
+                            {:else}
+                              <Badge variant="outline">Disabled</Badge>
+                            {/if}
+                          </div>
+                          <div class="text-xs text-muted-foreground truncate">
+                            {provider.issuerUrl}
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onclick={() => toggleProvider(provider)}
+                          title={provider.isEnabled ? "Disable" : "Enable"}
+                        >
+                          {#if provider.isEnabled}
+                            <ToggleRight class="h-4 w-4" />
+                          {:else}
+                            <ToggleLeft class="h-4 w-4" />
+                          {/if}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onclick={() => openEditProviderDialog(provider)}
+                          title="Edit"
+                        >
+                          <Pencil class="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onclick={() => deleteProvider(provider)}
+                          title="Delete"
+                        >
+                          <Trash2 class="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+            </CardContent>
+          </Card>
+        </Tabs.Content>
+      {/if}
     </Tabs.Root>
   {/if}
+
+  <!-- OIDC Provider Create/Edit Dialog -->
+  <Dialog.Root bind:open={isProviderDialogOpen}>
+    <Dialog.Content class="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <Dialog.Header>
+        <Dialog.Title>
+          {editingProvider ? "Edit Identity Provider" : "Add Identity Provider"}
+        </Dialog.Title>
+        <Dialog.Description>
+          Configure an OpenID Connect provider for single sign-on.
+        </Dialog.Description>
+      </Dialog.Header>
+
+      <div class="space-y-4 py-2">
+        {#if providerDialogError}
+          <Alert.Root variant="destructive">
+            <AlertTriangle class="h-4 w-4" />
+            <Alert.Description>{providerDialogError}</Alert.Description>
+          </Alert.Root>
+        {/if}
+
+        <div class="space-y-2">
+          <Label for="provider-name">Name</Label>
+          <Input id="provider-name" bind:value={providerName} placeholder="My Provider" />
+        </div>
+
+        <div class="space-y-2">
+          <Label for="provider-issuer">Issuer URL</Label>
+          <Input
+            id="provider-issuer"
+            type="url"
+            bind:value={providerIssuerUrl}
+            placeholder="https://accounts.example.com"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <Label for="provider-client-id">Client ID</Label>
+          <Input id="provider-client-id" bind:value={providerClientId} />
+        </div>
+
+        <div class="space-y-2">
+          <Label for="provider-client-secret">Client Secret</Label>
+          <Input
+            id="provider-client-secret"
+            type="password"
+            bind:value={providerClientSecret}
+            placeholder={editingProvider ? "Leave blank to keep existing" : ""}
+          />
+        </div>
+
+        <div class="space-y-2">
+          <Label for="provider-scopes">Scopes</Label>
+          <Input
+            id="provider-scopes"
+            bind:value={providerScopes}
+            placeholder="openid profile email"
+          />
+          <p class="text-xs text-muted-foreground">Comma or space separated</p>
+        </div>
+
+        <div class="space-y-2">
+          <Label for="provider-roles">Default Roles</Label>
+          <Input
+            id="provider-roles"
+            bind:value={providerDefaultRoles}
+            placeholder="readable"
+          />
+          <p class="text-xs text-muted-foreground">
+            Comma-separated roles assigned to new users from this provider
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <Label for="provider-icon">Icon</Label>
+          <Input
+            id="provider-icon"
+            bind:value={providerIcon}
+            placeholder="google, apple, microsoft, github, or a URL"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <Label for="provider-color">Button Color</Label>
+          <Input
+            id="provider-color"
+            bind:value={providerButtonColor}
+            placeholder="#1a73e8"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <Label for="provider-order">Display Order</Label>
+          <Input
+            id="provider-order"
+            type="number"
+            bind:value={providerDisplayOrder}
+          />
+        </div>
+
+        <div class="flex items-center gap-2">
+          <Checkbox id="provider-enabled" bind:checked={providerIsEnabled} />
+          <Label for="provider-enabled">Enabled</Label>
+        </div>
+
+        <div class="border-t pt-4 space-y-2">
+          <Button
+            variant="outline"
+            onclick={testProviderConnection}
+            disabled={testingProvider || !providerIssuerUrl || !providerClientId}
+            class="gap-2"
+          >
+            {#if testingProvider}
+              <Loader2 class="h-4 w-4 animate-spin" />
+            {:else}
+              <Globe class="h-4 w-4" />
+            {/if}
+            Test Connection
+          </Button>
+          {#if testResult}
+            {#if testResult.success}
+              <Alert.Root>
+                <Check class="h-4 w-4" />
+                <Alert.Description>
+                  Connection successful{testResult.responseTime
+                    ? ` (${testResult.responseTime})`
+                    : ""}.
+                  {#if testResult.warnings && testResult.warnings.length > 0}
+                    <ul class="list-disc list-inside mt-1 text-xs">
+                      {#each testResult.warnings as warn}
+                        <li>{warn}</li>
+                      {/each}
+                    </ul>
+                  {/if}
+                </Alert.Description>
+              </Alert.Root>
+            {:else}
+              <Alert.Root variant="destructive">
+                <AlertTriangle class="h-4 w-4" />
+                <Alert.Description>
+                  {testResult.error || "Connection test failed"}
+                </Alert.Description>
+              </Alert.Root>
+            {/if}
+          {/if}
+        </div>
+      </div>
+
+      <Dialog.Footer>
+        <Button variant="outline" onclick={() => (isProviderDialogOpen = false)}>
+          Cancel
+        </Button>
+        <Button onclick={saveProvider} disabled={providerSaving} class="gap-2">
+          {#if providerSaving}
+            <Loader2 class="h-4 w-4 animate-spin" />
+          {/if}
+          {editingProvider ? "Save Changes" : "Create Provider"}
+        </Button>
+      </Dialog.Footer>
+    </Dialog.Content>
+  </Dialog.Root>
 </div>
 
 <!-- User Dialog -->

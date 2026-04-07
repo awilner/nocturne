@@ -1,8 +1,8 @@
 using Nocturne.Core.Contracts;
 using Nocturne.Core.Models;
 using Nocturne.Core.Models.Widget;
+using Nocturne.Infrastructure.Data.Abstractions;
 using Nocturne.Infrastructure.Data.Entities;
-using Nocturne.Infrastructure.Data.Repositories;
 
 namespace Nocturne.API.Services;
 
@@ -17,8 +17,7 @@ public class WidgetSummaryService : IWidgetSummaryService
     private readonly ICobService _cobService;
     private readonly ITreatmentService _treatmentService;
     private readonly IDeviceStatusService _deviceStatusService;
-    // TODO: Replace direct TrackerRepository usage with an ITrackerService interface for proper Clean Architecture layering
-    private readonly TrackerRepository _trackerRepository;
+    private readonly ITrackerRepository _trackerRepository;
     private readonly INotificationV1Service _notificationService;
     private readonly ILogger<WidgetSummaryService> _logger;
 
@@ -33,7 +32,7 @@ public class WidgetSummaryService : IWidgetSummaryService
         ICobService cobService,
         ITreatmentService treatmentService,
         IDeviceStatusService deviceStatusService,
-        TrackerRepository trackerRepository,
+        ITrackerRepository trackerRepository,
         INotificationV1Service notificationService,
         ILogger<WidgetSummaryService> logger
     )

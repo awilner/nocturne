@@ -8,6 +8,12 @@ namespace Nocturne.Core.Contracts;
 public interface IOidcProviderService
 {
     /// <summary>
+    /// Returns true when OIDC providers are defined in config (Oidc:Providers[]).
+    /// When true, the database is bypassed and the management UI should be hidden.
+    /// </summary>
+    bool IsConfigManaged { get; }
+
+    /// <summary>
     /// Get all enabled OIDC providers
     /// </summary>
     /// <returns>List of enabled providers ordered by display order</returns>

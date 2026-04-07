@@ -840,6 +840,7 @@ public class AuthorizationService : IAuthorizationService, IDisposable
             Roles = subject.Roles?.Select(r => r.Name).ToList() ?? new List<string>(),
             Created = subject.CreatedAt,
             Modified = subject.CreatedAt, // Use CreatedAt as fallback
+            IsPlatformAdmin = subject.IsPlatformAdmin,
         };
     }
 

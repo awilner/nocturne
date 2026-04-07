@@ -3,8 +3,10 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Options;
 using Nocturne.API.Authorization;
 using Nocturne.API.Configuration;
+using Nocturne.API.Services.Auth;
 using Nocturne.API.Extensions;
 using Nocturne.API.Hubs;
 using Nocturne.API.Middleware;
@@ -14,6 +16,7 @@ using Nocturne.Core.Constants;
 using Nocturne.Core.Models.Configuration;
 using Nocturne.Infrastructure.Cache.Extensions;
 using Nocturne.Core.Contracts.Repositories;
+using Nocturne.Infrastructure.Data;
 using Nocturne.Infrastructure.Data.Extensions;
 using OpenTelemetry.Logs;
 using FluentValidation;
@@ -370,7 +373,19 @@ else if (isNSwagGeneration)
     Console.WriteLine("[NSwag] Skipping database migrations - running in OpenAPI generation mode");
 }
 
-app.Run();
+// Bootstrap platform admin on startup
+if (!isNSwagGeneration && !app.Environment.IsEnvironment("Testing"))
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<NocturneDbContext>();
+        var platformOptions = scope.ServiceProvider.GetRequiredService<IOptions<PlatformOptions>>();
+        var bootstrap = new PlatformAdminBootstrapService(db, platformOptions);
+        await bootstrap.BootstrapAsync(CancellationToken.None);
+    }
+}
+
+await app.RunAsync();
 
 // Detects if the application is being run by NSwag for OpenAPI document generation.
 // NSwag uses its AspNetCore.Launcher to load and introspect the app without actually running it.

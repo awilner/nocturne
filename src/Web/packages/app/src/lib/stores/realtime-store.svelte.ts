@@ -58,8 +58,9 @@ export class RealtimeStore {
   /** Live sync progress by connector ID (from SignalR sync progress events) */
   syncProgressByConnector = $state<Record<string, SyncProgressEvent>>({});
 
-  /** Bound visibility change handler for cleanup */
+  /** Bound event handlers for cleanup */
   private handleVisibilityChange: (() => void) | null = null;
+  private handleWindowFocus: (() => void) | null = null;
 
   /** Reactive state using Svelte 5 runes - using $state.raw for arrays to avoid deep proxy issues */
   entries = $state.raw<Entry[]>([]);
@@ -222,15 +223,24 @@ export class RealtimeStore {
         this.now = Date.now();
       }, 1000);
 
-      // Add visibility change listener for sleep/wake detection
+      // Add visibility change listener for sleep/wake detection (tab switching)
       this.handleVisibilityChange = () => {
         if (document.visibilityState === 'visible') {
-          // Browser just became visible (wake from sleep, tab switch back)
+          // Snap now immediately so time-since displays don't lag
+          this.now = Date.now();
           console.log('[RealtimeStore] Page became visible, checking for backfill...');
           this.performBackfillIfNeeded();
         }
       };
       document.addEventListener('visibilitychange', this.handleVisibilityChange);
+
+      // Add window focus listener for app switching (browser stays visible but loses focus)
+      this.handleWindowFocus = () => {
+        this.now = Date.now();
+        console.log('[RealtimeStore] Window focused, checking for backfill...');
+        this.performBackfillIfNeeded();
+      };
+      window.addEventListener('focus', this.handleWindowFocus);
     }
 
     // Skip if WebSocket URL is not available (SSR scenario)
@@ -729,8 +739,13 @@ export class RealtimeStore {
     if (this.timeInterval) {
       clearInterval(this.timeInterval);
     }
-    if (this.handleVisibilityChange && typeof window !== 'undefined') {
-      document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+    if (typeof window !== 'undefined') {
+      if (this.handleVisibilityChange) {
+        document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+      }
+      if (this.handleWindowFocus) {
+        window.removeEventListener('focus', this.handleWindowFocus);
+      }
     }
     this.websocketClient.destroy();
   }

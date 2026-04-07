@@ -36,6 +36,11 @@ public class Subject
     public bool IsSystemSubject { get; set; }
 
     /// <summary>
+    /// Whether this subject has platform-level admin access
+    /// </summary>
+    public bool IsPlatformAdmin { get; set; }
+
+    /// <summary>
     /// OIDC subject identifier (sub claim)
     /// </summary>
     public string? OidcSubjectId { get; set; }

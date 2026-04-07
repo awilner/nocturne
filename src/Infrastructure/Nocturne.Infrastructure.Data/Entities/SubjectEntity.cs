@@ -132,6 +132,13 @@ public class SubjectEntity
     [Column("access_request_message")]
     public string? AccessRequestMessage { get; set; }
 
+    /// <summary>
+    /// Whether this subject has platform-level admin access (not tenant-scoped).
+    /// Platform admins can manage OIDC providers and other platform-wide configuration.
+    /// </summary>
+    [Column("is_platform_admin")]
+    public bool IsPlatformAdmin { get; set; } = false;
+
     // Navigation properties
 
     /// <summary>

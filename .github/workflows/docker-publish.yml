@@ -276,7 +276,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -407,7 +407,10 @@ jobs:
           ```
           EOF
 
-          # Copy env example if it exists
+          # Copy docker-compose and env example into release/
+          if [ -f docker-compose.yaml ]; then
+            cp docker-compose.yaml release/
+          fi
           if [ -f .env.example ]; then
             cp .env.example release/
           fi
@@ -418,6 +421,15 @@ jobs:
           name: nocturne-deployment-${{ steps.version.outputs.version }}
           path: release/
           retention-days: 90
+
+      - name: Attach artifacts to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/docker-compose.yaml
+            release/.env.example
+            release/aspire-manifest.json
 
   publish-glucose-chart:
     needs: [build-and-push]

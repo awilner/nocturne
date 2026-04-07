@@ -64,6 +64,7 @@ import {
   OAuthClient,
   OidcClient,
   WellKnownClient,
+  OidcProviderAdminClient,
   PasskeyClient,
   PatientRecordClient,
   PebbleClient,
@@ -80,6 +81,7 @@ import {
   StatisticsClient,
   StatusClient,
   StepCountClient,
+  SubjectAdminClient,
   SummaryClient,
   SystemClient,
   SystemEventsClient,
@@ -166,6 +168,7 @@ export class ApiClient {
   public readonly oAuth: OAuthClient;
   public readonly oidc: OidcClient;
   public readonly oidcDiscovery: WellKnownClient;
+  public readonly oidcProviderAdmin: OidcProviderAdminClient;
   public readonly passkey: PasskeyClient;
   public readonly patientRecord: PatientRecordClient;
   public readonly pebble: PebbleClient;
@@ -182,6 +185,7 @@ export class ApiClient {
   public readonly statistics: StatisticsClient;
   public readonly status: StatusClient;
   public readonly stepCount: StepCountClient;
+  public readonly subjectAdmin: SubjectAdminClient;
   public readonly summary: SummaryClient;
   public readonly system: SystemClient;
   public readonly systemEvents: SystemEventsClient;
@@ -268,6 +272,7 @@ export class ApiClient {
     this.oAuth = new OAuthClient(apiBaseUrl, http);
     this.oidc = new OidcClient(apiBaseUrl, http);
     this.oidcDiscovery = new WellKnownClient(apiBaseUrl, http);
+    this.oidcProviderAdmin = new OidcProviderAdminClient(apiBaseUrl, http);
     this.passkey = new PasskeyClient(apiBaseUrl, http);
     this.patientRecord = new PatientRecordClient(apiBaseUrl, http);
     this.pebble = new PebbleClient(apiBaseUrl, http);
@@ -284,6 +289,7 @@ export class ApiClient {
     this.statistics = new StatisticsClient(apiBaseUrl, http);
     this.status = new StatusClient(apiBaseUrl, http);
     this.stepCount = new StepCountClient(apiBaseUrl, http);
+    this.subjectAdmin = new SubjectAdminClient(apiBaseUrl, http);
     this.summary = new SummaryClient(apiBaseUrl, http);
     this.system = new SystemClient(apiBaseUrl, http);
     this.systemEvents = new SystemEventsClient(apiBaseUrl, http);

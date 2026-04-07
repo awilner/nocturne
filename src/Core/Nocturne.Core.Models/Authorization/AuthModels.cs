@@ -151,6 +151,12 @@ public class AuthContext
     public bool LimitTo24Hours { get; set; }
 
     /// <summary>
+    /// Whether this subject has platform-level admin access.
+    /// Set by AuthenticationMiddleware from the subject's IsPlatformAdmin flag.
+    /// </summary>
+    public bool IsPlatformAdmin { get; set; }
+
+    /// <summary>
     /// The effective subject ID for data queries. Returns ActingAsSubjectId if set, otherwise SubjectId.
     /// </summary>
     public Guid? EffectiveSubjectId => ActingAsSubjectId ?? SubjectId;

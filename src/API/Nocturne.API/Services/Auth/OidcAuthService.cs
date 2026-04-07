@@ -457,7 +457,7 @@ public class OidcAuthService : IOidcAuthService
     private string GetRedirectUri()
     {
         var baseUrl = _configuration[ServiceNames.ConfigKeys.BaseUrl]?.TrimEnd('/') ?? "http://localhost:5000";
-        return $"{baseUrl}/auth/callback";
+        return $"{baseUrl}/api/v4/oidc/callback";
     }
 
     /// <summary>
