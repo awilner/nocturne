@@ -84,9 +84,6 @@ jobs:
       - name: Restore .NET dependencies
         run: dotnet restore
 
-      - name: Setup appsettings.json for NSwag
-        run: cp appsettings.example.json appsettings.json
-
       # Generate API client, Zod schemas, and remote functions for the web build.
       # IMPORTANT: Must run BEFORE dotnet publish (publish marks outputs as
       # up-to-date, causing post-build generation targets to be skipped).
@@ -292,10 +289,6 @@ jobs:
 
       - name: Restore .NET dependencies
         run: dotnet restore
-
-      # Copy appsettings.example.json to appsettings.json for NSwag client generation
-      - name: Setup appsettings.json for NSwag
-        run: cp appsettings.example.json appsettings.json
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
