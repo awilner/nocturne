@@ -298,4 +298,9 @@ public class Subject
     /// Last modified timestamp
     /// </summary>
     public DateTime Modified { get; set; }
+
+    /// <summary>
+    /// Whether this subject has platform-level admin access
+    /// </summary>
+    public bool IsPlatformAdmin { get; set; }
 }

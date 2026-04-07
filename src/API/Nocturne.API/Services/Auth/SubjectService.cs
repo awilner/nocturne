@@ -664,6 +664,7 @@ public class SubjectService : ISubjectService
             OidcIssuer = entity.OidcIssuer,
             IsActive = entity.IsActive,
             IsSystemSubject = entity.IsSystemSubject,
+            IsPlatformAdmin = entity.IsPlatformAdmin,
             CreatedAt = entity.CreatedAt,
             LastLoginAt = entity.LastLoginAt,
             Notes = entity.Notes,

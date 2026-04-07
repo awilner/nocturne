@@ -16,6 +16,7 @@
   import { Checkbox } from "$lib/components/ui/checkbox";
   import {
     Shield,
+    ShieldCheck,
     Users,
     Key,
     KeyRound,
@@ -41,6 +42,8 @@
   import * as adminRemote from "$lib/data/generated/localauths.generated.remote";
   import * as grantsRemote from "$lib/data/oauth.remote";
   import * as oidcRemote from "./oidc-providers.remote";
+  import * as adminSubjectsRemote from "./admin-subjects.remote";
+  import type { PageProps } from "./$types";
   import ProviderIcon from "$lib/components/auth/ProviderIcon.svelte";
   import { getRealtimeStore } from "$lib/stores/realtime-store.svelte";
   import type {
@@ -52,8 +55,42 @@
     OidcProviderTestResult,
   } from "$api";
 
+  let { data }: PageProps = $props();
+  const currentUserSubjectId = $derived(data?.user?.subjectId);
+
   // Get the realtime store for reactive admin events
   const realtimeStore = getRealtimeStore();
+
+  // Platform admin toggle state
+  let platformAdminError = $state<string | null>(null);
+  let platformAdminSavingId = $state<string | null>(null);
+
+  async function togglePlatformAdmin(subject: Subject) {
+    if (!subject.id) return;
+    platformAdminError = null;
+    platformAdminSavingId = subject.id;
+    const next = !subject.isPlatformAdmin;
+    try {
+      await adminSubjectsRemote.setPlatformAdmin({
+        subjectId: subject.id,
+        isPlatformAdmin: next,
+      });
+      subjects = subjects.map((s) =>
+        s.id === subject.id ? { ...s, isPlatformAdmin: next } : s
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.includes("last_platform_admin")) {
+        platformAdminError =
+          "Cannot demote the last platform admin. Promote another user first.";
+      } else {
+        platformAdminError = "Failed to update platform admin status.";
+      }
+      console.error("Failed to set platform admin:", err);
+    } finally {
+      platformAdminSavingId = null;
+    }
+  }
 
   // State
   let activeTab = $state("users");
@@ -796,6 +833,12 @@
             </Button>
           </CardHeader>
           <CardContent>
+            {#if platformAdminError}
+              <Alert.Root variant="destructive" class="mb-4">
+                <TriangleAlert class="h-4 w-4" />
+                <Alert.Description>{platformAdminError}</Alert.Description>
+              </Alert.Root>
+            {/if}
             {#if subjects.length === 0}
               <div class="text-center py-8 text-muted-foreground">
                 <Users class="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -839,6 +882,12 @@
                               Admin
                             </Badge>
                           {/if}
+                          {#if subject.isPlatformAdmin}
+                            <Badge variant="default" class="text-xs">
+                              <ShieldCheck class="h-3 w-3 mr-1" />
+                              Platform Admin
+                            </Badge>
+                          {/if}
                         </div>
                         {#if isPublicSubject}
                           <div class="text-sm text-muted-foreground">
@@ -862,6 +911,26 @@
                       </div>
                     </div>
                     <div class="flex items-center gap-2">
+                      {#if !isSystemSubjectCheck(subject) && subject.id !== currentUserSubjectId}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={platformAdminSavingId === subject.id}
+                          onclick={() => togglePlatformAdmin(subject)}
+                          title={subject.isPlatformAdmin
+                            ? "Revoke platform admin"
+                            : "Grant platform admin"}
+                          aria-label={subject.isPlatformAdmin
+                            ? `Revoke platform admin from ${subject.name}`
+                            : `Grant platform admin to ${subject.name}`}
+                        >
+                          {#if subject.isPlatformAdmin}
+                            <ShieldCheck class="h-4 w-4 text-primary" />
+                          {:else}
+                            <Shield class="h-4 w-4 text-muted-foreground" />
+                          {/if}
+                        </Button>
+                      {/if}
                       <Button
                         variant="ghost"
                         size="icon"
