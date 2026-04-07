@@ -98,7 +98,8 @@ public class AuthHandlerPriorityTests
             environment: Mock.Of<IHostEnvironment>(e =>
                 e.EnvironmentName == "Production"),
             publicAccessCacheService: publicAccessCacheService,
-            oidcOptions: Options.Create(new OidcOptions()));
+            oidcOptions: Options.Create(new OidcOptions()),
+            scopeFactory: Mock.Of<IServiceScopeFactory>());
 
         var httpContext = new DefaultHttpContext();
         await middleware.InvokeAsync(httpContext);
@@ -143,7 +144,8 @@ public class AuthHandlerPriorityTests
             environment: Mock.Of<IHostEnvironment>(e =>
                 e.EnvironmentName == "Production"),
             publicAccessCacheService: publicAccessCacheService,
-            oidcOptions: Options.Create(new OidcOptions()));
+            oidcOptions: Options.Create(new OidcOptions()),
+            scopeFactory: Mock.Of<IServiceScopeFactory>());
 
         var httpContext = new DefaultHttpContext();
         await middleware.InvokeAsync(httpContext);
@@ -187,7 +189,8 @@ public class AuthHandlerPriorityTests
             environment: Mock.Of<IHostEnvironment>(e =>
                 e.EnvironmentName == "Production"),
             publicAccessCacheService: publicAccessCacheService,
-            oidcOptions: Options.Create(new OidcOptions()));
+            oidcOptions: Options.Create(new OidcOptions()),
+            scopeFactory: Mock.Of<IServiceScopeFactory>());
 
         var httpContext = new DefaultHttpContext();
         await middleware.InvokeAsync(httpContext);

@@ -2,7 +2,6 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Nocturne.API.Attributes;
 using OpenApi.Remote.Attributes;
 using Nocturne.API.Extensions;
 using Nocturne.Core.Constants;
@@ -19,7 +18,7 @@ namespace Nocturne.API.Controllers;
 /// Handles login initiation, OAuth callback, logout, and session management
 /// </summary>
 [ApiController]
-[Route("auth")]
+[Route("api/v4/oidc")]
 [Tags("Oidc")]
 public class OidcController : ControllerBase
 {
@@ -56,7 +55,6 @@ public class OidcController : ControllerBase
     /// <returns>List of enabled providers</returns>
     [HttpGet("providers")]
     [AllowAnonymous]
-    [NightscoutEndpoint("/auth/providers")]
     [ProducesResponseType(typeof(List<OidcProviderInfo>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<OidcProviderInfo>>> GetProviders()
     {
@@ -84,7 +82,6 @@ public class OidcController : ControllerBase
     /// <returns>Redirect to OIDC provider</returns>
     [HttpGet("login")]
     [AllowAnonymous]
-    [NightscoutEndpoint("/auth/login")]
     [ProducesResponseType(StatusCodes.Status302Found)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Login(
@@ -130,7 +127,6 @@ public class OidcController : ControllerBase
     /// <returns>Redirect to return URL with session cookie set</returns>
     [HttpGet("callback")]
     [AllowAnonymous]
-    [NightscoutEndpoint("/auth/callback")]
     [ProducesResponseType(StatusCodes.Status302Found)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Callback(
@@ -225,7 +221,6 @@ public class OidcController : ControllerBase
     /// <returns>New token response</returns>
     [HttpPost("refresh")]
     [AllowAnonymous]
-    [NightscoutEndpoint("/auth/refresh")]
     [ProducesResponseType(typeof(OidcTokenResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<OidcTokenResponse>> Refresh()
@@ -273,7 +268,6 @@ public class OidcController : ControllerBase
     /// <param name="providerId">Provider ID for RP-initiated logout (optional)</param>
     /// <returns>Logout result with optional provider logout URL</returns>
     [HttpPost("logout")]
-    [NightscoutEndpoint("/auth/logout")]
     [RemoteCommand]
     [ProducesResponseType(typeof(LogoutResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<LogoutResponse>> Logout([FromQuery] Guid? providerId = null)
@@ -314,7 +308,6 @@ public class OidcController : ControllerBase
     /// </summary>
     /// <returns>User information from the current session</returns>
     [HttpGet("userinfo")]
-    [NightscoutEndpoint("/auth/userinfo")]
     [ProducesResponseType(typeof(OidcUserInfo), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<OidcUserInfo>> GetUserInfo()
@@ -340,7 +333,6 @@ public class OidcController : ControllerBase
     /// <returns>Session status</returns>
     [HttpGet("session")]
     [AllowAnonymous]
-    [NightscoutEndpoint("/auth/session")]
     [ProducesResponseType(typeof(SessionInfo), StatusCodes.Status200OK)]
     public async Task<ActionResult<SessionInfo>> GetSession()
     {
@@ -365,6 +357,7 @@ public class OidcController : ControllerBase
                 Permissions = authContext.Permissions,
                 ExpiresAt = authContext.ExpiresAt,
                 PreferredLanguage = userInfo?.PreferredLanguage,
+                IsPlatformAdmin = authContext.IsPlatformAdmin,
             }
         );
     }
@@ -648,6 +641,11 @@ public class SessionInfo
     /// User's preferred language code (e.g., "en", "fr", "de")
     /// </summary>
     public string? PreferredLanguage { get; set; }
+
+    /// <summary>
+    /// Whether this subject has platform-level admin access
+    /// </summary>
+    public bool IsPlatformAdmin { get; set; }
 }
 
 #endregion
