@@ -147,45 +147,69 @@ public class SubjectServiceOidcIdentityTests : IDisposable
         rows[0].SubjectId.Should().Be(subjectA);
     }
 
-    // -- RemoveOidcIdentityAsync -------------------------------------------------
+    // -- TryRemoveOidcIdentityAsync ----------------------------------------------
 
-    [Fact]
-    [Trait("Category", "Unit")]
-    public async Task RemoveOidcIdentityAsync_WhenOwnedBySubject_DeletesAndReturnsTrue()
+    private async Task SeedPasskeyAsync(Guid subjectId, byte tag = 0)
     {
-        var subjectId = await SeedSubjectAsync();
-        var providerId = await SeedProviderAsync();
-        var idId = await SeedIdentityAsync(subjectId, providerId, "ext-1");
-
-        var removed = await _service.RemoveOidcIdentityAsync(subjectId, idId);
-
-        removed.Should().BeTrue();
-        (await _db.SubjectOidcIdentities.CountAsync()).Should().Be(0);
+        _db.PasskeyCredentials.Add(new PasskeyCredentialEntity
+        {
+            Id = Guid.CreateVersion7(),
+            SubjectId = subjectId,
+            CredentialId = new byte[] { tag, 1, 2, 3 },
+            PublicKey = new byte[] { 4, 5, 6 },
+            SignCount = 0,
+            Label = $"pk{tag}",
+            CreatedAt = DateTime.UtcNow,
+        });
+        await _db.SaveChangesAsync();
     }
 
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task RemoveOidcIdentityAsync_WhenNotOwned_ReturnsFalse_DoesNotDelete()
+    public async Task TryRemoveOidcIdentityAsync_WhenNotOwned_ReturnsNotFound()
     {
         var a = await SeedSubjectAsync("a");
         var b = await SeedSubjectAsync("b");
         var providerId = await SeedProviderAsync();
         var idA = await SeedIdentityAsync(a, providerId, "ext-a");
-        var idB = await SeedIdentityAsync(b, providerId, "ext-b");
+        await SeedIdentityAsync(b, providerId, "ext-b");
+        // Keep b with another primary factor so the last-factor guard isn't what's blocking.
+        await SeedPasskeyAsync(b);
 
-        var removed = await _service.RemoveOidcIdentityAsync(b, idA);
+        var result = await _service.TryRemoveOidcIdentityAsync(b, idA);
 
-        removed.Should().BeFalse();
+        result.Should().Be(FactorRemovalResult.NotFound);
         (await _db.SubjectOidcIdentities.CountAsync()).Should().Be(2);
     }
 
     [Fact]
     [Trait("Category", "Unit")]
-    public async Task RemoveOidcIdentityAsync_WhenNotFound_ReturnsFalse()
+    public async Task TryRemoveOidcIdentityAsync_WhenLastPrimaryFactor_ReturnsLastPrimaryFactor_DoesNotDelete()
     {
         var subjectId = await SeedSubjectAsync();
-        var removed = await _service.RemoveOidcIdentityAsync(subjectId, Guid.NewGuid());
-        removed.Should().BeFalse();
+        var providerId = await SeedProviderAsync();
+        var idId = await SeedIdentityAsync(subjectId, providerId, "ext-1");
+
+        var result = await _service.TryRemoveOidcIdentityAsync(subjectId, idId);
+
+        result.Should().Be(FactorRemovalResult.LastPrimaryFactor);
+        (await _db.SubjectOidcIdentities.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    [Trait("Category", "Unit")]
+    public async Task TryRemoveOidcIdentityAsync_WhenMultipleFactors_RemovesAndReturnsRemoved()
+    {
+        var subjectId = await SeedSubjectAsync();
+        var providerId = await SeedProviderAsync();
+        var idId = await SeedIdentityAsync(subjectId, providerId, "ext-1");
+        await SeedPasskeyAsync(subjectId);
+
+        var result = await _service.TryRemoveOidcIdentityAsync(subjectId, idId);
+
+        result.Should().Be(FactorRemovalResult.Removed);
+        (await _db.SubjectOidcIdentities.CountAsync()).Should().Be(0);
+        (await _db.PasskeyCredentials.CountAsync()).Should().Be(1);
     }
 
     // -- CountPrimaryAuthFactorsAsync --------------------------------------------

@@ -226,13 +226,14 @@ public class OidcControllerLinkTests
     public async Task UnlinkIdentity_WhenLastPrimaryFactor_Returns409LastFactor()
     {
         var subjectId = Guid.NewGuid();
+        var identityId = Guid.NewGuid();
         SetAuthenticated(subjectId);
-        _subjectService.Setup(s => s.CountPrimaryAuthFactorsAsync(subjectId)).ReturnsAsync(1);
+        _subjectService.Setup(s => s.TryRemoveOidcIdentityAsync(subjectId, identityId))
+            .ReturnsAsync(FactorRemovalResult.LastPrimaryFactor);
 
-        var result = await _controller.UnlinkIdentity(Guid.NewGuid());
+        var result = await _controller.UnlinkIdentity(identityId);
 
         result.Should().BeOfType<ConflictObjectResult>();
-        _subjectService.Verify(s => s.RemoveOidcIdentityAsync(It.IsAny<Guid>(), It.IsAny<Guid>()), Times.Never);
     }
 
     [Fact]
@@ -242,8 +243,8 @@ public class OidcControllerLinkTests
         var subjectId = Guid.NewGuid();
         var identityId = Guid.NewGuid();
         SetAuthenticated(subjectId);
-        _subjectService.Setup(s => s.CountPrimaryAuthFactorsAsync(subjectId)).ReturnsAsync(2);
-        _subjectService.Setup(s => s.RemoveOidcIdentityAsync(subjectId, identityId)).ReturnsAsync(false);
+        _subjectService.Setup(s => s.TryRemoveOidcIdentityAsync(subjectId, identityId))
+            .ReturnsAsync(FactorRemovalResult.NotFound);
 
         var result = await _controller.UnlinkIdentity(identityId);
 
@@ -257,8 +258,8 @@ public class OidcControllerLinkTests
         var subjectId = Guid.NewGuid();
         var identityId = Guid.NewGuid();
         SetAuthenticated(subjectId);
-        _subjectService.Setup(s => s.CountPrimaryAuthFactorsAsync(subjectId)).ReturnsAsync(2);
-        _subjectService.Setup(s => s.RemoveOidcIdentityAsync(subjectId, identityId)).ReturnsAsync(true);
+        _subjectService.Setup(s => s.TryRemoveOidcIdentityAsync(subjectId, identityId))
+            .ReturnsAsync(FactorRemovalResult.Removed);
 
         var result = await _controller.UnlinkIdentity(identityId);
 

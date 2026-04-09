@@ -455,15 +455,8 @@ public class OidcAuthService : IOidcAuthService
         // We don't currently persist the "current session provider" on the refresh-token row,
         // so "most recently used" is the best available proxy for "the provider the user just
         // signed in with". Falls back to most recently linked if LastUsedAt is null.
-        string? providerName = null;
-        var linkedIdentities = await _subjectService.GetLinkedOidcIdentitiesAsync(subjectId);
-        if (linkedIdentities.Count > 0)
-        {
-            var mostRecent = linkedIdentities
-                .OrderByDescending(i => i.LastUsedAt ?? i.LinkedAt)
-                .First();
-            providerName = mostRecent.ProviderName;
-        }
+        var mostRecent = await _subjectService.GetMostRecentlyUsedIdentityAsync(subjectId);
+        string? providerName = mostRecent?.ProviderName;
 
         return new OidcUserInfo
         {

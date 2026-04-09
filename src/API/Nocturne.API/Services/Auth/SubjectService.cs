@@ -648,14 +648,111 @@ public class SubjectService : ISubjectService
     }
 
     /// <inheritdoc />
-    public async Task<bool> RemoveOidcIdentityAsync(Guid subjectId, Guid identityId)
+    public async Task<SubjectOidcIdentity?> GetMostRecentlyUsedIdentityAsync(Guid subjectId)
     {
-        var row = await _dbContext.SubjectOidcIdentities
-            .FirstOrDefaultAsync(x => x.Id == identityId && x.SubjectId == subjectId);
-        if (row == null) return false;
-        _dbContext.SubjectOidcIdentities.Remove(row);
-        await _dbContext.SaveChangesAsync();
-        return true;
+        var e = await _dbContext.SubjectOidcIdentities
+            .Include(x => x.Provider)
+            .Where(x => x.SubjectId == subjectId)
+            .OrderByDescending(x => x.LastUsedAt ?? x.LinkedAt)
+            .FirstOrDefaultAsync();
+
+        if (e == null) return null;
+
+        return new SubjectOidcIdentity
+        {
+            Id = e.Id,
+            SubjectId = e.SubjectId,
+            ProviderId = e.ProviderId,
+            ProviderName = e.Provider?.Name ?? "Unknown",
+            ProviderIcon = e.Provider?.Icon,
+            ProviderButtonColor = e.Provider?.ButtonColor,
+            OidcSubjectId = e.OidcSubjectId,
+            Issuer = e.Issuer,
+            Email = e.Email,
+            LinkedAt = e.LinkedAt,
+            LastUsedAt = e.LastUsedAt,
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<FactorRemovalResult> TryRemoveOidcIdentityAsync(Guid subjectId, Guid identityId)
+    {
+        // InMemory provider (used in tests) doesn't support transactions; skip in that case.
+        var supportsTx = _dbContext.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory";
+        Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction? tx = null;
+        if (supportsTx)
+        {
+            tx = await _dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+        }
+        try
+        {
+            var row = await _dbContext.SubjectOidcIdentities
+                .FirstOrDefaultAsync(x => x.Id == identityId && x.SubjectId == subjectId);
+            if (row == null)
+            {
+                if (tx != null) await tx.RollbackAsync();
+                return FactorRemovalResult.NotFound;
+            }
+
+            var remainingPasskeys = await _dbContext.PasskeyCredentials
+                .CountAsync(p => p.SubjectId == subjectId);
+            var remainingOidc = await _dbContext.SubjectOidcIdentities
+                .CountAsync(i => i.SubjectId == subjectId && i.Id != identityId);
+            if (remainingPasskeys + remainingOidc < 1)
+            {
+                if (tx != null) await tx.RollbackAsync();
+                return FactorRemovalResult.LastPrimaryFactor;
+            }
+
+            _dbContext.SubjectOidcIdentities.Remove(row);
+            await _dbContext.SaveChangesAsync();
+            if (tx != null) await tx.CommitAsync();
+            return FactorRemovalResult.Removed;
+        }
+        finally
+        {
+            if (tx != null) await tx.DisposeAsync();
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<FactorRemovalResult> TryRemovePasskeyCredentialAsync(Guid subjectId, Guid credentialId)
+    {
+        var supportsTx = _dbContext.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory";
+        Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction? tx = null;
+        if (supportsTx)
+        {
+            tx = await _dbContext.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+        }
+        try
+        {
+            var row = await _dbContext.PasskeyCredentials
+                .FirstOrDefaultAsync(x => x.Id == credentialId && x.SubjectId == subjectId);
+            if (row == null)
+            {
+                if (tx != null) await tx.RollbackAsync();
+                return FactorRemovalResult.NotFound;
+            }
+
+            var remainingPasskeys = await _dbContext.PasskeyCredentials
+                .CountAsync(p => p.SubjectId == subjectId && p.Id != credentialId);
+            var remainingOidc = await _dbContext.SubjectOidcIdentities
+                .CountAsync(i => i.SubjectId == subjectId);
+            if (remainingPasskeys + remainingOidc < 1)
+            {
+                if (tx != null) await tx.RollbackAsync();
+                return FactorRemovalResult.LastPrimaryFactor;
+            }
+
+            _dbContext.PasskeyCredentials.Remove(row);
+            await _dbContext.SaveChangesAsync();
+            if (tx != null) await tx.CommitAsync();
+            return FactorRemovalResult.Removed;
+        }
+        finally
+        {
+            if (tx != null) await tx.DisposeAsync();
+        }
     }
 
     /// <inheritdoc />
@@ -721,6 +818,13 @@ public class SubjectService : ISubjectService
         // Device/Service subjects are distinguished by the presence of an access token hash;
         // everything else is treated as a User (including OIDC-linked users whose identities
         // live in the SubjectOidcIdentities join table).
+        //
+        // SubjectType.Service is no longer derived here — with the OIDC columns gone,
+        // MapToModel cannot distinguish a Service subject from a regular User without
+        // loading the OidcIdentities navigation, which would be a hidden N+1. Service
+        // subjects are explicitly constructed in AuthorizationService. Follow-up:
+        // consider collapsing Service/User in the enum, or persisting the type as a
+        // column on SubjectEntity.
         subject.Type = !string.IsNullOrEmpty(entity.AccessTokenHash)
             ? SubjectType.Device
             : SubjectType.User;

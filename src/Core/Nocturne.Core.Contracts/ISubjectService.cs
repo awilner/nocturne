@@ -39,9 +39,24 @@ public interface ISubjectService
         IEnumerable<string>? defaultRoles = null);
 
     Task<IReadOnlyList<SubjectOidcIdentity>> GetLinkedOidcIdentitiesAsync(Guid subjectId);
+    Task<SubjectOidcIdentity?> GetMostRecentlyUsedIdentityAsync(Guid subjectId);
     Task<(OidcLinkOutcome Outcome, Guid? IdentityId)> AttachOidcIdentityAsync(
         Guid subjectId, Guid providerId, string oidcSubjectId, string issuer, string? email);
-    Task<bool> RemoveOidcIdentityAsync(Guid subjectId, Guid identityId);
+
+    /// <summary>
+    /// Atomically remove an OIDC identity from a subject, enforcing the primary-factor rule
+    /// (at least one primary factor — passkey or OIDC identity — must remain after removal).
+    /// The check and the delete run inside a serializable transaction to prevent TOCTOU races.
+    /// </summary>
+    Task<FactorRemovalResult> TryRemoveOidcIdentityAsync(Guid subjectId, Guid identityId);
+
+    /// <summary>
+    /// Atomically remove a passkey credential from a subject, enforcing the primary-factor rule
+    /// (at least one primary factor — passkey or OIDC identity — must remain after removal).
+    /// The check and the delete run inside a serializable transaction to prevent TOCTOU races.
+    /// </summary>
+    Task<FactorRemovalResult> TryRemovePasskeyCredentialAsync(Guid subjectId, Guid credentialId);
+
     Task<int> CountPrimaryAuthFactorsAsync(Guid subjectId);
     Task UpdateOidcIdentityLastUsedAsync(Guid identityId);
 
@@ -144,6 +159,27 @@ public interface ISubjectService
     /// </summary>
     /// <returns>The Public subject</returns>
     Task<Subject?> InitializePublicSubjectAsync();
+}
+
+/// <summary>
+/// Outcome of an atomic primary-factor removal attempt.
+/// </summary>
+public enum FactorRemovalResult
+{
+    /// <summary>
+    /// The factor was successfully removed.
+    /// </summary>
+    Removed,
+
+    /// <summary>
+    /// The factor was not found or was not owned by the caller.
+    /// </summary>
+    NotFound,
+
+    /// <summary>
+    /// Removing the factor would leave the subject with zero primary auth factors.
+    /// </summary>
+    LastPrimaryFactor,
 }
 
 /// <summary>

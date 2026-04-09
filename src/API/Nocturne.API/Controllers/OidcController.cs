@@ -273,7 +273,8 @@ public class OidcController : ControllerBase
         var auth = HttpContext.GetAuthContext();
         if (auth == null || !auth.IsAuthenticated || !auth.SubjectId.HasValue)
         {
-            // Session expired mid-flow: send them back to login with a return URL to the account page
+            // Session expired mid-flow: the link-state cookie is useless without a session, so clear it.
+            ClearLinkStateCookie();
             return Redirect("/auth/login?returnUrl=/settings/account");
         }
 
@@ -373,30 +374,32 @@ public class OidcController : ControllerBase
         if (auth == null || !auth.IsAuthenticated || !auth.SubjectId.HasValue)
             return Unauthorized();
 
-        // Symmetric factor-count rule: removing this identity must leave at least one primary factor.
-        // Primary factors = passkeys + oidc identities. TOTP is a second factor and does not count.
-        var currentFactors = await _subjectService.CountPrimaryAuthFactorsAsync(auth.SubjectId.Value);
-        if (currentFactors - 1 < 1)
+        // Symmetric factor-count rule is enforced atomically inside the service inside a
+        // serializable transaction to prevent TOCTOU races between concurrent removals.
+        var result = await _subjectService.TryRemoveOidcIdentityAsync(auth.SubjectId.Value, identityId);
+        switch (result)
         {
-            return Conflict(new
-            {
-                error = "last_factor",
-                message = "Cannot remove your only remaining sign-in method",
-            });
+            case FactorRemovalResult.NotFound:
+                return NotFound();
+            case FactorRemovalResult.LastPrimaryFactor:
+                return Conflict(new
+                {
+                    error = "last_factor",
+                    message = "Cannot remove your only remaining sign-in method",
+                });
+            case FactorRemovalResult.Removed:
+                await _auditService.LogAsync(AuthAuditEventType.OidcIdentityUnlinked, auth.SubjectId, success: true,
+                    ipAddress: GetClientIpAddress(), userAgent: Request.Headers.UserAgent,
+                    detailsJson: JsonSerializer.Serialize(new { identityId }));
+
+                _logger.LogInformation(
+                    "OIDC identity {IdentityId} unlinked from subject {SubjectId}",
+                    identityId, auth.SubjectId);
+
+                return NoContent();
+            default:
+                throw new InvalidOperationException($"Unexpected FactorRemovalResult: {result}");
         }
-
-        var removed = await _subjectService.RemoveOidcIdentityAsync(auth.SubjectId.Value, identityId);
-        if (!removed) return NotFound();
-
-        await _auditService.LogAsync(AuthAuditEventType.OidcIdentityUnlinked, auth.SubjectId, success: true,
-            ipAddress: GetClientIpAddress(), userAgent: Request.Headers.UserAgent,
-            detailsJson: JsonSerializer.Serialize(new { identityId }));
-
-        _logger.LogInformation(
-            "OIDC identity {IdentityId} unlinked from subject {SubjectId}",
-            identityId, auth.SubjectId);
-
-        return NoContent();
     }
 
     /// <summary>

@@ -363,30 +363,20 @@ public class PasskeyController : ControllerBase
             return Problem(detail: "Authentication required", statusCode: 401, title: "Unauthorized");
         }
 
-        var tenantId = _tenantAccessor.TenantId;
-
-        // Symmetric factor-count rule: removing this passkey must leave at least one primary factor.
-        // Primary factors = passkeys + oidc identities. TOTP is a second factor and does not count.
-        var currentFactors = await _subjectService.CountPrimaryAuthFactorsAsync(auth.SubjectId.Value);
-        if (currentFactors - 1 < 1)
+        // Symmetric factor-count rule is enforced atomically inside the service inside a
+        // serializable transaction to prevent TOCTOU races between concurrent removals.
+        var result = await _subjectService.TryRemovePasskeyCredentialAsync(auth.SubjectId.Value, id);
+        return result switch
         {
-            return Conflict(new
+            FactorRemovalResult.Removed => NoContent(),
+            FactorRemovalResult.NotFound => Problem(detail: "Credential not found", statusCode: 404, title: "Not Found"),
+            FactorRemovalResult.LastPrimaryFactor => Conflict(new
             {
                 error = "last_factor",
                 message = "Cannot remove your only remaining sign-in method",
-            });
-        }
-
-        try
-        {
-            await _passkeyService.RemoveCredentialAsync(id, auth.SubjectId.Value, tenantId);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to remove passkey credential {CredentialId}", id);
-            return Problem(detail: "Credential not found", statusCode: 404, title: "Not Found");
-        }
+            }),
+            _ => throw new InvalidOperationException($"Unexpected FactorRemovalResult: {result}"),
+        };
     }
 
     /// <summary>
