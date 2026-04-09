@@ -107,12 +107,31 @@ public class RecoveryModeCheckServiceTests : IDisposable
     [Trait("Category", "Unit")]
     public async Task StartAsync_SubjectWithOidc_NotOrphaned()
     {
+        var providerId = Guid.CreateVersion7();
+        _dbContext.OidcProviders.Add(new OidcProviderEntity
+        {
+            Id = providerId,
+            Name = "Test Provider",
+            IssuerUrl = "https://issuer.example.test",
+            ClientId = "test-client",
+            IsEnabled = true,
+        });
+        var subjectId = Guid.CreateVersion7();
         _dbContext.Subjects.Add(new SubjectEntity
         {
-            Id = Guid.CreateVersion7(),
+            Id = subjectId,
             Name = "OIDC User",
             IsActive = true,
             IsSystemSubject = false,
+        });
+        _dbContext.SubjectOidcIdentities.Add(new SubjectOidcIdentityEntity
+        {
+            Id = Guid.CreateVersion7(),
+            SubjectId = subjectId,
+            ProviderId = providerId,
+            OidcSubjectId = "external-sub-1",
+            Issuer = "https://issuer.example.test",
+            LinkedAt = DateTime.UtcNow,
         });
         await _dbContext.SaveChangesAsync();
 
