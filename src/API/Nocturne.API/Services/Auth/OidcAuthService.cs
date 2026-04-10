@@ -101,7 +101,8 @@ public class OidcAuthService : IOidcAuthService
         OidcProvider provider,
         OidcStateData stateData,
         string? returnUrl,
-        string? state = null
+        string? state = null,
+        string callbackPath = LoginCallbackPath
     )
     {
         var discoveryDoc =
@@ -112,7 +113,7 @@ public class OidcAuthService : IOidcAuthService
 
         state ??= EncodeState(stateData);
 
-        var redirectUri = GetRedirectUri();
+        var redirectUri = GetRedirectUri(callbackPath);
         var authUrl = BuildAuthorizationUrl(
             discoveryDoc.AuthorizationEndpoint,
             provider.ClientId,
@@ -149,7 +150,7 @@ public class OidcAuthService : IOidcAuthService
     }
 
     private async Task<CallbackParseResult> ValidateCallbackAndParseIdTokenAsync(
-        string code, string state, string expectedState)
+        string code, string state, string expectedState, string callbackPath = LoginCallbackPath)
     {
         if (string.IsNullOrEmpty(state) || state != expectedState)
         {
@@ -194,7 +195,7 @@ public class OidcAuthService : IOidcAuthService
                 code,
                 provider.ClientId,
                 provider.ClientSecret,
-                GetRedirectUri()
+                GetRedirectUri(callbackPath)
             );
         }
         catch (Exception ex)
@@ -501,7 +502,7 @@ public class OidcAuthService : IOidcAuthService
             SubjectId = subjectId,
         };
 
-        return await BuildAuthorizationUrlAsync(provider, stateData, returnUrl);
+        return await BuildAuthorizationUrlAsync(provider, stateData, returnUrl, callbackPath: LinkCallbackPath);
     }
 
     /// <inheritdoc />
@@ -510,7 +511,7 @@ public class OidcAuthService : IOidcAuthService
         Guid authenticatedSubjectId,
         string? ipAddress = null, string? userAgent = null)
     {
-        var parsed = await ValidateCallbackAndParseIdTokenAsync(code, state, expectedState);
+        var parsed = await ValidateCallbackAndParseIdTokenAsync(code, state, expectedState, LinkCallbackPath);
         if (!parsed.Success)
         {
             return OidcLinkResult.Failed(parsed.Error ?? "callback_failed", parsed.ErrorDescription);
@@ -564,13 +565,16 @@ public class OidcAuthService : IOidcAuthService
 
     #region Private Helper Methods
 
+    private const string LoginCallbackPath = "/api/v4/oidc/callback";
+    private const string LinkCallbackPath = "/api/v4/oidc/link/callback";
+
     /// <summary>
     /// Get the redirect URI for OIDC callbacks
     /// </summary>
-    private string GetRedirectUri()
+    private string GetRedirectUri(string callbackPath = LoginCallbackPath)
     {
         var baseUrl = _configuration[ServiceNames.ConfigKeys.BaseUrl]?.TrimEnd('/') ?? "http://localhost:5000";
-        return $"{baseUrl}/api/v4/oidc/callback";
+        return $"{baseUrl}{callbackPath}";
     }
 
     /// <summary>
