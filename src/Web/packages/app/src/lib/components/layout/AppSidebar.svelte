@@ -52,7 +52,6 @@
     HeartPulse,
     ListChecks,
     Shield,
-    Smartphone,
     Eye,
     Users,
   } from "lucide-svelte";
@@ -303,7 +302,6 @@
           icon: Timer,
         },
         { title: "Connectors & Apps", href: "/settings/connectors", icon: Plug },
-        { title: "Connected Apps", href: "/settings/connected-apps", icon: Smartphone },
         { title: "Members", href: "/settings/members", icon: Users },
         ...(canManageRoles
           ? [{ title: "Roles", href: "/settings/roles", icon: Shield }]

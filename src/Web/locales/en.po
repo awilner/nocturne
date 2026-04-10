@@ -33,7 +33,7 @@ msgstr "Error ID: {0}"
 
 #: src/lib/components/WebSocketStatus.svelte
 #: src/lib/components/dashboard/widgets/ConnectionStatusWidget.svelte
-#: src/routes/auth/bot/authorize/+page.svelte
+#: src/routes/auth/bot/authorize/done/+page.svelte
 #: src/routes/settings/setup/uploaders/+page.svelte
 #: src/routes/settings/setup/uploaders/+page.svelte
 msgid "Connected"
@@ -111,6 +111,7 @@ msgstr "Connection failed"
 #: src/lib/components/settings/DataSourceRow.svelte
 #: src/lib/stores/settings-store.svelte.ts
 #: src/routes/settings/admin/+page.svelte
+#: src/routes/settings/connected-apps/+page.svelte
 #: src/routes/settings/connectors/+page.svelte
 #: src/routes/settings/nightscout-transition/+page.svelte
 msgid "Never"
@@ -302,6 +303,7 @@ msgstr "Failed to save alarm configuration"
 #: src/lib/components/settings/DataSourceRow.svelte
 #: src/lib/components/settings/DataSourceRow.svelte
 #: src/lib/stores/settings-store.svelte.ts
+#: src/routes/settings/connected-apps/+page.svelte
 #: src/routes/settings/connectors/+page.svelte
 msgid "Just now"
 msgstr "Just now"
@@ -1129,6 +1131,8 @@ msgstr "Delete the attribution entries entirely."
 #: src/lib/components/settings/ApiTokens.svelte
 #: src/lib/components/settings/ConnectorConfigForm.svelte
 #: src/lib/components/settings/CustomSoundUpload.svelte
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
 #: src/lib/components/settings/notifications/webhooks/WebhookSettingsModal.svelte
 #: src/lib/components/trackers/TrackerCompletionDialog.svelte
 #: src/lib/components/trackers/TrackerStartDialog.svelte
@@ -1154,6 +1158,7 @@ msgstr "Delete the attribution entries entirely."
 #: src/routes/settings/alerts/setup/+page.svelte
 #: src/routes/settings/api-access/+page.svelte
 #: src/routes/settings/api-access/+page.svelte
+#: src/routes/settings/connected-apps/+page.svelte
 #: src/routes/settings/connectors/+page.svelte
 #: src/routes/settings/connectors/+page.svelte
 #: src/routes/settings/connectors/+page.svelte
@@ -1837,6 +1842,7 @@ msgstr "Remove \"{0}\" from this meal? The food will remain in your database."
 msgid "Removing..."
 msgstr "Removing..."
 
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
 #: src/routes/meals/+page.svelte
 #: src/routes/settings/account/+page.svelte
 #: src/routes/settings/account/+page.svelte
@@ -7675,6 +7681,7 @@ msgid "An authentication error occurred"
 msgstr "An authentication error occurred"
 
 #: src/routes/auth/error/+page.svelte
+#: src/routes/auth/error/+page.svelte
 msgid "Session Expired"
 msgstr "Session Expired"
 
@@ -7724,9 +7731,8 @@ msgstr "Authentication Disabled"
 msgid "Authentication Error"
 msgstr "Authentication Error"
 
-#: src/routes/auth/error/+page.svelte
-msgid "Your session may have expired. Please try logging in again."
-msgstr "Your session may have expired. Please try logging in again."
+#~ msgid "Your session may have expired. Please try logging in again."
+#~ msgstr "Your session may have expired. Please try logging in again."
 
 #: src/routes/auth/error/+page.svelte
 msgid "You may not have permission to access this resource. Contact your administrator if you believe this is an error."
@@ -15013,6 +15019,7 @@ msgid "Coming Soon"
 msgstr "Coming Soon"
 
 #: src/routes/settings/alerts/setup/+page.svelte
+#: src/routes/settings/connectors/+page.svelte
 msgid "Discord"
 msgstr "Discord"
 
@@ -15795,6 +15802,7 @@ msgid "Failed to revoke access. Please try again."
 msgstr "Failed to revoke access. Please try again."
 
 #: src/lib/components/settings/ConnectedApps.svelte
+#: src/routes/settings/connected-apps/+page.svelte
 msgid "Connected Apps"
 msgstr "Connected Apps"
 
@@ -15815,6 +15823,7 @@ msgstr ""
 "data, they will appear here."
 
 #: src/lib/components/settings/ConnectedApps.svelte
+#: src/routes/settings/connected-apps/+page.svelte
 msgid "<0/> Verified"
 msgstr "<0/> Verified"
 
@@ -15841,12 +15850,13 @@ msgstr "<0/> Created {0}"
 
 #. placeholder {0}: formatDate(grant.lastUsedAt)
 #. placeholder {0}: formatDate(grant.lastUsedAt)
-#. placeholder {0}: formatDate(credential.lastUsedAt)
+#. placeholder {0}: formatDate(identity.lastUsedAt)
 #. placeholder {0}: formatDate(credential.lastUsedAt)
 #. placeholder {0}: formatDate(credential.lastUsedAt)
 #. placeholder {0}: formatDate(follower.lastUsedAt)
 #: src/lib/components/settings/ApiTokens.svelte
 #: src/lib/components/settings/ConnectedApps.svelte
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
 #: src/routes/settings/account/+page.svelte
 #: src/routes/settings/account/+page.svelte
 #: src/routes/settings/api-access/+page.svelte
@@ -16679,6 +16689,7 @@ msgstr ""
 
 #: src/lib/components/settings/ApiTokens.svelte
 #: src/routes/settings/api-access/+page.svelte
+#: src/routes/settings/connected-apps/+page.svelte
 #: src/routes/settings/integrations/discord/+page.svelte
 msgid "Revoke"
 msgstr "Revoke"
@@ -18912,7 +18923,7 @@ msgstr "Revoke platform admin from {0}"
 msgid "Grant platform admin to {0}"
 msgstr "Grant platform admin to {0}"
 
-#: src/routes/auth/bot/authorize/+page.svelte
+#: src/routes/auth/bot/authorize/done/+page.svelte
 msgid "Your chat account is now linked to Nocturne. You can close this tab and head back to your chat app."
 msgstr "Your chat account is now linked to Nocturne. You can close this tab and head back to your chat app."
 
@@ -19074,3 +19085,165 @@ msgstr "Failed to revoke link."
 #: src/routes/auth/bot/discord/finalize/+page.server.ts
 msgid "We couldn't complete the Discord link. The token may have expired. Please try again from Settings."
 msgstr "We couldn't complete the Discord link. The token may have expired. Please try again from Settings."
+
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid "Sign-in method removed."
+msgstr "Sign-in method removed."
+
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid "Cannot remove your only sign-in method. Add another first."
+msgstr "Cannot remove your only sign-in method. Add another first."
+
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid "Failed to remove sign-in method."
+msgstr "Failed to remove sign-in method."
+
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid "<0/> Linked sign-in methods"
+msgstr "<0/> Linked sign-in methods"
+
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid ""
+"Sign in to Nocturne with an external identity provider such as\n"
+"Google, Microsoft, or GitHub."
+msgstr ""
+"Sign in to Nocturne with an external identity provider such as\n"
+"Google, Microsoft, or GitHub."
+
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid "<0/> Link an account"
+msgstr "<0/> Link an account"
+
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid ""
+"No linked sign-in methods. Add one to sign in with an external\n"
+"provider."
+msgstr ""
+"No linked sign-in methods. Add one to sign in with an external\n"
+"provider."
+
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid "Unknown provider"
+msgstr "Unknown provider"
+
+#. placeholder {0}: formatDate(identity.linkedAt)
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid "<0/> Linked {0}"
+msgstr "<0/> Linked {0}"
+
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid "This is your only sign-in method."
+msgstr "This is your only sign-in method."
+
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid "You cannot remove your only sign-in method. Add another first."
+msgstr "You cannot remove your only sign-in method. Add another first."
+
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid "All available providers are already linked."
+msgstr "All available providers are already linked."
+
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid "Remove sign-in method"
+msgstr "Remove sign-in method"
+
+#. placeholder {0}: removeTarget?.providerName ?? "linked"
+#. placeholder {1}: removeTarget?.email ? ` for ${removeTarget.email}` : ""
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid "Are you sure you want to remove the {0} sign-in method{1}? You will no longer be able to sign in with this provider."
+msgstr "Are you sure you want to remove the {0} sign-in method{1}? You will no longer be able to sign in with this provider."
+
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid "Link a sign-in method"
+msgstr "Link a sign-in method"
+
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid "Choose an identity provider to link to your Nocturne account."
+msgstr "Choose an identity provider to link to your Nocturne account."
+
+#: src/lib/components/settings/LinkedOidcIdentities.svelte
+msgid "No providers available to link."
+msgstr "No providers available to link."
+
+#: src/routes/auth/error/+page.svelte
+msgid "Account Already Linked"
+msgstr "Account Already Linked"
+
+#: src/routes/auth/error/+page.svelte
+msgid "Your session may have expired. Please try linking again."
+msgstr "Your session may have expired. Please try linking again."
+
+#: src/routes/auth/error/+page.svelte
+msgid "Your session expired before the link could be completed. Please try linking again."
+msgstr "Your session expired before the link could be completed. Please try linking again."
+
+#: src/routes/auth/error/+page.svelte
+msgid "This provider account is already linked to another Nocturne user. If this is your account, sign in with that provider directly."
+msgstr "This provider account is already linked to another Nocturne user. If this is your account, sign in with that provider directly."
+
+#: src/routes/settings/connected-apps/+page.svelte
+msgid "Apps you have authorized to access your data on this tenant."
+msgstr "Apps you have authorized to access your data on this tenant."
+
+#: src/routes/settings/connected-apps/+page.svelte
+msgid "Failed to load connected apps."
+msgstr "Failed to load connected apps."
+
+#: src/routes/settings/connected-apps/+page.svelte
+msgid "No connected apps yet"
+msgstr "No connected apps yet"
+
+#: src/routes/settings/connected-apps/+page.svelte
+msgid "Apps you authorize will appear here."
+msgstr "Apps you authorize will appear here."
+
+#: src/routes/settings/connected-apps/+page.svelte
+msgid "Unknown App"
+msgstr "Unknown App"
+
+#: src/routes/settings/connected-apps/+page.svelte
+msgid "Self-registered"
+msgstr "Self-registered"
+
+#: src/routes/settings/connected-apps/+page.svelte
+msgid "Revoke access"
+msgstr "Revoke access"
+
+#. placeholder {0}: app.clientName ?? "this app"
+#: src/routes/settings/connected-apps/+page.svelte
+msgid ""
+"Revoke {0}'s access to your\n"
+"data? The app will need to be re-authorized to regain\n"
+"access."
+msgstr ""
+"Revoke {0}'s access to your\n"
+"data? The app will need to be re-authorized to regain\n"
+"access."
+
+#: src/routes/settings/connected-apps/+page.svelte
+msgid "Scopes:"
+msgstr "Scopes:"
+
+#: src/routes/settings/connected-apps/+page.svelte
+msgid "Label:"
+msgstr "Label:"
+
+#: src/routes/settings/connected-apps/+page.svelte
+msgid "Authorized:"
+msgstr "Authorized:"
+
+#: src/routes/settings/connected-apps/+page.svelte
+msgid "Last used:"
+msgstr "Last used:"
+
+#: src/routes/settings/connectors/+page.svelte
+msgid "<0/> Integrations"
+msgstr "<0/> Integrations"
+
+#: src/routes/settings/connectors/+page.svelte
+msgid "Connect Nocturne to chat platforms and other external services"
+msgstr "Connect Nocturne to chat platforms and other external services"
+
+#: src/routes/settings/connectors/+page.svelte
+msgid "Link a Discord account to receive alerts and use the Nocturne bot"
+msgstr "Link a Discord account to receive alerts and use the Nocturne bot"

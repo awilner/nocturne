@@ -29,6 +29,7 @@ import {
   CompatibilityClient,
   CompressionLowClient,
   ConfigurationClient,
+  ConnectedAppsClient,
   ConnectorFoodEntriesClient,
   MyFitnessPalSettingsClient,
   ConnectorStatusClient,
@@ -134,6 +135,7 @@ export class ApiClient {
   public readonly compatibility: CompatibilityClient;
   public readonly compressionLows: CompressionLowClient;
   public readonly configuration: ConfigurationClient;
+  public readonly connectedApps: ConnectedAppsClient;
   public readonly connectorFoodEntries: ConnectorFoodEntriesClient;
   public readonly connectorSettings: MyFitnessPalSettingsClient;
   public readonly connectorStatus: ConnectorStatusClient;
@@ -239,6 +241,7 @@ export class ApiClient {
     this.compatibility = new CompatibilityClient(apiBaseUrl, http);
     this.compressionLows = new CompressionLowClient(apiBaseUrl, http);
     this.configuration = new ConfigurationClient(apiBaseUrl, http);
+    this.connectedApps = new ConnectedAppsClient(apiBaseUrl, http);
     this.connectorFoodEntries = new ConnectorFoodEntriesClient(apiBaseUrl, http);
     this.connectorSettings = new MyFitnessPalSettingsClient(apiBaseUrl, http);
     this.connectorStatus = new ConnectorStatusClient(apiBaseUrl, http);
