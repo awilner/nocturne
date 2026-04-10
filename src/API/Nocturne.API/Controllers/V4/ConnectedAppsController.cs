@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Nocturne.API.Extensions;
+using OpenApi.Remote.Attributes;
 using Nocturne.Core.Contracts;
 using Nocturne.Core.Models.Authorization;
 
@@ -40,6 +41,7 @@ public class ConnectedAppsController : ControllerBase
     /// on the current tenant.
     /// </summary>
     [HttpGet]
+    [RemoteQuery]
     [ProducesResponseType(typeof(List<ConnectedAppDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ConnectedAppDto>>> List(CancellationToken ct)
     {
@@ -78,6 +80,7 @@ public class ConnectedAppsController : ControllerBase
     /// unusable on next request via the revocation cache.
     /// </summary>
     [HttpDelete("{grantId}")]
+    [RemoteCommand(Invalidates = ["List"])]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Revoke(Guid grantId, CancellationToken ct)
