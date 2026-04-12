@@ -8,7 +8,7 @@
   import { getLocalTimeZone, parseDate, today } from "@internationalized/date";
   import type { DateRange } from "bits-ui";
   import { requireDateParamsContext } from "$lib/hooks/date-params.svelte";
-  import RangeCalendar from "$lib/components/ui/range-calendar/range-calendar.svelte";
+  import { RangeCalendar } from "$lib/components/ui/range-calendar";
   import { Calendar, Filter, RotateCcw } from "lucide-svelte";
 
   interface Props {

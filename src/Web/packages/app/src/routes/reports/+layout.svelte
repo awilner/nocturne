@@ -1,6 +1,6 @@
 <script lang="ts">
     import {page} from "$app/state";
-    import Button from "$lib/components/ui/button/button.svelte";
+    import { Button } from "$lib/components/ui/button";
     import {ReportsFilterSidebar} from "$lib/components/layout";
     import ResourceGuard from "$lib/components/reports/ResourceGuard.svelte";
     import {Filter, Calendar} from "lucide-svelte";

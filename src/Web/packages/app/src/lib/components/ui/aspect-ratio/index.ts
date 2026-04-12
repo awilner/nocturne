@@ -1,3 +1,1 @@
-import Root from "./aspect-ratio.svelte";
-
-export { Root, Root as AspectRatio };
+export * from "@nocturne/ui/ui/aspect-ratio";

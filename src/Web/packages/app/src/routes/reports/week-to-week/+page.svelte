@@ -1,7 +1,7 @@
 <script lang="ts">
   import { LineChart } from "layerchart";
   import * as Card from "$lib/components/ui/card";
-  import Button from "$lib/components/ui/button/button.svelte";
+  import { Button } from "$lib/components/ui/button";
   import { ChevronLeft, ChevronRight, Calendar } from "lucide-svelte";
   import { getReportsData } from "$api/reports.remote";
   import { requireDateParamsContext } from "$lib/hooks/date-params.svelte";

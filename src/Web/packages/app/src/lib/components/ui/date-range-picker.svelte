@@ -4,7 +4,7 @@
   import type { DateRange } from "bits-ui";
   import { queryParam } from "sveltekit-search-params";
 
-  import RangeCalendar from "$lib/components/ui/range-calendar/range-calendar.svelte";
+  import { RangeCalendar } from "$lib/components/ui/range-calendar";
   import * as Popover from "$lib/components/ui/popover/index.js";
   import ChevronDownIcon from "@lucide/svelte/icons/chevron-down";
 

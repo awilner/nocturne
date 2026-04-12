@@ -1,7 +1,1 @@
-import Root from "./separator.svelte";
-
-export {
-	Root,
-	//
-	Root as Separator,
-};
+export * from "@nocturne/ui/ui/separator";

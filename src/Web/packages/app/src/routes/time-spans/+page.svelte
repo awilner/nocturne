@@ -2,8 +2,8 @@
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
   import * as Card from "$lib/components/ui/card";
-  import Button from "$lib/components/ui/button/button.svelte";
-  import Toggle from "$lib/components/ui/toggle/toggle.svelte";
+  import { Button } from "$lib/components/ui/button";
+  import { Toggle } from "$lib/components/ui/toggle";
   import DateRangePicker from "$lib/components/ui/date-range-picker.svelte";
   import { ChevronLeft, ChevronRight, ArrowLeft } from "lucide-svelte";
   import { StateSpansTimeline } from "$lib/components/dashboard/state-spans-timeline";
