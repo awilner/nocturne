@@ -24020,3 +24020,7 @@ msgstr ""
 #: src/routes/studio/+page.svelte
 msgid "Studio - Nocturne"
 msgstr ""
+
+#: src/routes/studio/+page.svelte
+msgid "Failed to publish"
+msgstr ""

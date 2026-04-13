@@ -12,6 +12,7 @@
     "./blog/loader": "./src/blog/loader.ts",
     "./blog/rss": "./src/blog/rss.ts",
     "./blog/types": "./src/blog/types.ts",
+    "./blog/manifest": "./src/blog/manifest.ts",
     "./email/component-map": "./src/email/component-map.ts",
     "./email/render": "./src/email/render.ts",
     "./email/build": "./src/email/build.ts",

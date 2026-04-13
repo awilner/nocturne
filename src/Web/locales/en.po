@@ -20790,3 +20790,7 @@ msgstr "Blog Posts"
 #: src/routes/studio/+page.svelte
 msgid "Studio - Nocturne"
 msgstr "Studio - Nocturne"
+
+#: src/routes/studio/+page.svelte
+msgid "Failed to publish"
+msgstr "Failed to publish"

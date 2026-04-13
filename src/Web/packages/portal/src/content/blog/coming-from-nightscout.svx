@@ -1,0 +1,16 @@
+---
+title: Coming from Nightscout
+slug: coming-from-nightscout
+date: 2026-04-13
+author: Rhys
+category: nightscout
+tags: []
+summary: Setting up your Nocturne instance to be like Nightscout
+image:
+draft: false
+---
+<p>Because Nocturne reimplements Nightscout’s API, the good news is that 99% of Nightscout’s features are already baked into Nocturne- they might just be under different names.</p>
+
+<p>
+AAAAAAAAAAAAAA
+</p>
