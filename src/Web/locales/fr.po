@@ -24004,3 +24004,11 @@ msgstr ""
 #: src/routes/studio/+page.svelte
 msgid "Failed to publish"
 msgstr ""
+
+#: src/routes/studio/+page.svelte
+msgid "LanguageSelector"
+msgstr ""
+
+#: src/routes/studio/+page.svelte
+msgid "Language Selector"
+msgstr ""

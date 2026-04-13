@@ -20794,3 +20794,11 @@ msgstr "Studio - Nocturne"
 #: src/routes/studio/+page.svelte
 msgid "Failed to publish"
 msgstr "Failed to publish"
+
+#: src/routes/studio/+page.svelte
+msgid "LanguageSelector"
+msgstr "LanguageSelector"
+
+#: src/routes/studio/+page.svelte
+msgid "Language Selector"
+msgstr "Language Selector"

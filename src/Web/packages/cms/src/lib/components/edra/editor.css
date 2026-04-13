@@ -625,3 +625,29 @@ ul[data-type='taskList'] li[data-checked='true'] div {
 	height: 1rem;
 	width: 1rem;
 }
+
+/* Embedded Svelte component placeholder */
+.svelte-component-block {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.75rem 1rem;
+	margin: 0.5rem 0;
+	border: 1px dashed var(--border);
+	border-radius: 0.5rem;
+	background: var(--muted);
+	color: var(--muted-foreground);
+	font-size: 0.875rem;
+	font-family: ui-monospace, monospace;
+	user-select: none;
+	cursor: pointer;
+}
+
+.svelte-component-block::before {
+	content: '\2728';
+}
+
+.svelte-component-block.ProseMirror-selectednode {
+	border-color: var(--primary);
+	outline: 2px solid var(--ring);
+}

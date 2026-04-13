@@ -6,6 +6,10 @@ export type { Content, Editor };
 
 export interface EdraEditorProps {
 	/**
+	 * Additional TipTap extensions to register
+	 */
+	additionalExtensions?: import('@tiptap/core').Extension[];
+	/**
 	 * Initial content to be set for editor
 	 */
 	content?: Content;

@@ -3,6 +3,16 @@
   import { blogMetadataFields } from '@nocturne/cms/editor/types';
   import { toSvx } from '@nocturne/cms/editor/markdown';
   import type { ContentTypeConfig, EditorCallbacks, ContentItem, ContentData } from '@nocturne/cms/editor/types';
+  import type { ComponentDefinition } from '@nocturne/cms/editor/extensions/svelte-component';
+
+  const portalComponents: ComponentDefinition[] = [
+    {
+      name: 'LanguageSelector',
+      label: 'Language Selector',
+      importPath: '$lib/components/LanguageSelector.svelte',
+      defaultProps: { compact: 'true' },
+    },
+  ];
 
   const STORAGE_KEY = 'nocturne-studio-blog';
 
@@ -135,4 +145,4 @@
   <title>Studio - Nocturne</title>
 </svelte:head>
 
-<ContentEditor {config} {callbacks} />
+<ContentEditor {config} {callbacks} components={portalComponents} />

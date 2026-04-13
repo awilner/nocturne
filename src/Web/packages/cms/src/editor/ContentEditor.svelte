@@ -2,6 +2,7 @@
   import { EdraEditor, EdraToolBar, EdraDragHandleExtended } from '../lib/components/edra/shadcn/index.ts';
   import type { Editor } from '@tiptap/core';
   import type { ContentTypeConfig, EditorCallbacks, ContentItem } from './types.ts';
+  import { SvelteComponentExtension, type ComponentDefinition } from './extensions/svelte-component.ts';
   import MetadataPanel from './MetadataPanel.svelte';
   import ContentSidebar from './ContentSidebar.svelte';
   import PreviewPane from './PreviewPane.svelte';
@@ -9,10 +10,14 @@
   let {
     config,
     callbacks,
+    components = [],
   }: {
     config: ContentTypeConfig;
     callbacks: EditorCallbacks;
+    components?: ComponentDefinition[];
   } = $props();
+
+  const editorExtensions = components.length > 0 ? [SvelteComponentExtension(components)] : [];
 
   let editor = $state<Editor>();
   let items = $state<ContentItem[]>([]);
@@ -104,6 +109,7 @@
         bind:editor
         content=""
         onUpdate={handleUpdate}
+        additionalExtensions={editorExtensions}
       />
     </div>
 

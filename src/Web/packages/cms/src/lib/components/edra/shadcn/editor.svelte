@@ -48,7 +48,8 @@
 		class: className,
 		spellcheck = true,
 		onFileSelect,
-		onDropOrPaste
+		onDropOrPaste,
+		additionalExtensions = [],
 	}: EdraEditorProps = $props();
 
 	onMount(() => {
@@ -78,7 +79,8 @@
 				TableOfContents.configure({
 					getIndex: getHierarchicalIndexes,
 					scrollParent: () => element || window
-				})
+				}),
+				...additionalExtensions,
 			],
 			{
 				onUpdate,
