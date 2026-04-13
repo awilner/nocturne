@@ -168,6 +168,7 @@ msgstr ""
 #: src/lib/components/status-pills/IOBPill.svelte
 #: src/lib/components/status-pills/SAGEPill.svelte
 #: src/lib/components/treatments/TreatmentEditDialog.svelte
+#: src/routes/docs/installation/byo-postgres/+page.svelte
 #: src/routes/reports/day-in-review/+page.svelte
 #: src/routes/reports/year-overview/+page.svelte
 msgid "Notes"
@@ -14989,6 +14990,7 @@ msgid "Failed to delete clock face"
 msgstr ""
 
 #: src/routes/clock/+page.svelte
+#: src/routes/studio/+page.svelte
 msgid "Untitled"
 msgstr ""
 
@@ -23849,6 +23851,7 @@ msgid ""
 msgstr ""
 
 #: src/routes/docs/installation/+page.svelte
+#: src/routes/docs/installation/byo-postgres/+page.svelte
 msgid "Bring Your Own PostgreSQL"
 msgstr ""
 
@@ -23909,4 +23912,91 @@ msgstr ""
 
 #: src/lib/components/docs/EnvVarReference.svelte
 msgid "Instance key for JWT signing, encryption, and service authentication"
+msgstr ""
+
+#: src/routes/docs/installation/byo-postgres/+page.svelte
+msgid ""
+"For deployments that use a managed PostgreSQL service or an existing shared database server\n"
+"instead of Nocturne's bundled Postgres container."
+msgstr ""
+
+#: src/routes/docs/installation/byo-postgres/+page.svelte
+msgid "Three non-privileged roles are required"
+msgstr ""
+
+#: src/routes/docs/installation/byo-postgres/+page.svelte
+msgid ""
+"Nocturne enforces Row Level Security on every medical-data table. RLS is only meaningful\n"
+"when the runtime connection cannot bypass it, so Nocturne requires three separate roles:"
+msgstr ""
+
+#: src/routes/docs/installation/byo-postgres/+page.svelte
+msgid ""
+"<0/> —\n"
+"owns the schema and runs migrations."
+msgstr ""
+
+#: src/routes/docs/installation/byo-postgres/+page.svelte
+msgid ""
+"<0/> —\n"
+"runtime connection for the .NET API. Cannot bypass RLS and has no DDL privileges."
+msgstr ""
+
+#: src/routes/docs/installation/byo-postgres/+page.svelte
+msgid ""
+"<0/> —\n"
+"used by the SvelteKit web app's bot framework to store chat-platform state. Owns\n"
+"only its own <1/> tables (not tenant-scoped, no PHI)."
+msgstr ""
+
+#: src/routes/docs/installation/byo-postgres/+page.svelte
+msgid "Setup steps"
+msgstr ""
+
+#: src/routes/docs/installation/byo-postgres/+page.svelte
+msgid "Download <0/> from the Nocturne repository under <1/>."
+msgstr ""
+
+#: src/routes/docs/installation/byo-postgres/+page.svelte
+msgid "Edit the file and replace the three <0/> passwords with strong values from your secrets manager."
+msgstr ""
+
+#: src/routes/docs/installation/byo-postgres/+page.svelte
+msgid "Run as a PostgreSQL superuser against your Nocturne database: <0/>"
+msgstr ""
+
+#: src/routes/docs/installation/byo-postgres/+page.svelte
+msgid "Set three connection strings in Nocturne's environment: <0><0/> — use the <1/> role.<0/> — use the <1/> role.<0/> — a <1/> URL for the <2/> role (consumed by the SvelteKit bot state adapter).</0>"
+msgstr ""
+
+#: src/routes/docs/installation/byo-postgres/+page.svelte
+msgid ""
+"Start Nocturne. If either role is missing or misconfigured, the startup error will\n"
+"inline the exact SQL needed to fix it."
+msgstr ""
+
+#: src/routes/docs/installation/byo-postgres/+page.svelte
+msgid ""
+"The two roles only need to be created once per database. Re-running <0/> is\n"
+"idempotent."
+msgstr ""
+
+#: src/routes/docs/installation/byo-postgres/+page.svelte
+msgid ""
+"Neither role has <0/> or <1/>. Nocturne\n"
+"refuses to start if the runtime role can bypass Row Level Security."
+msgstr ""
+
+#: src/routes/docs/installation/byo-postgres/+page.svelte
+msgid ""
+"On managed PostgreSQL services (RDS, Cloud SQL, Supabase, Neon), run the script as the\n"
+"database owner your provider gave you rather than the literal <0/> user."
+msgstr ""
+
+#: src/routes/studio/+page.svelte
+msgid "Blog Posts"
+msgstr ""
+
+#: src/routes/studio/+page.svelte
+msgid "Studio - Nocturne"
 msgstr ""

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { EdraEditor, EdraToolBar, EdraDragHandleExtended } from '$lib/components/edra/shadcn/index.ts';
+  import { EdraEditor, EdraToolBar, EdraDragHandleExtended } from '../lib/components/edra/shadcn/index.ts';
   import type { Editor } from '@tiptap/core';
   import type { ContentTypeConfig, EditorCallbacks, ContentItem } from './types.ts';
   import MetadataPanel from './MetadataPanel.svelte';
