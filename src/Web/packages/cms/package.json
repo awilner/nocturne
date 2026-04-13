@@ -52,6 +52,7 @@
     "@tiptap/pm": "^3.0.0",
     "@tiptap/starter-kit": "^3.0.0",
     "@tiptap/suggestion": "^3.0.0",
+    "katex": "^0.16.45",
     "lowlight": "^3.0.0",
     "mdsvex": "^0.12.3",
     "remark-html": "^16.0.1",

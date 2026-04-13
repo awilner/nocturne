@@ -386,6 +386,9 @@ importers:
       '@tiptap/suggestion':
         specifier: ^3.0.0
         version: 3.22.3(@tiptap/core@3.22.3(@tiptap/pm@3.22.3))(@tiptap/pm@3.22.3)
+      katex:
+        specifier: ^0.16.45
+        version: 0.16.45
       lowlight:
         specifier: ^3.0.0
         version: 3.3.0
