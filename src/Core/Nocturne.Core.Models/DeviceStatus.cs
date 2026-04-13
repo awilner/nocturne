@@ -22,19 +22,11 @@ public class DeviceStatus : ProcessableDocumentBase
     public override long Mills { get; set; }
 
     /// <summary>
-    /// Gets or sets the timestamp in milliseconds since Unix epoch (AAPS uses "date" instead of "mills").
-    /// Normalized to Mills during deserialization.
+    /// Timestamp in milliseconds since Unix epoch. AAPS sends "date" instead of "mills".
     /// </summary>
     [JsonPropertyName("date")]
-    public long? Date
-    {
-        get => null; // Write-only: consumed during deserialization, not re-serialized
-        set
-        {
-            if (value is > 0 && Mills == 0)
-                Mills = value.Value;
-        }
-    }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public long? Date { get; set; }
 
     /// <summary>
     /// Gets or sets the ISO 8601 formatted creation timestamp

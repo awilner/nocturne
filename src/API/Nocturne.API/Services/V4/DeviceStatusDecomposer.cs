@@ -52,6 +52,10 @@ public class DeviceStatusDecomposer : IDeviceStatusDecomposer, IDecomposer<Devic
             CorrelationId = Guid.CreateVersion7()
         };
 
+        // AAPS sends "date" instead of "mills" — normalize before decomposition
+        if (ds.Mills == 0 && ds.Date is > 0)
+            ds.Mills = ds.Date.Value;
+
         var legacyId = ds.Id;
 
         if (ds.OpenAps != null)

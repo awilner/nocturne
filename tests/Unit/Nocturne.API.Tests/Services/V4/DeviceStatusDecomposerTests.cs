@@ -1638,5 +1638,36 @@ public class DeviceStatusDecomposerTests : IDisposable
         aps.Timestamp.Should().Be(DateTimeOffset.FromUnixTimeMilliseconds(1700000000000).UtcDateTime);
     }
 
+    [Fact]
+    public async Task DecomposeAsync_OpenApsWithJsonDateField_NormalizesMillsFromDate()
+    {
+        // Arrange — simulate actual AAPS JSON payload (no "mills" field, only "date")
+        var json = """
+        {
+            "_id": "aaps-json-1",
+            "date": 1712925027741,
+            "device": "openaps://samsung SM-A525F",
+            "openaps": {
+                "iob": { "iob": 3.4 },
+                "enacted": {
+                    "received": true,
+                    "rate": 0.05,
+                    "duration": 30,
+                    "bg": 200,
+                    "timestamp": "2026-04-12T09:30:28.167Z"
+                }
+            }
+        }
+        """;
+        var ds = System.Text.Json.JsonSerializer.Deserialize<DeviceStatus>(json)!;
+
+        // Act
+        var result = await _decomposer.DecomposeAsync(ds);
+
+        // Assert
+        var aps = result.CreatedRecords[0].Should().BeOfType<V4Models.ApsSnapshot>().Subject;
+        aps.Timestamp.Should().Be(DateTimeOffset.FromUnixTimeMilliseconds(1712925027741).UtcDateTime);
+    }
+
     #endregion
 }
