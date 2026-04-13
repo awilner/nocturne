@@ -17,7 +17,8 @@
     "./email/build": "./src/email/build.ts",
     "./editor": "./src/lib/components/edra/shadcn/index.ts",
     "./editor/*": "./src/lib/components/edra/shadcn/*.svelte",
-    "./editor/types": "./src/editor/types.ts"
+    "./editor/types": "./src/editor/types.ts",
+    "./editor/ContentEditor.svelte": "./src/editor/ContentEditor.svelte"
   },
   "peerDependencies": {
     "@nocturne/ui": ">=0.1.0",
