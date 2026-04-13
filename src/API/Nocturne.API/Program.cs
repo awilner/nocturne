@@ -160,7 +160,7 @@ builder.Services.AddOpenApiDocument(config =>
     });
 
     config.OperationProcessors.Add(new RemoteFunctionOperationProcessor());
-    config.OperationProcessors.Add(new FolderBasedTagOperationProcessor());
+    config.OperationProcessors.Add(new ControllerNameTagOperationProcessor());
 
     config.PostProcess = document =>
     {
@@ -521,7 +521,7 @@ internal class NSwagStartup
             });
 
             config.OperationProcessors.Add(new RemoteFunctionOperationProcessor());
-            config.OperationProcessors.Add(new FolderBasedTagOperationProcessor());
+            config.OperationProcessors.Add(new ControllerNameTagOperationProcessor());
         });
     }
 
