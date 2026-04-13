@@ -1670,4 +1670,43 @@ public class DeviceStatusDecomposerTests : IDisposable
     }
 
     #endregion
+
+    #region Timestamp Fallback
+
+    [Fact]
+    public async Task DecomposeAsync_OpenApsWithMillsZeroNoDate_FallsBackToIobTime()
+    {
+        // Arrange — neither mills nor date set; should fall back to OpenAps.Iob.Time
+        var ds = new DeviceStatus
+        {
+            Id = "aaps-fallback-1",
+            Mills = 0,
+            CreatedAt = "2026-04-12T12:34:27.741Z",
+            Device = "openaps://samsung SM-A525F",
+            OpenAps = new OpenApsStatus
+            {
+                Iob = new OpenApsIobData { Iob = 3.4, Time = "2026-04-12T09:30:30.549Z" },
+                Enacted = new OpenApsEnacted
+                {
+                    Received = true,
+                    Rate = 0.05,
+                    Duration = 30,
+                    Bg = 200,
+                    Timestamp = "2026-04-12T09:30:28.167Z"
+                }
+            }
+        };
+
+        // Act
+        var result = await _decomposer.DecomposeAsync(ds);
+
+        // Assert — should use OpenAps.Iob.Time as fallback (most precise APS timestamp)
+        var aps = result.CreatedRecords[0].Should().BeOfType<V4Models.ApsSnapshot>().Subject;
+        aps.Timestamp.Should().NotBe(DateTime.UnixEpoch);
+        aps.Timestamp.Year.Should().Be(2026);
+        aps.Timestamp.Month.Should().Be(4);
+        aps.Timestamp.Day.Should().Be(12);
+    }
+
+    #endregion
 }

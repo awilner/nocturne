@@ -96,7 +96,7 @@ public class DeviceStatusDecomposer : IDeviceStatusDecomposer, IDecomposer<Devic
 
         var model = new V4Models.ApsSnapshot
         {
-            Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(ds.Mills).UtcDateTime,
+            Timestamp = ResolveTimestamp(ds),
             UtcOffset = ds.UtcOffset,
             Device = ds.Device,
             LegacyId = legacyId,
@@ -138,7 +138,7 @@ public class DeviceStatusDecomposer : IDeviceStatusDecomposer, IDecomposer<Devic
     {
         var model = new V4Models.ApsSnapshot
         {
-            Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(ds.Mills).UtcDateTime,
+            Timestamp = ResolveTimestamp(ds),
             UtcOffset = ds.UtcOffset,
             Device = ds.Device,
             LegacyId = legacyId,
@@ -194,7 +194,7 @@ public class DeviceStatusDecomposer : IDeviceStatusDecomposer, IDecomposer<Devic
     {
         var model = new V4Models.PumpSnapshot
         {
-            Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(ds.Mills).UtcDateTime,
+            Timestamp = ResolveTimestamp(ds),
             UtcOffset = ds.UtcOffset,
             Device = ds.Device,
             LegacyId = legacyId,
@@ -244,7 +244,7 @@ public class DeviceStatusDecomposer : IDeviceStatusDecomposer, IDecomposer<Devic
     {
         var model = new V4Models.UploaderSnapshot
         {
-            Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(ds.Mills).UtcDateTime,
+            Timestamp = ResolveTimestamp(ds),
             UtcOffset = ds.UtcOffset,
             Device = ds.Device,
             LegacyId = legacyId,
@@ -288,13 +288,14 @@ public class DeviceStatusDecomposer : IDeviceStatusDecomposer, IDecomposer<Devic
     private async Task DecomposeOverrideAsync(
         DeviceStatus ds, string? legacyId, V4Models.DecompositionResult result, CancellationToken ct)
     {
+        var timestamp = ResolveTimestamp(ds);
         var stateSpan = new StateSpan
         {
             Category = StateSpanCategory.Override,
             State = OverrideState.Custom.ToString(),
-            StartTimestamp = DateTimeOffset.FromUnixTimeMilliseconds(ds.Mills).UtcDateTime,
+            StartTimestamp = timestamp,
             EndTimestamp = ds.Override!.Duration is > 0
-                ? DateTimeOffset.FromUnixTimeMilliseconds(ds.Mills + (long)(ds.Override.Duration.Value * 60000)).UtcDateTime
+                ? timestamp.AddMinutes(ds.Override.Duration.Value)
                 : null,
             Source = ds.Device,
             OriginalId = legacyId,
@@ -341,6 +342,40 @@ public class DeviceStatusDecomposer : IDeviceStatusDecomposer, IDecomposer<Devic
     private static string? SerializeOrNull(List<double>? list)
     {
         return list is null ? null : JsonSerializer.Serialize(list, JsonOptions);
+    }
+
+    /// <summary>
+    /// Resolves the best available timestamp for a device status record.
+    /// Priority: Mills (already normalized from date) > OpenAPS IOB time >
+    /// OpenAPS enacted/suggested timestamp > Loop predicted start date > Pump clock > CreatedAt > now.
+    /// </summary>
+    internal static DateTime ResolveTimestamp(DeviceStatus ds)
+    {
+        if (ds.Mills > 0)
+            return DateTimeOffset.FromUnixTimeMilliseconds(ds.Mills).UtcDateTime;
+
+        // Try OpenAPS IOB time
+        if (ParseTimestampToDateTime(ds.OpenAps?.Iob?.Time) is { } iobTime)
+            return iobTime;
+
+        // Try OpenAPS enacted/suggested timestamp
+        var command = ds.OpenAps?.Enacted ?? ds.OpenAps?.Suggested;
+        if (ParseTimestampToDateTime(command?.Timestamp) is { } commandTime)
+            return commandTime;
+
+        // Try Loop predicted start date
+        if (ParseTimestampToDateTime(ds.Loop?.Predicted?.StartDate) is { } loopTime)
+            return loopTime;
+
+        // Try pump clock
+        if (ParseTimestampToDateTime(ds.Pump?.Clock) is { } pumpTime)
+            return pumpTime;
+
+        // Try CreatedAt
+        if (ParseTimestampToDateTime(ds.CreatedAt) is { } createdTime)
+            return createdTime;
+
+        return DateTime.UtcNow;
     }
 
     private static DateTime? ParseTimestampToDateTime(string? timestamp)
