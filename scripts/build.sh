@@ -63,13 +63,23 @@ dotnet build -c Release src/API/Nocturne.API/Nocturne.API.csproj --verbosity qui
 # ---------------------------------------------------------------------------
 echo "==> Verifying generated API client files"
 GENERATED_DIR="src/Web/packages/app/src/lib/api/generated"
-if [[ ! -f "$GENERATED_DIR/passkeys.generated.remote.ts" ]]; then
-  echo "ERROR: Generated API client files are missing. NSwag/remote codegen may have failed." >&2
-  ls -la "$GENERATED_DIR/" 2>/dev/null || echo "  Generated directory does not exist" >&2
+MISSING=()
+for f in passkeys patientRecords chartDatas profiles treatments alerts; do
+  if [[ ! -f "$GENERATED_DIR/${f}.generated.remote.ts" ]]; then
+    MISSING+=("$f")
+  fi
+done
+if [[ ${#MISSING[@]} -gt 0 ]]; then
+  echo "ERROR: Missing generated remote files: ${MISSING[*]}" >&2
+  ls -la "$GENERATED_DIR/"*.generated.remote.ts 2>/dev/null || echo "  No generated remote files found" >&2
   exit 1
 fi
 REMOTE_COUNT=$(find "$GENERATED_DIR" -name "*.generated.remote.ts" | wc -l)
 echo "    Found $REMOTE_COUNT generated remote files"
+if [[ "$REMOTE_COUNT" -lt 40 ]]; then
+  echo "ERROR: Expected at least 40 generated remote files but found only $REMOTE_COUNT" >&2
+  exit 1
+fi
 
 # ---------------------------------------------------------------------------
 # Step 4: Build API container

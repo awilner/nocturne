@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using NSwag.Generation.Processors;
 using NSwag.Generation.Processors.Contexts;
 
@@ -8,8 +9,12 @@ namespace Nocturne.API.OpenApi;
 /// ignoring any [Tags] attributes. This keeps the TypeScript client codegen granular
 /// (one client class per controller) while [Tags] attributes only affect the runtime
 /// Microsoft OpenAPI pipeline used by Scalar.
+///
+/// PascalCase names are split into space-separated words so that the remote-codegen
+/// <c>tagToFileName</c> function can produce correct camelCase filenames
+/// (e.g. "PatientRecord" → "Patient Record" → "patientRecords.generated.remote.ts").
 /// </summary>
-public sealed class ControllerNameTagOperationProcessor : IOperationProcessor
+public sealed partial class ControllerNameTagOperationProcessor : IOperationProcessor
 {
     public bool Process(OperationProcessorContext context)
     {
@@ -18,9 +23,16 @@ public sealed class ControllerNameTagOperationProcessor : IOperationProcessor
         if (controllerName.EndsWith("Controller", StringComparison.Ordinal))
             controllerName = controllerName[..^"Controller".Length];
 
+        // Split PascalCase into space-separated words for remote-codegen compatibility.
+        // "PatientRecord" → "Patient Record", "BGCheck" → "BG Check"
+        var tag = PascalCaseBoundary().Replace(controllerName, " ");
+
         context.OperationDescription.Operation.Tags.Clear();
-        context.OperationDescription.Operation.Tags.Add(controllerName);
+        context.OperationDescription.Operation.Tags.Add(tag);
 
         return true;
     }
+
+    [GeneratedRegex(@"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")]
+    private static partial Regex PascalCaseBoundary();
 }
