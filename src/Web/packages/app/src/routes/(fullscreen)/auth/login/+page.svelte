@@ -25,7 +25,7 @@
   <title>Login - Nocturne</title>
 </svelte:head>
 
-<div class="flex min-h-screen items-center justify-center bg-background p-4">
+<div class="flex flex-1 items-center justify-center p-4">
   <Card.Root class="w-full max-w-md">
     <Card.Header class="space-y-1 text-center">
       <div

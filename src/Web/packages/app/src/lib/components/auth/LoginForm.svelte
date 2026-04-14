@@ -14,7 +14,7 @@
   import * as InputOTP from "$lib/components/ui/input-otp";
   import { login as totpLogin } from "$lib/api/generated/totps.generated.remote";
   import { startAuthentication } from "@simplewebauthn/browser";
-  import { getOidcProviders, setAuthCookies } from "$routes/auth/auth.remote";
+  import { getOidcProviders, setAuthCookies } from "$routes/(fullscreen)/auth/auth.remote";
   import {
     discoverableLoginOptions,
     loginOptions,

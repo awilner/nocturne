@@ -16,7 +16,7 @@
     getLinkedIdentities,
     unlinkIdentity,
   } from "$lib/api/generated/oidcs.generated.remote";
-  import { getProvidersInfo } from "$routes/auth/auth.remote";
+  import { getProvidersInfo } from "$routes/(fullscreen)/auth/auth.remote";
 
   interface Props {
     primaryAuthFactorCount: number;

@@ -16,7 +16,7 @@
     setupOptions,
     setupComplete,
   } from "$lib/api/generated/passkeys.generated.remote";
-  import { setAuthCookies } from "$routes/auth/auth.remote";
+  import { setAuthCookies } from "$routes/(fullscreen)/auth/auth.remote";
   import { invalidateAll } from "$app/navigation";
 
   // Form state
