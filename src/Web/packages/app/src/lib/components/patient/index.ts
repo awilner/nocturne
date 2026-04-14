@@ -6,4 +6,5 @@ export {
   createClinicalState,
   createDeviceListState,
   createInsulinListState,
+  createWeightState,
 } from "./state.svelte";

@@ -1,5 +1,6 @@
-import * as patientRemote from "$api/generated/patientRecords.generated.remote";
-import { getCatalog as getInsulinCatalog } from "$api/generated/insulins.generated.remote";
+import * as patientRemote from "$api/generated/patientrecords.generated.remote";
+import { getCatalog as getInsulinCatalog } from "$api/generated/insulincatalogs.generated.remote";
+import { getBodyWeights, create as createBodyWeight } from "$api/generated/bodyweights.generated.remote";
 import {
   type PatientDevice,
   type PatientInsulin,
@@ -121,5 +122,48 @@ export function createInsulinListState() {
     get createForm() { return createForm; },
     get updateForm() { return updateForm; },
     remove,
+  };
+}
+
+/** Creates reactive weight state for initial body weight entry */
+export function createWeightState() {
+  const existing = getBodyWeights({ count: 1, skip: 0 });
+
+  let weightKg = $state<string>("");
+  let saving = $state(false);
+  let saveError = $state<string | null>(null);
+
+  // Pre-populate from most recent record
+  $effect(() => {
+    const records = existing.current;
+    if (records && records.length > 0) {
+      weightKg = String(records[0].weightKg ?? "");
+    }
+  });
+
+  async function save(): Promise<boolean> {
+    if (!weightKg) return true; // Optional field, skip if empty
+    saving = true;
+    saveError = null;
+    try {
+      await createBodyWeight({
+        weightKg: Number(weightKg),
+        mills: Date.now(),
+      });
+      return true;
+    } catch {
+      saveError = "Failed to save weight. Please try again.";
+      return false;
+    } finally {
+      saving = false;
+    }
+  }
+
+  return {
+    get weightKg() { return weightKg; },
+    set weightKg(v: string) { weightKg = v; },
+    get saving() { return saving; },
+    get saveError() { return saveError; },
+    save,
   };
 }
