@@ -81,9 +81,37 @@ public class BodyWeightController : ControllerBase
     }
 
     /// <summary>
-    /// Create one or more body weight records (single object or array)
+    /// Create a single body weight record
     /// </summary>
     [HttpPost]
+    [RemoteCommand(Invalidates = ["GetBodyWeights"])]
+    [ProducesResponseType(typeof(BodyWeight), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(500)]
+    public async Task<ActionResult<BodyWeight>> Create(
+        [FromBody] BodyWeight bodyWeight,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            if (bodyWeight == null)
+                return Problem(detail: "Body weight data is required", statusCode: 400, title: "Bad Request");
+
+            var result = await _bodyWeightService.CreateBodyWeightsAsync([bodyWeight], cancellationToken);
+            return StatusCode(StatusCodes.Status201Created, result.First());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating body weight record");
+            return Problem(detail: "Internal server error", statusCode: 500, title: "Internal Server Error");
+        }
+    }
+
+    /// <summary>
+    /// Create one or more body weight records (single object or array)
+    /// </summary>
+    [HttpPost("batch")]
     [ProducesResponseType(typeof(IEnumerable<BodyWeight>), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(500)]
@@ -138,6 +166,7 @@ public class BodyWeightController : ControllerBase
     /// Update an existing body weight record
     /// </summary>
     [HttpPut("{id}")]
+    [RemoteCommand(Invalidates = ["GetBodyWeights", "GetBodyWeight"])]
     [ProducesResponseType(typeof(BodyWeight), 200)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
@@ -166,6 +195,7 @@ public class BodyWeightController : ControllerBase
     /// Delete a body weight record by ID
     /// </summary>
     [HttpDelete("{id}")]
+    [RemoteCommand(Invalidates = ["GetBodyWeights", "GetBodyWeight"])]
     [ProducesResponseType(200)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
