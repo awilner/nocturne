@@ -103,12 +103,18 @@
     }
   }
 
-  onMount(() => {
+  // Use $effect so initialization fires both on mount AND when
+  // data.isAuthenticated changes (e.g. after client-side goto from login).
+  // onMount alone misses the post-login case because the layout stays mounted
+  // across the SvelteKit client-side navigation.
+  $effect(() => {
     if (data.isAuthenticated) {
       realtimeStore.initialize();
       titleFaviconService.initialize();
     }
+  });
 
+  onMount(() => {
     // Reload settings after hydration (SSR fix)
     titleFaviconSettings = loadTitleFaviconSettings();
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { invalidateAll } from "$app/navigation";
-  import { onMount } from "svelte";
+
   import * as Sidebar from "$lib/components/ui/sidebar";
   import * as Collapsible from "$lib/components/ui/collapsible";
   import * as Select from "$lib/components/ui/select";
@@ -128,7 +128,9 @@
     return target.label ? `${name} (${target.label})` : name;
   }
 
-  onMount(() => {
+  // Use $effect so this runs when `user` becomes available after client-side
+  // login navigation (onMount alone misses that case).
+  $effect(() => {
     if (user) {
       loadFollowerTargets();
     }
