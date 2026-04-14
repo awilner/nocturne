@@ -32,5 +32,5 @@
   {saving}
   onSave={handleSave}
 >
-  <PatientClinicalForm extended={false} onstate={handleState} />
+  <PatientClinicalForm onstate={handleState} />
 </WizardShell>

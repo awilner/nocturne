@@ -51,7 +51,7 @@
       </Card.Description>
     </Card.Header>
     <Card.Content class="space-y-4">
-      <PatientClinicalForm extended={true} onstate={handleState} />
+      <PatientClinicalForm onstate={handleState} />
     </Card.Content>
     <Card.Footer class="border-t pt-6">
       <Button onclick={handleSave} disabled={saving}>

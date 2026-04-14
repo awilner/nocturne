@@ -7,8 +7,6 @@
   import { createClinicalState } from "./state.svelte";
 
   interface Props {
-    /** Show extended fields (pronouns, diabetesTypeOther). Default: true */
-    extended?: boolean;
     /** Expose reactive state API to parent */
     onstate?: (api: {
       save: () => Promise<boolean>;
@@ -17,7 +15,7 @@
     }) => void;
   }
 
-  let { extended = true, onstate }: Props = $props();
+  let { onstate }: Props = $props();
 
   const state = createClinicalState();
 
@@ -48,7 +46,7 @@
     </Select.Root>
   </div>
 
-  {#if extended && state.diabetesType === DiabetesType.Other}
+  {#if state.diabetesType === DiabetesType.Other}
     <div class="space-y-2">
       <Label for="diabetes-type-other">Specify Type</Label>
       <Input
@@ -86,16 +84,14 @@
     />
   </div>
 
-  {#if extended}
-    <div class="space-y-2">
-      <Label for="pronouns">Pronouns</Label>
-      <Input
-        id="pronouns"
-        bind:value={state.pronouns}
-        placeholder="e.g. she/her, he/him, they/them"
-      />
-    </div>
-  {/if}
+  <div class="space-y-2">
+    <Label for="pronouns">Pronouns</Label>
+    <Input
+      id="pronouns"
+      bind:value={state.pronouns}
+      placeholder="e.g. she/her, he/him, they/them"
+    />
+  </div>
 </div>
 
 {#if state.saveError}
