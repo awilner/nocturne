@@ -49,7 +49,7 @@ public abstract class SimpleEntityService<TDomain, TEntity>
     protected abstract TDomain ToDomainModel(TEntity entity);
     protected abstract TEntity ToEntity(TDomain model);
     protected abstract void UpdateEntity(TEntity entity, TDomain model);
-    protected abstract IOrderedQueryable<TEntity> OrderByMills(IQueryable<TEntity> query);
+    protected abstract IOrderedQueryable<TEntity> OrderByTimestamp(IQueryable<TEntity> query);
     protected abstract Task<TEntity?> FindByIdAsync(
         string id,
         CancellationToken cancellationToken
@@ -70,7 +70,7 @@ public abstract class SimpleEntityService<TDomain, TEntity>
                 skip
             );
 
-            var entities = await OrderByMills(EntitySet)
+            var entities = await OrderByTimestamp(EntitySet)
                 .Skip(skip)
                 .Take(count)
                 .ToListAsync(cancellationToken);

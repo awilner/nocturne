@@ -759,8 +759,8 @@ public class NocturneDbContext : DbContext
         // StepCount indexes - optimized for time-range graph queries
         modelBuilder
             .Entity<StepCountEntity>()
-            .HasIndex(s => s.Mills)
-            .HasDatabaseName("ix_step_counts_mills")
+            .HasIndex(s => s.Timestamp)
+            .HasDatabaseName("ix_step_counts_timestamp")
             .IsDescending();
 
         modelBuilder
@@ -771,8 +771,8 @@ public class NocturneDbContext : DbContext
         // HeartRate indexes - optimized for time-range graph queries
         modelBuilder
             .Entity<HeartRateEntity>()
-            .HasIndex(h => h.Mills)
-            .HasDatabaseName("ix_heart_rates_mills")
+            .HasIndex(h => h.Timestamp)
+            .HasDatabaseName("ix_heart_rates_timestamp")
             .IsDescending();
 
         modelBuilder

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Nocturne.Infrastructure.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Nocturne.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(NocturneDbContext))]
-    partial class NocturneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260414192553_AddSensorGlucoseRawFields")]
+    partial class AddSensorGlucoseRawFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2061,6 +2064,11 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("bpm");
 
+                    b.Property<string>("CreatedAt")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_at");
+
                     b.Property<string>("Device")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
@@ -2070,6 +2078,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("entered_by");
+
+                    b.Property<long>("Mills")
+                        .HasColumnType("bigint")
+                        .HasColumnName("mills");
 
                     b.Property<string>("OriginalId")
                         .HasMaxLength(24)
@@ -2090,22 +2102,18 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("timestamp");
-
                     b.Property<int?>("UtcOffset")
                         .HasColumnType("integer")
                         .HasColumnName("utc_offset");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Mills")
+                        .IsDescending()
+                        .HasDatabaseName("ix_heart_rates_mills");
+
                     b.HasIndex("SysCreatedAt")
                         .HasDatabaseName("ix_heart_rates_sys_created_at");
-
-                    b.HasIndex("Timestamp")
-                        .IsDescending()
-                        .HasDatabaseName("ix_heart_rates_timestamp");
 
                     b.ToTable("heart_rates");
                 });
@@ -3523,6 +3531,11 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("CreatedAt")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("created_at");
+
                     b.Property<string>("Device")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
@@ -3536,6 +3549,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
                     b.Property<int>("Metric")
                         .HasColumnType("integer")
                         .HasColumnName("metric");
+
+                    b.Property<long>("Mills")
+                        .HasColumnType("bigint")
+                        .HasColumnName("mills");
 
                     b.Property<string>("OriginalId")
                         .HasMaxLength(24)
@@ -3560,22 +3577,18 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("timestamp");
-
                     b.Property<int?>("UtcOffset")
                         .HasColumnType("integer")
                         .HasColumnName("utc_offset");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Mills")
+                        .IsDescending()
+                        .HasDatabaseName("ix_step_counts_mills");
+
                     b.HasIndex("SysCreatedAt")
                         .HasDatabaseName("ix_step_counts_sys_created_at");
-
-                    b.HasIndex("Timestamp")
-                        .IsDescending()
-                        .HasDatabaseName("ix_step_counts_timestamp");
 
                     b.ToTable("step_counts");
                 });

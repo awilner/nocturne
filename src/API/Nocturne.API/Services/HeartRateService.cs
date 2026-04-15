@@ -36,9 +36,9 @@ public class HeartRateService
     protected override void UpdateEntity(HeartRateEntity entity, HeartRate model) =>
         HeartRateMapper.UpdateEntity(entity, model);
 
-    protected override IOrderedQueryable<HeartRateEntity> OrderByMills(
+    protected override IOrderedQueryable<HeartRateEntity> OrderByTimestamp(
         IQueryable<HeartRateEntity> query
-    ) => query.OrderByDescending(h => h.Mills);
+    ) => query.OrderByDescending(h => h.Timestamp);
 
     protected override Task<HeartRateEntity?> FindByIdAsync(
         string id,

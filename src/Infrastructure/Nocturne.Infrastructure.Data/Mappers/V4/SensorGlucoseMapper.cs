@@ -32,6 +32,9 @@ public static class SensorGlucoseMapper
             Direction = model.Direction?.ToString(),
             TrendRate = model.TrendRate,
             Noise = model.Noise,
+            Filtered = model.Filtered,
+            Unfiltered = model.Unfiltered,
+            Delta = model.Delta,
             AdditionalPropertiesJson = model.AdditionalProperties is { Count: > 0 }
                 ? JsonSerializer.Serialize(model.AdditionalProperties)
                 : null,
@@ -61,6 +64,9 @@ public static class SensorGlucoseMapper
             Direction = Enum.TryParse<GlucoseDirection>(entity.Direction, out var dir) ? dir : null,
             TrendRate = entity.TrendRate,
             Noise = entity.Noise,
+            Filtered = entity.Filtered,
+            Unfiltered = entity.Unfiltered,
+            Delta = entity.Delta,
             AdditionalProperties = !string.IsNullOrEmpty(entity.AdditionalPropertiesJson)
                 ? JsonSerializer.Deserialize<Dictionary<string, object?>>(entity.AdditionalPropertiesJson)
                 : null,
@@ -86,6 +92,9 @@ public static class SensorGlucoseMapper
         entity.Direction = model.Direction?.ToString();
         entity.TrendRate = model.TrendRate;
         entity.Noise = model.Noise;
+        entity.Filtered = model.Filtered;
+        entity.Unfiltered = model.Unfiltered;
+        entity.Delta = model.Delta;
         entity.AdditionalPropertiesJson = model.AdditionalProperties is { Count: > 0 }
             ? JsonSerializer.Serialize(model.AdditionalProperties)
             : null;

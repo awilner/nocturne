@@ -108,6 +108,24 @@ public class SensorGlucoseEntity : ITenantScoped
     public int? Noise { get; set; }
 
     /// <summary>
+    /// Raw filtered sensor value (scaled ADC)
+    /// </summary>
+    [Column("filtered")]
+    public double? Filtered { get; set; }
+
+    /// <summary>
+    /// Raw unfiltered sensor value (scaled ADC)
+    /// </summary>
+    [Column("unfiltered")]
+    public double? Unfiltered { get; set; }
+
+    /// <summary>
+    /// Glucose delta in mg/dL over the last 5 minutes
+    /// </summary>
+    [Column("delta")]
+    public double? Delta { get; set; }
+
+    /// <summary>
     /// Catch-all JSONB column for fields not mapped to dedicated columns
     /// </summary>
     [Column("additional_properties", TypeName = "jsonb")]

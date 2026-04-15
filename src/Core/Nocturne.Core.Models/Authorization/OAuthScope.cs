@@ -49,8 +49,23 @@ public enum OAuthScope
     [EnumMember(Value = "sharing.readwrite"), JsonStringEnumMemberName("sharing.readwrite")]
     SharingReadWrite,
 
+    [EnumMember(Value = "heartrate.read"), JsonStringEnumMemberName("heartrate.read")]
+    HeartRateRead,
+
+    [EnumMember(Value = "heartrate.readwrite"), JsonStringEnumMemberName("heartrate.readwrite")]
+    HeartRateReadWrite,
+
+    [EnumMember(Value = "stepcount.read"), JsonStringEnumMemberName("stepcount.read")]
+    StepCountRead,
+
+    [EnumMember(Value = "stepcount.readwrite"), JsonStringEnumMemberName("stepcount.readwrite")]
+    StepCountReadWrite,
+
     [EnumMember(Value = "health.read"), JsonStringEnumMemberName("health.read")]
     HealthRead,
+
+    [EnumMember(Value = "health.readwrite"), JsonStringEnumMemberName("health.readwrite")]
+    HealthReadWrite,
 
     [EnumMember(Value = "*"), JsonStringEnumMemberName("*")]
     FullAccess

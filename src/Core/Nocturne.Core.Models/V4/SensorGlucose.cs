@@ -91,6 +91,21 @@ public class SensorGlucose : IV4Record
     public int? Noise { get; set; }
 
     /// <summary>
+    /// Raw filtered sensor value (scaled ADC)
+    /// </summary>
+    public double? Filtered { get; set; }
+
+    /// <summary>
+    /// Raw unfiltered sensor value (scaled ADC)
+    /// </summary>
+    public double? Unfiltered { get; set; }
+
+    /// <summary>
+    /// Glucose delta in mg/dL over the last 5 minutes
+    /// </summary>
+    public double? Delta { get; set; }
+
+    /// <summary>
     /// Catch-all for fields not mapped to dedicated columns
     /// </summary>
     public Dictionary<string, object?>? AdditionalProperties { get; set; }

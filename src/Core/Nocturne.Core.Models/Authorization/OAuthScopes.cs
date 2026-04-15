@@ -24,6 +24,10 @@ public static class OAuthScopes
     public const string DeviceStatusReadWrite = "devicestatus.readwrite";
     public const string ProfileRead = "profile.read";
     public const string ProfileReadWrite = "profile.readwrite";
+    public const string HeartRateRead = "heartrate.read";
+    public const string HeartRateReadWrite = "heartrate.readwrite";
+    public const string StepCountRead = "stepcount.read";
+    public const string StepCountReadWrite = "stepcount.readwrite";
 
     // Platform feature scopes
     public const string NotificationsRead = "notifications.read";
@@ -37,8 +41,9 @@ public static class OAuthScopes
     // Full access (includes delete)
     public const string FullAccess = "*";
 
-    // Convenience alias
+    // Convenience aliases
     public const string HealthRead = "health.read";
+    public const string HealthReadWrite = "health.readwrite";
 
     /// <summary>
     /// All individual scopes that can be requested (excluding aliases and full access).
@@ -57,6 +62,10 @@ public static class OAuthScopes
         NotificationsReadWrite,
         ReportsRead,
         IdentityRead,
+        HeartRateRead,
+        HeartRateReadWrite,
+        StepCountRead,
+        StepCountReadWrite,
         SharingReadWrite,
     };
 
@@ -67,6 +76,7 @@ public static class OAuthScopes
     {
         FullAccess,
         HealthRead,
+        HealthReadWrite,
     };
 
     /// <summary>
@@ -78,6 +88,21 @@ public static class OAuthScopes
         TreatmentsRead,
         DeviceStatusRead,
         ProfileRead,
+        HeartRateRead,
+        StepCountRead,
+    };
+
+    /// <summary>
+    /// Expansion of the health.readwrite convenience alias.
+    /// </summary>
+    public static readonly IReadOnlyList<string> HealthReadWriteExpansion = new[]
+    {
+        EntriesReadWrite,
+        TreatmentsReadWrite,
+        DeviceStatusReadWrite,
+        ProfileReadWrite,
+        HeartRateReadWrite,
+        StepCountReadWrite,
     };
 
     /// <summary>
@@ -91,6 +116,8 @@ public static class OAuthScopes
         [DeviceStatusReadWrite] = DeviceStatusRead,
         [ProfileReadWrite] = ProfileRead,
         [NotificationsReadWrite] = NotificationsRead,
+        [HeartRateReadWrite] = HeartRateRead,
+        [StepCountReadWrite] = StepCountRead,
     };
 
     /// <summary>
@@ -124,6 +151,12 @@ public static class OAuthScopes
             if (scope == HealthRead)
             {
                 result.UnionWith(HealthReadExpansion);
+                continue;
+            }
+
+            if (scope == HealthReadWrite)
+            {
+                result.UnionWith(HealthReadWriteExpansion);
                 continue;
             }
 

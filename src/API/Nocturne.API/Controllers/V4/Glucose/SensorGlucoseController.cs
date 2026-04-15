@@ -42,6 +42,9 @@ public class SensorGlucoseController(
         Direction = request.Direction,
         TrendRate = request.TrendRate,
         Noise = request.Noise,
+        Filtered = request.Filtered,
+        Unfiltered = request.Unfiltered,
+        Delta = request.Delta,
     };
 
     protected override SensorGlucose MapUpdateToModel(Guid id, UpsertSensorGlucoseRequest request, SensorGlucose existing) => new()
@@ -56,11 +59,58 @@ public class SensorGlucoseController(
         Direction = request.Direction,
         TrendRate = request.TrendRate,
         Noise = request.Noise,
+        Filtered = request.Filtered,
+        Unfiltered = request.Unfiltered,
+        Delta = request.Delta,
         CorrelationId = existing.CorrelationId,
         LegacyId = existing.LegacyId,
         CreatedAt = existing.CreatedAt,
         AdditionalProperties = existing.AdditionalProperties,
     };
+
+    /// <summary>
+    /// Create multiple sensor glucose readings in bulk (max 1000).
+    /// </summary>
+    [HttpPost("bulk")]
+    [ProducesResponseType(typeof(SensorGlucose[]), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<SensorGlucose[]>> CreateSensorGlucoseBulk(
+        [FromBody] UpsertSensorGlucoseRequest[] requests,
+        CancellationToken ct = default)
+    {
+        if (requests is not { Length: > 0 })
+            return Problem(detail: "Sensor glucose data is required", statusCode: 400, title: "Bad Request");
+
+        if (requests.Length > 1000)
+            return Problem(detail: "Bulk operations are limited to 1000 readings per request", statusCode: 400, title: "Bad Request");
+
+        var models = requests.Select(MapCreateToModel).ToList();
+        var created = await repo.BulkCreateAsync(models, ct);
+        var createdArray = created.ToArray();
+
+        // Evaluate alerts for the most recent reading only (not every historical reading during backfill)
+        var mostRecent = createdArray.OrderByDescending(r => r.Timestamp).FirstOrDefault();
+        if (mostRecent is { Mgdl: > 0 })
+        {
+            try
+            {
+                var context = new SensorContext
+                {
+                    LatestValue = (decimal)mostRecent.Mgdl,
+                    LatestTimestamp = mostRecent.Timestamp,
+                    TrendRate = (decimal?)mostRecent.TrendRate,
+                    LastReadingAt = mostRecent.Timestamp,
+                };
+                await alertOrchestrator.EvaluateAsync(context, ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Alert evaluation failed after bulk SensorGlucose creation");
+            }
+        }
+
+        return StatusCode(201, createdArray);
+    }
 
     protected override async Task<SensorGlucose> OnAfterCreateAsync(SensorGlucose created, CancellationToken ct)
     {

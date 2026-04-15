@@ -36,7 +36,7 @@ public class BodyWeightService
     protected override void UpdateEntity(BodyWeightEntity entity, BodyWeight model) =>
         BodyWeightMapper.UpdateEntity(entity, model);
 
-    protected override IOrderedQueryable<BodyWeightEntity> OrderByMills(
+    protected override IOrderedQueryable<BodyWeightEntity> OrderByTimestamp(
         IQueryable<BodyWeightEntity> query
     ) => query.OrderByDescending(b => b.Mills);
 

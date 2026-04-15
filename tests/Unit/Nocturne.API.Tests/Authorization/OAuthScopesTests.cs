@@ -19,6 +19,11 @@ public class OAuthScopesTests
     [InlineData("reports.read", true)]
     [InlineData("identity.read", true)]
     [InlineData("sharing.readwrite", true)]
+    [InlineData("heartrate.read", true)]
+    [InlineData("heartrate.readwrite", true)]
+    [InlineData("stepcount.read", true)]
+    [InlineData("stepcount.readwrite", true)]
+    [InlineData("health.readwrite", true)]
     [InlineData("*", true)]
     [InlineData("health.read", true)]
     [InlineData("invalid.scope", false)]
@@ -107,5 +112,48 @@ public class OAuthScopesTests
 
         Assert.False(OAuthScopes.SatisfiesScope(granted, "entries.read"));
         Assert.False(OAuthScopes.SatisfiesScope(granted, "*"));
+    }
+
+    [Fact]
+    public void Normalize_HealthRead_IncludesHeartRateAndStepCount()
+    {
+        var result = OAuthScopes.Normalize(new[] { "health.read" });
+
+        Assert.Contains(OAuthScopes.HeartRateRead, result);
+        Assert.Contains(OAuthScopes.StepCountRead, result);
+    }
+
+    [Fact]
+    public void Normalize_HealthReadWrite_ExpandsToAllHealthWriteScopes()
+    {
+        var result = OAuthScopes.Normalize(new[] { "health.readwrite" });
+
+        Assert.Contains(OAuthScopes.EntriesReadWrite, result);
+        Assert.Contains(OAuthScopes.TreatmentsReadWrite, result);
+        Assert.Contains(OAuthScopes.DeviceStatusReadWrite, result);
+        Assert.Contains(OAuthScopes.ProfileReadWrite, result);
+        Assert.Contains(OAuthScopes.HeartRateReadWrite, result);
+        Assert.Contains(OAuthScopes.StepCountReadWrite, result);
+        Assert.DoesNotContain(OAuthScopes.NotificationsReadWrite, result);
+    }
+
+    [Fact]
+    public void SatisfiesScope_HeartRateReadWriteImpliesRead()
+    {
+        var granted = new HashSet<string> { "heartrate.readwrite" };
+
+        Assert.True(OAuthScopes.SatisfiesScope(granted, "heartrate.read"));
+        Assert.True(OAuthScopes.SatisfiesScope(granted, "heartrate.readwrite"));
+        Assert.False(OAuthScopes.SatisfiesScope(granted, "entries.read"));
+    }
+
+    [Fact]
+    public void SatisfiesScope_StepCountReadWriteImpliesRead()
+    {
+        var granted = new HashSet<string> { "stepcount.readwrite" };
+
+        Assert.True(OAuthScopes.SatisfiesScope(granted, "stepcount.read"));
+        Assert.True(OAuthScopes.SatisfiesScope(granted, "stepcount.readwrite"));
+        Assert.False(OAuthScopes.SatisfiesScope(granted, "entries.read"));
     }
 }

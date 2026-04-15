@@ -36,9 +36,9 @@ public class StepCountService
     protected override void UpdateEntity(StepCountEntity entity, StepCount model) =>
         StepCountMapper.UpdateEntity(entity, model);
 
-    protected override IOrderedQueryable<StepCountEntity> OrderByMills(
+    protected override IOrderedQueryable<StepCountEntity> OrderByTimestamp(
         IQueryable<StepCountEntity> query
-    ) => query.OrderByDescending(s => s.Mills);
+    ) => query.OrderByDescending(s => s.Timestamp);
 
     protected override Task<StepCountEntity?> FindByIdAsync(
         string id,
