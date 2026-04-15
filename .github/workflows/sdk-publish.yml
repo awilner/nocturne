@@ -305,3 +305,57 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  publish-java:
+    needs: generate-spec
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download V4 spec
+        uses: actions/download-artifact@v4
+        with:
+          name: openapi-v4-spec
+          path: sdk/
+
+      - name: Generate Java SDK
+        uses: docker://openapitools/openapi-generator-cli:latest
+        with:
+          args: >-
+            generate
+            -i sdk/openapi-v4.json
+            -c sdk/java/config.yaml
+            -o sdk/java/out
+            --additional-properties=artifactVersion=${{ needs.generate-spec.outputs.sdk_version }}
+
+      - name: Fix file permissions
+        run: sudo chown -R $USER:$USER sdk/java/out
+
+      - name: Apply publish overlay
+        run: cp sdk/java/publish.gradle sdk/java/out/build.gradle
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        working-directory: sdk/java/out
+        run: ./gradlew build
+
+      - name: Publish to Maven Central
+        if: startsWith(github.ref, 'refs/tags/v')
+        working-directory: sdk/java/out
+        run: ./gradlew centralPortalPublish
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+          SIGNING_KEY: ${{ secrets.MAVEN_SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.MAVEN_SIGNING_PASSWORD }}
