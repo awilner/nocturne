@@ -211,16 +211,7 @@ jobs:
           chmod +x sdk/kotlin/out/gradlew
 
       - name: Apply publish overlay
-        run: |
-          python3 -c "
-          import re
-          with open('sdk/kotlin/out/build.gradle') as f: content = f.read()
-          content = re.sub(r'task\s+(?:sourcesJar|javadocJar)\s*\([^)]*\)\s*\{[^}]*\}', '', content)
-          content = re.sub(r'archives\s+(?:sourcesJar|javadocJar)', '', content)
-          content = re.sub(r'java\s*\{[^}]*withSourcesJar[^}]*\}', '', content)
-          with open('sdk/kotlin/out/build.gradle', 'w') as f: f.write(content)
-          "
-          cat sdk/kotlin/publish.gradle >> sdk/kotlin/out/build.gradle
+        run: cat sdk/kotlin/publish.gradle >> sdk/kotlin/out/build.gradle
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -242,7 +233,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           cd ~/.m2/repository
-          zip -r $GITHUB_WORKSPACE/kotlin-bundle.zip org/nightscoutfoundation/nocturne/
+          zip -r $GITHUB_WORKSPACE/kotlin-bundle.zip org/nightscoutfoundation/nocturne/ -x '*/maven-metadata-local.xml' '*/_remote.repositories'
           cd $GITHUB_WORKSPACE
           UPLOAD_RESPONSE=$(curl -s -w "\n%{http_code}" \
             -u "$MAVEN_USERNAME:$MAVEN_PASSWORD" \
@@ -366,14 +357,6 @@ jobs:
 
       - name: Apply publish overlay
         run: |
-          python3 -c "
-          import re
-          with open('sdk/java/out/build.gradle') as f: content = f.read()
-          content = re.sub(r'task\s+(?:sourcesJar|javadocJar)\s*\([^)]*\)\s*\{[^}]*\}', '', content)
-          content = re.sub(r'archives\s+(?:sourcesJar|javadocJar)', '', content)
-          content = re.sub(r'java\s*\{[^}]*withSourcesJar[^}]*\}', '', content)
-          with open('sdk/java/out/build.gradle', 'w') as f: f.write(content)
-          "
           cat sdk/java/publish.gradle >> sdk/java/out/build.gradle
           # Remove API files with multipart upload bugs (OpenAPI Generator native library issue)
           rm -f sdk/java/out/src/main/java/org/nightscoutfoundation/nocturne/api/AlertCustomSoundsApi.java
@@ -399,7 +382,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           cd ~/.m2/repository
-          zip -r $GITHUB_WORKSPACE/java-bundle.zip org/nightscoutfoundation/nocturne-java/
+          zip -r $GITHUB_WORKSPACE/java-bundle.zip org/nightscoutfoundation/nocturne-java/ -x '*/maven-metadata-local.xml' '*/_remote.repositories'
           cd $GITHUB_WORKSPACE
           UPLOAD_RESPONSE=$(curl -s -w "\n%{http_code}" \
             -u "$MAVEN_USERNAME:$MAVEN_PASSWORD" \
