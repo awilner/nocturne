@@ -212,7 +212,13 @@ jobs:
 
       - name: Apply publish overlay
         run: |
-          sed -i '/[Ss]ources[Jj]ar/d; /[Jj]avadoc[Jj]ar/d' sdk/kotlin/out/build.gradle
+          python3 -c "
+          import re
+          with open('sdk/kotlin/out/build.gradle') as f: content = f.read()
+          content = re.sub(r'task\s+(?:sourcesJar|javadocJar)\s*\([^)]*\)\s*\{[^}]*\}', '', content)
+          content = re.sub(r'archives\s+(?:sourcesJar|javadocJar)', '', content)
+          with open('sdk/kotlin/out/build.gradle', 'w') as f: f.write(content)
+          "
           cat sdk/kotlin/publish.gradle >> sdk/kotlin/out/build.gradle
 
       - name: Setup Java
@@ -348,7 +354,14 @@ jobs:
 
       - name: Apply publish overlay
         run: |
-          sed -i '/[Ss]ources[Jj]ar/d; /[Jj]avadoc[Jj]ar/d' sdk/java/out/build.gradle
+          python3 -c "
+          import re
+          with open('sdk/java/out/build.gradle') as f: content = f.read()
+          content = re.sub(r'task\s+(?:sourcesJar|javadocJar)\s*\([^)]*\)\s*\{[^}]*\}', '', content)
+          content = re.sub(r'archives\s+(?:sourcesJar|javadocJar)', '', content)
+          content = re.sub(r'java\s*\{[^}]*withSourcesJar[^}]*\}', '', content)
+          with open('sdk/java/out/build.gradle', 'w') as f: f.write(content)
+          "
           cat sdk/java/publish.gradle >> sdk/java/out/build.gradle
 
       - name: Setup Java
