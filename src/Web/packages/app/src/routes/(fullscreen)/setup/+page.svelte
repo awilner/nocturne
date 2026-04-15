@@ -39,6 +39,11 @@
         showCapabilities={true}
         onComplete={handleMigrationComplete}
       />
+      <div class="flex justify-end pt-2">
+        <Button variant="outline" onclick={handleMigrationComplete}>
+          Continue to Dashboard
+        </Button>
+      </div>
     </div>
   {:else}
     <div class="grid gap-4 sm:grid-cols-2">
