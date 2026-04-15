@@ -8,6 +8,11 @@
     getSounds,
     deleteSound,
   } from "$api/generated/alertCustomSounds.generated.remote";
+  import { getChannelStatuses } from "$api/generated/systems.generated.remote";
+  import {
+    ChannelStatus,
+    type ChannelStatusEntry,
+  } from "$api-clients";
   import type {
     AlertRuleResponse,
     AlertCustomSoundResponse,
@@ -161,6 +166,7 @@
   let customSounds = $state<AlertCustomSoundResponse[]>([]);
   let uploadError = $state<string | null>(null);
   let uploading = $state(false);
+  let availableChannels = $state<ChannelStatusEntry[]>([]);
 
   // General tab
   let name = $state("");
@@ -353,7 +359,7 @@
     }
   });
 
-  // Load custom sounds on mount
+  // Load custom sounds and available channels on mount
   onMount(async () => {
     try {
       const result = await getSounds();
@@ -361,6 +367,12 @@
     } catch {
       // Sounds unavailable
     }
+
+    getChannelStatuses().then(res => {
+      availableChannels = (res?.channels ?? []).filter(
+        c => c.status !== ChannelStatus.Unavailable
+      );
+    }).catch(() => {});
   });
 
   // --- Condition type mapping ---
@@ -600,9 +612,10 @@
 
   function addChannel(schedIndex: number, stepIndex: number) {
     const step = schedules[schedIndex].escalationSteps[stepIndex];
+    const defaultType = availableChannels[0]?.channelType ?? "web_push";
     step.channels = [
       ...step.channels,
-      { channelType: "web_push", destination: "", destinationLabel: "" },
+      { channelType: defaultType, destination: "", destinationLabel: "" },
     ];
     schedules = [...schedules];
   }
@@ -667,6 +680,10 @@
   const channelTypeLabels: Record<string, string> = {
     web_push: "Web Push",
     webhook: "Webhook",
+    discord_dm: "Discord DM",
+    slack_dm: "Slack DM",
+    telegram: "Telegram",
+    whatsapp: "WhatsApp",
   };
 </script>
 
@@ -1276,14 +1293,16 @@
                                       ] ?? channel.channelType}
                                     </Select.Trigger>
                                     <Select.Content>
-                                      <Select.Item
-                                        value="web_push"
-                                        label="Web Push"
-                                      />
-                                      <Select.Item
-                                        value="webhook"
-                                        label="Webhook"
-                                      />
+                                      {#each availableChannels as ch}
+                                        <Select.Item
+                                          value={ch.channelType ?? ""}
+                                          label={channelTypeLabels[ch.channelType ?? ""] ?? ch.channelType ?? ""}
+                                        />
+                                      {/each}
+                                      {#if availableChannels.length === 0}
+                                        <Select.Item value="web_push" label="Web Push" />
+                                        <Select.Item value="webhook" label="Webhook" />
+                                      {/if}
                                     </Select.Content>
                                   </Select.Root>
                                   <Input
