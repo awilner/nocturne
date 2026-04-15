@@ -1,25 +1,31 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OpenApi.Remote.Attributes;
+using Nocturne.API.Services;
+using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.API.Controllers.V4.Platform;
 
-/// <summary>
-/// System-level endpoints for service health and coordination.
-/// </summary>
 [ApiController]
 [Authorize]
 [Route("api/v4/system")]
-public class SystemController : ControllerBase
+public class SystemController(BotHealthService botHealth) : ControllerBase
 {
-    /// <summary>
-    /// Accept a heartbeat from an external service (e.g. bot adapter).
-    /// Returns 200 OK. Actual health tracking will be added later.
-    /// </summary>
     [HttpPost("heartbeat")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult Heartbeat([FromBody] HeartbeatRequest request)
     {
+        botHealth.Record(request.Platforms);
         return Ok();
+    }
+
+    [HttpGet("channels")]
+    [RemoteQuery]
+    [ProducesResponseType(typeof(ChannelStatusResponse), StatusCodes.Status200OK)]
+    public ActionResult<ChannelStatusResponse> GetChannelStatuses()
+    {
+        var statuses = botHealth.GetChannelStatuses();
+        return Ok(new ChannelStatusResponse { Channels = statuses });
     }
 }
 
@@ -27,4 +33,9 @@ public class HeartbeatRequest
 {
     public string[] Platforms { get; set; } = [];
     public string Service { get; set; } = string.Empty;
+}
+
+public class ChannelStatusResponse
+{
+    public IReadOnlyList<ChannelStatusEntry> Channels { get; set; } = [];
 }

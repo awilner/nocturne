@@ -13,7 +13,6 @@
   import { Label } from "$lib/components/ui/label";
   import { Switch } from "$lib/components/ui/switch";
   import { Badge } from "$lib/components/ui/badge";
-  import { Separator } from "$lib/components/ui/separator";
   import {
     ArrowLeft,
     ArrowRight,
@@ -24,12 +23,9 @@
     WifiOff,
     AlertTriangle,
     Shield,
-    Bell,
-    Webhook,
-    MessageSquare,
-    Send,
     Loader2,
   } from "lucide-svelte";
+  import ChannelPicker from "$lib/components/alerts/ChannelPicker.svelte";
 
   // Step management
   let currentStep = $state(1);
@@ -182,9 +178,7 @@
   ]);
 
   // Step 2: Delivery channels
-  let webPushEnabled = $state(false);
-  let webhookEnabled = $state(false);
-  let webhookUrl = $state("");
+  let selectedChannels = $state<Array<{ channelType: string; destination: string; destinationLabel: string }>>([]);
 
   // Step 3: Saving state
   let saving = $state(false);
@@ -222,26 +216,9 @@
 
     try {
       for (const preset of selectedPresets) {
-        const channels: Array<{
-          channelType: string;
-          destination: string;
-          destinationLabel?: string;
-        }> = [];
-
-        if (webPushEnabled) {
-          channels.push({
-            channelType: "web_push",
-            destination: "browser",
-            destinationLabel: "Browser Push Notification",
-          });
-        }
-        if (webhookEnabled && webhookUrl) {
-          channels.push({
-            channelType: "webhook",
-            destination: webhookUrl,
-            destinationLabel: "Webhook",
-          });
-        }
+        const channels = selectedChannels.filter(c =>
+          c.channelType !== "webhook" || c.destination
+        );
 
         const request: CreateAlertRuleRequest = {
           name: preset.name,
@@ -436,106 +413,9 @@
           Choose how you want to receive alert notifications.
         </p>
       </div>
-
       <Card>
-        <CardContent class="p-4 space-y-4">
-          <!-- Web Push -->
-          <div class="flex items-center justify-between p-3 rounded-lg border">
-            <div class="flex items-center gap-3">
-              <div
-                class="flex items-center justify-center h-10 w-10 rounded-lg bg-primary/10"
-              >
-                <Bell class="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <Label>Browser Push Notifications</Label>
-                <p class="text-sm text-muted-foreground">
-                  Receive alerts directly in your browser
-                </p>
-              </div>
-            </div>
-            <Switch
-              checked={webPushEnabled}
-              onCheckedChange={(checked) => (webPushEnabled = checked)}
-            />
-          </div>
-
-          <!-- Webhook -->
-          <div class="p-3 rounded-lg border space-y-3">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div
-                  class="flex items-center justify-center h-10 w-10 rounded-lg bg-primary/10"
-                >
-                  <Webhook class="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <Label>Webhook</Label>
-                  <p class="text-sm text-muted-foreground">
-                    Send alert data to a custom URL
-                  </p>
-                </div>
-              </div>
-              <Switch
-                checked={webhookEnabled}
-                onCheckedChange={(checked) => (webhookEnabled = checked)}
-              />
-            </div>
-            {#if webhookEnabled}
-              <div class="pl-13">
-                <Label class="text-xs">Webhook URL</Label>
-                <Input
-                  placeholder="https://example.com/webhook"
-                  value={webhookUrl}
-                  oninput={(e) => (webhookUrl = e.currentTarget.value)}
-                  class="mt-1"
-                />
-              </div>
-            {/if}
-          </div>
-
-          <Separator />
-
-          <!-- Coming Soon Channels -->
-          <p class="text-sm font-medium text-muted-foreground">Coming Soon</p>
-
-          <div
-            class="flex items-center justify-between p-3 rounded-lg border opacity-50"
-          >
-            <div class="flex items-center gap-3">
-              <div
-                class="flex items-center justify-center h-10 w-10 rounded-lg bg-muted"
-              >
-                <MessageSquare class="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div>
-                <Label class="text-muted-foreground">Discord</Label>
-                <p class="text-sm text-muted-foreground">
-                  Send alerts to a Discord channel
-                </p>
-              </div>
-            </div>
-            <Badge variant="secondary">Coming Soon</Badge>
-          </div>
-
-          <div
-            class="flex items-center justify-between p-3 rounded-lg border opacity-50"
-          >
-            <div class="flex items-center gap-3">
-              <div
-                class="flex items-center justify-center h-10 w-10 rounded-lg bg-muted"
-              >
-                <Send class="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div>
-                <Label class="text-muted-foreground">Telegram</Label>
-                <p class="text-sm text-muted-foreground">
-                  Send alerts to a Telegram chat
-                </p>
-              </div>
-            </div>
-            <Badge variant="secondary">Coming Soon</Badge>
-          </div>
+        <CardContent class="p-4">
+          <ChannelPicker bind:channels={selectedChannels} />
         </CardContent>
       </Card>
     </div>
@@ -594,24 +474,20 @@
           <CardTitle class="text-base">Delivery Channels</CardTitle>
         </CardHeader>
         <CardContent class="space-y-2">
-          {#if !webPushEnabled && !webhookEnabled}
+          {#if selectedChannels.length === 0}
             <p class="text-sm text-muted-foreground py-2">
               No delivery channels configured. Alerts will still be visible in
               the dashboard, but no push notifications will be sent.
             </p>
           {:else}
-            {#if webPushEnabled}
+            {#each selectedChannels as ch}
               <div class="flex items-center gap-2 text-sm">
-                <Bell class="h-4 w-4 text-primary" />
-                <span>Browser Push Notifications</span>
+                <span>{ch.destinationLabel || ch.channelType}</span>
+                {#if ch.destination}
+                  <span class="text-muted-foreground">({ch.destination})</span>
+                {/if}
               </div>
-            {/if}
-            {#if webhookEnabled && webhookUrl}
-              <div class="flex items-center gap-2 text-sm">
-                <Webhook class="h-4 w-4 text-primary" />
-                <span>Webhook: {webhookUrl}</span>
-              </div>
-            {/if}
+            {/each}
           {/if}
         </CardContent>
       </Card>

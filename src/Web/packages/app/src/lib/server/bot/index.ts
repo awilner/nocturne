@@ -1,6 +1,7 @@
 import { createBot, registerAllCommands, AlertDeliveryHandler, type BotOptions } from "@nocturne/bot";
 import type { BotApiClient, AlertDispatchEvent } from "@nocturne/bot";
 import { env } from "$env/dynamic/private";
+import { createServerApiClient, getApiBaseUrl, getHashedInstanceKey } from "$lib/server/api-client-factory";
 
 type Bot = ReturnType<typeof createBot>;
 
@@ -37,6 +38,30 @@ export function getBot(): Bot {
 			);
 		}
 		registerAllCommands(botInstance, baseDomain);
+
+		const enabledPlatforms = Object.entries(options.platforms ?? {})
+			.filter(([, enabled]) => enabled)
+			.map(([name]) => name);
+
+		if (enabledPlatforms.length > 0) {
+			const apiBaseUrl = getApiBaseUrl();
+			if (apiBaseUrl) {
+				const heartbeatClient = createServerApiClient(apiBaseUrl, fetch, {
+					hashedInstanceKey: getHashedInstanceKey(),
+				});
+
+				const sendHeartbeat = () => {
+					heartbeatClient.system
+						.heartbeat({ platforms: enabledPlatforms, service: "bot" })
+						.catch((err: unknown) => {
+							console.warn("[bot] heartbeat failed:", err);
+						});
+				};
+
+				sendHeartbeat();
+				setInterval(sendHeartbeat, 60_000);
+			}
+		}
 	}
 	return botInstance;
 }
