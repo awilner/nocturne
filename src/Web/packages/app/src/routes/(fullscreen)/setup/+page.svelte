@@ -1,245 +1,78 @@
 <script lang="ts">
   import * as Card from "$lib/components/ui/card";
-  import { Badge } from "$lib/components/ui/badge";
-  import {
-    Fingerprint,
-    Shield,
-    HeartPulse,
-    Smartphone,
-    Syringe,
-    Upload,
-    Plug,
-    Activity,
-    CheckCircle2,
-    ChevronRight,
-    ArrowRightLeft,
-  } from "lucide-svelte";
   import { Button } from "$lib/components/ui/button";
+  import { ArrowRightLeft, Plus } from "lucide-svelte";
   import { goto } from "$app/navigation";
-  import * as patientRemote from "$lib/api/generated/patientRecords.generated.remote";
-  import * as servicesRemote from "$lib/api/generated/services.generated.remote";
-  import * as profileRemote from "$lib/api/generated/profiles.generated.remote";
   import { markSetupComplete } from "./setup.remote";
-  import { getPublicAccessConfig } from "./permissions/permissions.remote";
+  import ConnectorSetup from "$lib/components/connectors/ConnectorSetup.svelte";
 
-  // ── Data loading ──────────────────────────────────────────────────
+  let showMigration = $state(false);
 
-  const patientRecord = patientRemote.getPatientRecord();
-  const devices = patientRemote.getDevices();
-  const insulins = patientRemote.getInsulins();
-  const servicesOverview = servicesRemote.getServicesOverview();
-  const activeDataSources = servicesRemote.getActiveDataSources();
-  const profileSummary = profileRemote.getProfileSummary(undefined);
-  const publicAccessConfig = getPublicAccessConfig();
+  async function handleStartFresh() {
+    await goto("/setup/connect");
+  }
 
-  // Known uploader app source types for completion detection
-  const uploaderSourceTypes = new Set([
-    "xdrip", "xdrip4ios", "spike", "loop", "aaps", "openaps",
-    "trio", "iaps", "juggluco", "glucotracker", "nightscout-uploader",
-  ]);
-
-  // ── Step definitions ──────────────────────────────────────────────
-
-  type SetupStep = {
-    title: string;
-    description: string;
-    icon: typeof HeartPulse;
-    href: string;
-    required: boolean;
-  };
-
-  const steps: SetupStep[] = [
-    {
-      title: "Passkey",
-      description: "Set up passwordless authentication with a passkey",
-      icon: Fingerprint,
-      href: "/setup/passkey",
-      required: true,
-    },
-    {
-      title: "Sharing & Privacy",
-      description: "Choose who can see your data",
-      icon: Shield,
-      href: "/setup/permissions",
-      required: true,
-    },
-    {
-      title: "Patient Record",
-      description: "Set your diabetes type and clinical information",
-      icon: HeartPulse,
-      href: "/setup/patient",
-      required: true,
-    },
-    {
-      title: "Devices",
-      description: "Add the devices you currently use",
-      icon: Smartphone,
-      href: "/setup/devices",
-      required: true,
-    },
-    {
-      title: "Insulins",
-      description: "Add the insulins you currently use",
-      icon: Syringe,
-      href: "/setup/insulins",
-      required: true,
-    },
-    {
-      title: "Uploaders",
-      description: "Configure a phone app to push data to Nocturne",
-      icon: Upload,
-      href: "/setup/uploaders",
-      required: false,
-    },
-    {
-      title: "Connectors",
-      description: "Connect external data sources",
-      icon: Plug,
-      href: "/setup/connectors",
-      required: false,
-    },
-    {
-      title: "Therapy Profile",
-      description: "Configure your basal rates and therapy settings",
-      icon: Activity,
-      href: "/setup/profile",
-      required: true,
-    },
-  ];
-
-  // ── Completion inference ──────────────────────────────────────────
-
-  const completionStatus = $derived.by(() => {
-    // Passkey: considered complete if the user is authenticated
-    // (they must have a passkey or OIDC session to reach this page)
-    const passkeyComplete = true;
-
-    const permissionsComplete = !!publicAccessConfig.current?.configured;
-
-    const patientComplete = !!patientRecord.current?.diabetesType;
-
-    const devicesComplete =
-      (devices.current ?? []).some((d) => d.isCurrent) ?? false;
-
-    const insulinsComplete =
-      (insulins.current ?? []).some((i) => i.isCurrent) ?? false;
-
-    const uploadersComplete =
-      (activeDataSources.current ?? []).some(
-        (ds) => ds.sourceType && uploaderSourceTypes.has(ds.sourceType.toLowerCase()),
-      ) ?? false;
-
-    const connectorsComplete =
-      (servicesOverview.current?.availableConnectors ?? []).some(
-        (c) => c.isConfigured,
-      ) ?? false;
-
-    const profileComplete =
-      (profileSummary.current?.basalSchedules ?? []).length > 0;
-
-    return [
-      passkeyComplete,
-      permissionsComplete,
-      patientComplete,
-      devicesComplete,
-      insulinsComplete,
-      uploadersComplete,
-      connectorsComplete,
-      profileComplete,
-    ];
-  });
-
-  const requiredComplete = $derived(
-    completionStatus.filter((complete, i) => steps[i].required && complete)
-      .length,
-  );
-
-  let isFinishing = $state(false);
-
-  async function handleFinishSetup() {
-    isFinishing = true;
-    try {
-      await markSetupComplete();
-      await goto("/", { invalidateAll: true });
-    } finally {
-      isFinishing = false;
-    }
+  async function handleMigrationComplete() {
+    await markSetupComplete();
+    await goto("/", { invalidateAll: true });
   }
 </script>
 
-<div class="container mx-auto max-w-4xl p-6 space-y-6">
+<div class="container mx-auto max-w-2xl p-6 space-y-6">
   <div>
-    <h1 class="text-2xl font-bold tracking-tight">Setup</h1>
+    <h1 class="text-2xl font-bold tracking-tight">Get Started</h1>
     <p class="text-muted-foreground">
-      {requiredComplete} of 6 required steps complete
+      Choose how you'd like to set up Nocturne.
     </p>
   </div>
 
-  <a href="/setup/migrate" class="block">
-    <Card.Root class="border-dashed border-blue-500/30 bg-blue-500/5 hover:bg-blue-500/10 transition-colors">
-      <Card.Header class="flex flex-row items-center gap-4 space-y-0 p-4">
-        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
-          <ArrowRightLeft class="h-5 w-5" />
-        </div>
-        <div class="flex-1 min-w-0">
-          <Card.Title class="text-sm font-medium">Coming from Nightscout?</Card.Title>
-          <Card.Description class="text-xs">Migrate your data and keep both systems in sync during transition</Card.Description>
-        </div>
-        <ChevronRight class="h-4 w-4 shrink-0 text-muted-foreground" />
-      </Card.Header>
-    </Card.Root>
-  </a>
-
-  <div class="space-y-3">
-    {#each steps as step, i}
-      {@const isComplete = completionStatus[i]}
-      <a href={step.href} class="block">
-        <Card.Root
-          class="transition-colors hover:bg-muted/50 {isComplete
-            ? 'border-green-500/30'
-            : ''}"
-        >
-          <Card.Header class="flex flex-row items-center gap-4 space-y-0 p-4">
-            <div
-              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg {isComplete
-                ? 'bg-green-500/10 text-green-600'
-                : 'bg-muted text-muted-foreground'}"
-            >
-              {#if isComplete}
-                <CheckCircle2 class="h-5 w-5" />
-              {:else}
-                <step.icon class="h-5 w-5" />
-              {/if}
+  {#if showMigration}
+    <div class="space-y-4">
+      <Button variant="ghost" size="sm" onclick={() => (showMigration = false)}>
+        &larr; Back
+      </Button>
+      <ConnectorSetup
+        connectorId="nightscout"
+        primaryAction="save-and-sync"
+        showToggle={false}
+        showDangerZone={false}
+        showCapabilities={true}
+        onComplete={handleMigrationComplete}
+      />
+    </div>
+  {:else}
+    <div class="grid gap-4 sm:grid-cols-2">
+      <button class="text-left" onclick={() => (showMigration = true)}>
+        <Card.Root class="h-full transition-colors hover:bg-muted/50">
+          <Card.Header class="space-y-3 p-6">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
+              <ArrowRightLeft class="h-5 w-5" />
             </div>
-
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2">
-                <Card.Title class="text-sm font-medium">
-                  {step.title}
-                </Card.Title>
-                {#if !step.required}
-                  <Badge variant="secondary" class="text-xs">Optional</Badge>
-                {/if}
-              </div>
+            <div>
+              <Card.Title class="text-sm font-medium">Migrate from Nightscout</Card.Title>
               <Card.Description class="text-xs">
-                {step.description}
+                Import your existing data — entries, treatments, and history.
               </Card.Description>
             </div>
-
-            <ChevronRight class="h-4 w-4 shrink-0 text-muted-foreground" />
           </Card.Header>
         </Card.Root>
-      </a>
-    {/each}
-  </div>
+      </button>
 
-  <div class="flex justify-end">
-    <Button
-      variant="outline"
-      disabled={isFinishing}
-      onclick={handleFinishSetup}
-    >
-      {isFinishing ? "Finishing..." : "Finish Setup"}
-    </Button>
-  </div>
+      <button class="text-left" onclick={handleStartFresh}>
+        <Card.Root class="h-full transition-colors hover:bg-muted/50">
+          <Card.Header class="space-y-3 p-6">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10 text-green-600">
+              <Plus class="h-5 w-5" />
+            </div>
+            <div>
+              <Card.Title class="text-sm font-medium">Start Fresh</Card.Title>
+              <Card.Description class="text-xs">
+                Connect a glucose data source to get started.
+              </Card.Description>
+            </div>
+          </Card.Header>
+        </Card.Root>
+      </button>
+    </div>
+  {/if}
 </div>
