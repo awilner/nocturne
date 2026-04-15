@@ -15,11 +15,6 @@ apply plugin: 'net.thebugmc.gradle.sonatype-central-portal-publisher'
 
 group = 'io.github.ryceg'
 
-java {
-    withSourcesJar()
-    withJavadocJar()
-}
-
 centralPortal {
     username = System.getenv('MAVEN_USERNAME')
     password = System.getenv('MAVEN_PASSWORD')
