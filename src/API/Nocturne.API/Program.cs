@@ -92,18 +92,28 @@ builder.Host.UseDefaultServiceProvider(options =>
 // when migrations run; the migrator string is optional in NSwag/Testing mode.
 var isTesting = builder.Environment.IsEnvironment("Testing");
 var aspirePostgreSqlConnection = builder.Configuration.GetConnectionString(ServiceNames.PostgreSql)
-    ?? (isTesting ? "Data Source=:memory:" : throw new InvalidOperationException(
+    ?? (isTesting ? "" : throw new InvalidOperationException(
         $"ConnectionStrings:{ServiceNames.PostgreSql} is required."));
 var migratorConnectionString = builder.Configuration.GetConnectionString($"{ServiceNames.PostgreSql}-migrator");
 
-builder.Services.AddPostgreSqlInfrastructure(
-    aspirePostgreSqlConnection,
-    config =>
-    {
-        config.EnableDetailedErrors = builder.Environment.IsDevelopment();
-        config.EnableSensitiveDataLogging = builder.Environment.IsDevelopment();
-    }
-);
+if (!isTesting)
+{
+    builder.Services.AddPostgreSqlInfrastructure(
+        aspirePostgreSqlConnection,
+        config =>
+        {
+            config.EnableDetailedErrors = builder.Environment.IsDevelopment();
+            config.EnableSensitiveDataLogging = builder.Environment.IsDevelopment();
+        }
+    );
+}
+else
+{
+    // In Testing mode, skip NpgsqlDataSource creation (test factories provide their
+    // own SQLite-backed IDbContextFactory) but still register repositories and shared
+    // services so the DI container can resolve them for endpoint routing.
+    builder.Services.AddDataServices();
+}
 
 builder.Services.AddDiscrepancyAnalysisRepository();
 builder.Services.AddAlertRepositories();

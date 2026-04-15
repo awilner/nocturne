@@ -210,7 +210,22 @@ public static class ServiceCollectionExtensions
             poolSize: 128
         );
 
+        // Register scoped DbContext, repositories, and shared services.
+        AddDataServices(services);
+
+        return services;
+    }
+
+    /// <summary>
+    /// Register scoped NocturneDbContext, repository interfaces, deduplication, and query parser.
+    /// Called by AddPostgreSqlInfrastructure; also usable independently by test factories
+    /// that provide their own IDbContextFactory without creating an NpgsqlDataSource.
+    /// </summary>
+    public static IServiceCollection AddDataServices(this IServiceCollection services)
+    {
         // Register scoped NocturneDbContext that sets TenantId from ITenantAccessor.
+        // All existing constructor injections of NocturneDbContext continue to work.
+        // The context is returned to the pool when the scope ends.
         services.AddScoped(sp =>
         {
             var factory = sp.GetRequiredService<IDbContextFactory<NocturneDbContext>>();

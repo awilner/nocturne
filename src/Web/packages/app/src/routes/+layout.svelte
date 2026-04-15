@@ -46,10 +46,18 @@
 
   // Routes that should hide the sidebar (fullscreen mode)
   // Matches /clock/[id] but not /clock or /clock/config or /clock/config/[id]
-  const isFullscreen = $derived(
-    /^\/clock\/[^/]+$/.test(page.url.pathname) &&
-    !page.url.pathname.startsWith("/clock/config")
+  // Route group that should always render without the app chrome (sidebar/header).
+  // Note: `route.id` can be nullish in a few edge cases (e.g. during hydration), so guard it.
+  const isFullscreenGroup = $derived(
+    page.route.id?.includes("(fullscreen)") ?? false
   );
+
+  const isClockFullscreen = $derived(
+    /^\/clock\/[^/]+$/.test(page.url.pathname) &&
+      !page.url.pathname.startsWith("/clock/config")
+  );
+
+  const isFullscreen = $derived(isFullscreenGroup || isClockFullscreen);
 
   // LocalStorage key for title/favicon settings
   const SETTINGS_STORAGE_KEY = "nocturne-title-favicon-settings";

@@ -2823,11 +2823,8 @@ msgstr ""
 msgid "Available"
 msgstr ""
 
-#: src/routes/settings/alerts/setup/+page.svelte
-#: src/routes/settings/alerts/setup/+page.svelte
-#: src/routes/settings/alerts/setup/+page.svelte
-msgid "Coming Soon"
-msgstr ""
+#~ msgid "Coming Soon"
+#~ msgstr ""
 
 #: src/routes/reports/executive-summary/+page.svelte
 msgid "Clinical details"
@@ -6953,6 +6950,8 @@ msgid "Or continue with"
 msgstr ""
 
 #: src/lib/components/auth/LoginForm.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
+#: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
 msgid "<0/> Redirecting..."
 msgstr ""
@@ -18187,6 +18186,7 @@ msgid "Checking availability..."
 msgstr ""
 
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
@@ -19583,14 +19583,12 @@ msgstr ""
 msgid "Alert when CGM signal is lost for an extended period"
 msgstr ""
 
-#: src/routes/settings/alerts/setup/+page.svelte
-msgid "Browser Push Notification"
-msgstr ""
+#~ msgid "Browser Push Notification"
+#~ msgstr ""
 
+#: src/lib/components/alerts/ChannelPicker.svelte
 #: src/lib/components/alerts/RuleEditorSheet.svelte
 #: src/lib/components/alerts/RuleEditorSheet.svelte
-#: src/routes/settings/alerts/setup/+page.svelte
-#: src/routes/settings/alerts/setup/+page.svelte
 msgid "Webhook"
 msgstr ""
 
@@ -19654,39 +19652,34 @@ msgstr ""
 msgid "Choose how you want to receive alert notifications."
 msgstr ""
 
-#: src/routes/settings/alerts/setup/+page.svelte
-#: src/routes/settings/alerts/setup/+page.svelte
-msgid "Browser Push Notifications"
-msgstr ""
+#~ msgid "Browser Push Notifications"
+#~ msgstr ""
 
-#: src/routes/settings/alerts/setup/+page.svelte
+#: src/lib/components/alerts/ChannelPicker.svelte
 msgid "Receive alerts directly in your browser"
 msgstr ""
 
-#: src/routes/settings/alerts/setup/+page.svelte
+#: src/lib/components/alerts/ChannelPicker.svelte
 msgid "Send alert data to a custom URL"
 msgstr ""
 
-#: src/routes/settings/alerts/setup/+page.svelte
-msgid "Webhook URL"
-msgstr ""
+#~ msgid "Webhook URL"
+#~ msgstr ""
 
-#: src/routes/settings/alerts/setup/+page.svelte
 #: src/routes/settings/connectors/+page.svelte
 msgid "Discord"
 msgstr ""
 
-#: src/routes/settings/alerts/setup/+page.svelte
-msgid "Send alerts to a Discord channel"
-msgstr ""
+#~ msgid "Send alerts to a Discord channel"
+#~ msgstr ""
 
-#: src/routes/settings/alerts/setup/+page.svelte
+#: src/lib/components/alerts/ChannelPicker.svelte
+#: src/lib/components/alerts/RuleEditorSheet.svelte
 msgid "Telegram"
 msgstr ""
 
-#: src/routes/settings/alerts/setup/+page.svelte
-msgid "Send alerts to a Telegram chat"
-msgstr ""
+#~ msgid "Send alerts to a Telegram chat"
+#~ msgstr ""
 
 #: src/routes/settings/alerts/setup/+page.svelte
 msgid "Review your alert configuration before saving."
@@ -19715,10 +19708,8 @@ msgid ""
 "the dashboard, but no push notifications will be sent."
 msgstr ""
 
-#. placeholder {0}: webhookUrl
-#: src/routes/settings/alerts/setup/+page.svelte
-msgid "Webhook: {0}"
-msgstr ""
+#~ msgid "Webhook: {0}"
+#~ msgstr ""
 
 #: src/routes/settings/alerts/setup/+page.svelte
 msgid "Medical Disclaimer"
@@ -21151,6 +21142,7 @@ msgstr ""
 msgid "Invite Not Found"
 msgstr ""
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
 msgid "This invite link is invalid or has expired."
 msgstr ""
@@ -21199,6 +21191,7 @@ msgstr ""
 #~ msgid "You'll be able to see:"
 #~ msgstr ""
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
 msgid "<0/> Accept Invite"
 msgstr ""
@@ -21218,6 +21211,8 @@ msgstr ""
 msgid "Invite not found or has expired."
 msgstr ""
 
+#: src/routes/(fullscreen)/join/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/invite/[token]/+page.server.ts
 #: src/routes/invite/[token]/+page.svelte
 msgid "Failed to accept invite."
@@ -21245,6 +21240,7 @@ msgstr ""
 #: src/lib/components/auth/LoginForm.svelte
 #: src/lib/components/auth/LoginForm.svelte
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
@@ -21269,6 +21265,7 @@ msgstr ""
 #: src/lib/components/auth/LoginForm.svelte
 #: src/lib/components/auth/LoginForm.svelte
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
@@ -21336,6 +21333,7 @@ msgstr ""
 
 #: src/routes/(fullscreen)/auth/help/+page.svelte
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/auth/help/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
@@ -21350,6 +21348,7 @@ msgid "Save these recovery codes in a safe place. Each code can only be used onc
 msgstr ""
 
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
@@ -21358,6 +21357,7 @@ msgid "<0/> Codes copied"
 msgstr ""
 
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
@@ -21365,6 +21365,7 @@ msgstr ""
 msgid "<0/> Copy recovery codes"
 msgstr ""
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
 msgid "Continue to Nocturne"
 msgstr ""
@@ -21376,6 +21377,7 @@ msgid "Copy your recovery codes before continuing."
 msgstr ""
 
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
@@ -21512,16 +21514,15 @@ msgstr ""
 msgid "Passkey Setup - Setup - Nocturne"
 msgstr ""
 
-#: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/settings/setup/passkey/+page.svelte
 msgid "Set Up Your Passkey"
 msgstr ""
 
-#: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/settings/setup/passkey/+page.svelte
 msgid "Create a passkey for secure, passwordless authentication. You will also receive recovery codes in case you lose access to your passkey."
 msgstr ""
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/settings/setup/passkey/+page.svelte
 msgid "This is how you will appear to others."
@@ -21554,11 +21555,13 @@ msgid ""
 "be used once."
 msgstr ""
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/settings/setup/passkey/+page.svelte
 msgid "You must copy your recovery codes before continuing."
 msgstr ""
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/settings/setup/passkey/+page.svelte
 msgid ""
@@ -21566,6 +21569,7 @@ msgid ""
 "from your account settings."
 msgstr ""
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/settings/account/+page.svelte
 #: src/routes/settings/security/+page.svelte
 msgid "Failed to register passkey."
@@ -23034,6 +23038,7 @@ msgstr ""
 msgid "Full access"
 msgstr ""
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
 msgid "Loading invite..."
 msgstr ""
@@ -24326,4 +24331,153 @@ msgstr ""
 
 #: src/routes/(fullscreen)/setup/patient/+page.svelte
 msgid "Weight (kg)"
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "No invite token provided. Please check the link you were given."
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "This invite has expired."
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "This invite has been revoked."
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "This invite is no longer valid."
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "Join - Nocturne"
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "Invalid Invite"
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "You're In"
+msgstr ""
+
+#. placeholder {0}: inviteInfo.tenantName ?? "the site"
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "Your account has been created and you've joined {0}."
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid ""
+"Save these recovery codes in a safe place. If you lose access to\n"
+"your passkey, you can use one of these codes to sign in. Each code\n"
+"can only be used once."
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "Accept Invite"
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "<0/> has invited you to join"
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "You've been invited to join"
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "<0/> Joining..."
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "Join Nocturne"
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid ""
+"<0/> <1/>.\n"
+"Create an account or sign in to accept."
+msgstr ""
+
+#. placeholder {0}: provider.name
+#. placeholder {0}: provider.name
+#: src/routes/(fullscreen)/join/+page.svelte
+#: src/routes/(fullscreen)/setup/passkey/+page.svelte
+msgid "<0/> Continue with {0}"
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "Or create an account with a passkey"
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "A unique identifier for your account."
+msgstr ""
+
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "<0/> Create account with passkey"
+msgstr ""
+
+#: src/routes/(fullscreen)/setup/passkey/+page.svelte
+msgid "Set Up Your Account"
+msgstr ""
+
+#: src/routes/(fullscreen)/setup/passkey/+page.svelte
+msgid "Choose how you want to authenticate. You can use an external provider for quick setup, or register a passkey for passwordless authentication."
+msgstr ""
+
+#: src/routes/(fullscreen)/setup/passkey/+page.svelte
+msgid "Or set up with a passkey"
+msgstr ""
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+#: src/lib/components/alerts/RuleEditorSheet.svelte
+msgid "Discord DM"
+msgstr ""
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+#: src/lib/components/alerts/RuleEditorSheet.svelte
+msgid "Slack DM"
+msgstr ""
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+#: src/lib/components/alerts/RuleEditorSheet.svelte
+msgid "WhatsApp"
+msgstr ""
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid "Browser Push"
+msgstr ""
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid "Send alerts as a Discord direct message"
+msgstr ""
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid "Send alerts as a Slack direct message"
+msgstr ""
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid "Send alerts to your Telegram chat"
+msgstr ""
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid "Send alerts to your WhatsApp"
+msgstr ""
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid "No notification channels are currently available."
+msgstr ""
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid "Service hasn't reported recently — alerts may be delayed"
+msgstr ""
+
+#. placeholder {0}: getPlatformName(ct)
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid ""
+"Account not linked. Use /connect in {0} to\n"
+"enable delivery."
 msgstr ""

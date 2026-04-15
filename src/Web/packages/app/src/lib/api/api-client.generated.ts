@@ -33,6 +33,7 @@ import {
   DebugClient,
   DeduplicationClient,
   DeviceAgeClient,
+  DeviceCatalogClient,
   DeviceEventClient,
   DirectGrantClient,
   DiscrepancyClient,
@@ -121,6 +122,7 @@ export class ApiClient {
   public readonly debug: DebugClient;
   public readonly deduplication: DeduplicationClient;
   public readonly deviceAge: DeviceAgeClient;
+  public readonly deviceCatalog: DeviceCatalogClient;
   public readonly deviceEvent: DeviceEventClient;
   public readonly directGrant: DirectGrantClient;
   public readonly discrepancy: DiscrepancyClient;
@@ -209,6 +211,7 @@ export class ApiClient {
     this.debug = new DebugClient(apiBaseUrl, http);
     this.deduplication = new DeduplicationClient(apiBaseUrl, http);
     this.deviceAge = new DeviceAgeClient(apiBaseUrl, http);
+    this.deviceCatalog = new DeviceCatalogClient(apiBaseUrl, http);
     this.deviceEvent = new DeviceEventClient(apiBaseUrl, http);
     this.directGrant = new DirectGrantClient(apiBaseUrl, http);
     this.discrepancy = new DiscrepancyClient(apiBaseUrl, http);
