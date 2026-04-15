@@ -45,10 +45,11 @@ namespace Nocturne.Infrastructure.Data.Migrations
                 table: "tracker_definitions",
                 column: "tenant_id");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_system_events_tenant_id",
-                table: "system_events",
-                column: "tenant_id");
+            // IX_system_events_tenant_id may already exist from AddTenantIdToSystemEvents migration
+            migrationBuilder.Sql(
+                """
+                CREATE INDEX IF NOT EXISTS "IX_system_events_tenant_id" ON system_events (tenant_id);
+                """);
 
             migrationBuilder.CreateIndex(
                 name: "IX_step_counts_tenant_id",
