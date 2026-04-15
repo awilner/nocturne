@@ -220,8 +220,6 @@ jobs:
           content = re.sub(r'java\s*\{[^}]*withSourcesJar[^}]*\}', '', content)
           with open('sdk/kotlin/out/build.gradle', 'w') as f: f.write(content)
           "
-          # Inject plugin via settings.gradle so it resolves before build.gradle
-          sed -i '1i pluginManagement { repositories { gradlePluginPortal() } }\nplugins { id "net.thebugmc.gradle.sonatype-central-portal-publisher" version "1.2.4" apply false }' sdk/kotlin/out/settings.gradle
           cat sdk/kotlin/publish.gradle >> sdk/kotlin/out/build.gradle
 
       - name: Setup Java
@@ -233,19 +231,30 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build
+      - name: Build and publish to local
         working-directory: sdk/kotlin/out
-        run: ./gradlew build
+        run: ./gradlew build publishToMavenLocal
+        env:
+          SIGNING_KEY: ${{ secrets.MAVEN_SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.MAVEN_SIGNING_PASSWORD }}
 
-      - name: Publish to Maven Central
+      - name: Upload to Maven Central
         if: startsWith(github.ref, 'refs/tags/v')
-        working-directory: sdk/kotlin/out
-        run: ./gradlew centralPortalPublish
+        run: |
+          cd ~/.m2/repository
+          zip -r $GITHUB_WORKSPACE/kotlin-bundle.zip org/nightscoutfoundation/nocturne/
+          cd $GITHUB_WORKSPACE
+          UPLOAD_RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -u "$MAVEN_USERNAME:$MAVEN_PASSWORD" \
+            -F "bundle=@kotlin-bundle.zip" \
+            "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC")
+          HTTP_CODE=$(echo "$UPLOAD_RESPONSE" | tail -1)
+          BODY=$(echo "$UPLOAD_RESPONSE" | head -n -1)
+          echo "Response: $BODY (HTTP $HTTP_CODE)"
+          if [ "$HTTP_CODE" -ge 400 ]; then exit 1; fi
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-          SIGNING_KEY: ${{ secrets.MAVEN_SIGNING_KEY }}
-          SIGNING_PASSWORD: ${{ secrets.MAVEN_SIGNING_PASSWORD }}
 
   publish-swift:
     needs: generate-spec
@@ -365,8 +374,6 @@ jobs:
           content = re.sub(r'java\s*\{[^}]*withSourcesJar[^}]*\}', '', content)
           with open('sdk/java/out/build.gradle', 'w') as f: f.write(content)
           "
-          # Inject plugin via settings.gradle so it resolves before build.gradle
-          sed -i '1i pluginManagement { repositories { gradlePluginPortal() } }\nplugins { id "net.thebugmc.gradle.sonatype-central-portal-publisher" version "1.2.4" apply false }' sdk/java/out/settings.gradle
           cat sdk/java/publish.gradle >> sdk/java/out/build.gradle
           # Remove API files with multipart upload bugs (OpenAPI Generator native library issue)
           rm -f sdk/java/out/src/main/java/org/nightscoutfoundation/nocturne/api/AlertCustomSoundsApi.java
@@ -381,16 +388,27 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build
+      - name: Build and publish to local
         working-directory: sdk/java/out
-        run: ./gradlew build
+        run: ./gradlew build publishToMavenLocal
+        env:
+          SIGNING_KEY: ${{ secrets.MAVEN_SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.MAVEN_SIGNING_PASSWORD }}
 
-      - name: Publish to Maven Central
+      - name: Upload to Maven Central
         if: startsWith(github.ref, 'refs/tags/v')
-        working-directory: sdk/java/out
-        run: ./gradlew centralPortalPublish
+        run: |
+          cd ~/.m2/repository
+          zip -r $GITHUB_WORKSPACE/java-bundle.zip org/nightscoutfoundation/nocturne-java/
+          cd $GITHUB_WORKSPACE
+          UPLOAD_RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -u "$MAVEN_USERNAME:$MAVEN_PASSWORD" \
+            -F "bundle=@java-bundle.zip" \
+            "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC")
+          HTTP_CODE=$(echo "$UPLOAD_RESPONSE" | tail -1)
+          BODY=$(echo "$UPLOAD_RESPONSE" | head -n -1)
+          echo "Response: $BODY (HTTP $HTTP_CODE)"
+          if [ "$HTTP_CODE" -ge 400 ]; then exit 1; fi
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-          SIGNING_KEY: ${{ secrets.MAVEN_SIGNING_KEY }}
-          SIGNING_PASSWORD: ${{ secrets.MAVEN_SIGNING_PASSWORD }}
