@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.Infrastructure.Data.Entities;
 
@@ -32,7 +33,7 @@ public class AlertStepChannelEntity : ITenantScoped
     /// </summary>
     [Column("channel_type")]
     [MaxLength(32)]
-    public string ChannelType { get; set; } = string.Empty;
+    public ChannelType ChannelType { get; set; }
 
     /// <summary>
     /// Destination address (phone number, email, webhook URL, device token, etc.)

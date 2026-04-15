@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpenApi.Remote.Attributes;
+using Nocturne.Core.Models.Alerts;
 using Nocturne.Infrastructure.Data;
 using Nocturne.Infrastructure.Data.Entities;
 
@@ -423,7 +424,7 @@ public class AlertEscalationStepResponse
 public class AlertStepChannelResponse
 {
     public Guid Id { get; set; }
-    public string ChannelType { get; set; } = string.Empty;
+    public ChannelType ChannelType { get; set; }
     public string Destination { get; set; } = string.Empty;
     public string? DestinationLabel { get; set; }
 }
@@ -478,7 +479,7 @@ public class CreateAlertEscalationStepRequest
 
 public class CreateAlertStepChannelRequest
 {
-    public string ChannelType { get; set; } = string.Empty;
+    public ChannelType ChannelType { get; set; }
     public string Destination { get; set; } = string.Empty;
     public string? DestinationLabel { get; set; }
 }

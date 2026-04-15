@@ -2561,6 +2561,8 @@ public class NocturneDbContext : DbContext
             entity.ToTable("alert_step_channels");
             entity.Property(e => e.Id).HasValueGenerator<GuidV7ValueGenerator>();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.ChannelType).HasConversion(
+                new Converters.EnumMemberValueConverter<Core.Models.Alerts.ChannelType>());
 
             entity.HasOne(e => e.EscalationStep)
                 .WithMany(s => s.Channels)
@@ -2625,6 +2627,8 @@ public class NocturneDbContext : DbContext
             entity.Property(e => e.Id).HasValueGenerator<GuidV7ValueGenerator>();
             entity.Property(e => e.Payload).HasColumnType("jsonb").HasDefaultValue("{}");
             entity.Property(e => e.Status).HasDefaultValue("pending");
+            entity.Property(e => e.ChannelType).HasConversion(
+                new Converters.EnumMemberValueConverter<Core.Models.Alerts.ChannelType>());
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.Property(e => e.RetryCount).HasDefaultValue(0);
 

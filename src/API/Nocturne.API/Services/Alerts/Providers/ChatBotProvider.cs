@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using Nocturne.Core.Models;
+using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.API.Services.Alerts.Providers;
 
@@ -8,18 +9,18 @@ internal sealed class ChatBotProvider(
     IConfiguration configuration,
     ILogger<ChatBotProvider> logger)
 {
-    public static readonly HashSet<string> SupportedChannelTypes = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "discord_dm",
-        "discord_channel",
-        "slack_dm",
-        "slack_channel",
-        "telegram_dm",
-        "telegram_group",
-        "whatsapp_dm",
-    };
+    public static readonly HashSet<ChannelType> SupportedChannelTypes =
+    [
+        ChannelType.DiscordDm,
+        ChannelType.DiscordChannel,
+        ChannelType.SlackDm,
+        ChannelType.SlackChannel,
+        ChannelType.TelegramDm,
+        ChannelType.TelegramGroup,
+        ChannelType.WhatsAppDm,
+    ];
 
-    public async Task SendAsync(Guid deliveryId, string channelType, string destination, AlertPayload payload, CancellationToken ct)
+    public async Task SendAsync(Guid deliveryId, ChannelType channelType, string destination, AlertPayload payload, CancellationToken ct)
     {
         var webUrl = configuration["WEB_URL"];
         if (string.IsNullOrEmpty(webUrl))

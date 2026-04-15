@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Nocturne.Core.Contracts.Alerts;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models;
+using Nocturne.Core.Models.Alerts;
 using Nocturne.Infrastructure.Data;
 using Nocturne.Infrastructure.Data.Entities;
 
@@ -138,7 +139,7 @@ internal sealed class AlertDeliveryService(
     {
         switch (delivery.ChannelType)
         {
-            case "web_push":
+            case ChannelType.WebPush:
                 var webPushProvider = serviceProvider.GetService<Providers.WebPushProvider>();
                 if (webPushProvider is not null)
                 {
@@ -147,7 +148,7 @@ internal sealed class AlertDeliveryService(
                 }
                 break;
 
-            case "webhook":
+            case ChannelType.Webhook:
                 var webhookProvider = serviceProvider.GetService<Providers.WebhookProvider>();
                 if (webhookProvider is not null)
                 {
@@ -161,7 +162,6 @@ internal sealed class AlertDeliveryService(
                 if (chatBotProvider is not null)
                 {
                     await chatBotProvider.SendAsync(delivery.Id, delivery.ChannelType, delivery.Destination, payload, ct);
-                    // Do not mark as delivered here — the bot reports back via MarkDeliveredAsync
                 }
                 break;
 

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using OpenApi.Remote.Attributes;
 using Nocturne.Core.Contracts.Alerts;
 using Nocturne.Core.Contracts.Multitenancy;
+using Nocturne.Core.Models.Alerts;
 using Nocturne.Infrastructure.Data;
 
 namespace Nocturne.API.Controllers.V4.Monitoring;
@@ -283,7 +284,7 @@ public class AlertsController : ControllerBase
     [RemoteQuery]
     [ProducesResponseType(typeof(List<PendingDeliveryResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<PendingDeliveryResponse>>> GetPendingDeliveries(
-        [FromQuery] string[] channelType, CancellationToken ct)
+        [FromQuery] ChannelType[] channelType, CancellationToken ct)
     {
         await using var db = await _contextFactory.CreateDbContextAsync(ct);
 
@@ -399,7 +400,7 @@ public class PendingDeliveryResponse
 {
     public Guid Id { get; set; }
     public Guid AlertInstanceId { get; set; }
-    public string ChannelType { get; set; } = string.Empty;
+    public ChannelType ChannelType { get; set; }
     public string Destination { get; set; } = string.Empty;
     public string Payload { get; set; } = "{}";
     public DateTime CreatedAt { get; set; }
