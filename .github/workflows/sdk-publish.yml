@@ -211,7 +211,7 @@ jobs:
           chmod +x sdk/kotlin/out/gradlew
 
       - name: Apply publish overlay
-        run: cp sdk/kotlin/publish.gradle sdk/kotlin/out/build.gradle
+        run: cat sdk/kotlin/publish.gradle >> sdk/kotlin/out/build.gradle
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -345,7 +345,7 @@ jobs:
           chmod +x sdk/java/out/gradlew
 
       - name: Apply publish overlay
-        run: cp sdk/java/publish.gradle sdk/java/out/build.gradle
+        run: cat sdk/java/publish.gradle >> sdk/java/out/build.gradle
 
       - name: Setup Java
         uses: actions/setup-java@v4
