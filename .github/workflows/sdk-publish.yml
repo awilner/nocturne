@@ -217,6 +217,7 @@ jobs:
           with open('sdk/kotlin/out/build.gradle') as f: content = f.read()
           content = re.sub(r'task\s+(?:sourcesJar|javadocJar)\s*\([^)]*\)\s*\{[^}]*\}', '', content)
           content = re.sub(r'archives\s+(?:sourcesJar|javadocJar)', '', content)
+          content = re.sub(r'java\s*\{[^}]*withSourcesJar[^}]*\}', '', content)
           with open('sdk/kotlin/out/build.gradle', 'w') as f: f.write(content)
           "
           cat sdk/kotlin/publish.gradle >> sdk/kotlin/out/build.gradle
@@ -363,6 +364,17 @@ jobs:
           with open('sdk/java/out/build.gradle', 'w') as f: f.write(content)
           "
           cat sdk/java/publish.gradle >> sdk/java/out/build.gradle
+          # Fix OpenAPI Generator bug: duplicate 'headers' variable in multipart API methods
+          find sdk/java/out/src -name '*.java' -exec python3 -c "
+          import sys, re
+          for path in sys.argv[1:]:
+              with open(path) as f: src = f.read()
+              # Remove second 'Map<String, String> headers = ...' in methods that have two
+              fixed = re.sub(r'(Map<String, String> headers = [^;]+;.*?)Map<String, String> headers = [^;]+;', r'\1', src, flags=re.DOTALL)
+              if fixed != src:
+                  with open(path, 'w') as f: f.write(fixed)
+                  print(f'Fixed duplicate headers in {path}')
+          " {} +
 
       - name: Setup Java
         uses: actions/setup-java@v4
