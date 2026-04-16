@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
 using Nocturne.Core.Contracts;
 using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Data.Abstractions;
@@ -14,8 +14,8 @@ public class InAppNotificationService : IInAppNotificationService
 {
     private readonly IInAppNotificationRepository _repository;
     private readonly ISignalRBroadcastService _broadcastService;
-    private readonly IConnectorFoodEntryRepository _foodEntryRepository;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly INotificationTemplateRegistry _templateRegistry;
+    private readonly Dictionary<string, INotificationActionHandler> _actionHandlers;
     private readonly ILogger<InAppNotificationService> _logger;
 
     /// <summary>
@@ -23,21 +23,21 @@ public class InAppNotificationService : IInAppNotificationService
     /// </summary>
     /// <param name="repository">The notification repository</param>
     /// <param name="broadcastService">The SignalR broadcast service</param>
-    /// <param name="foodEntryRepository">The food entry repository for meal matching dismiss</param>
-    /// <param name="serviceProvider">Service provider for lazy resolution of domain services (avoids circular dependency)</param>
+    /// <param name="templateRegistry">The notification template registry for type defaults</param>
+    /// <param name="actionHandlers">Registered notification action handlers</param>
     /// <param name="logger">The logger</param>
     public InAppNotificationService(
         IInAppNotificationRepository repository,
         ISignalRBroadcastService broadcastService,
-        IConnectorFoodEntryRepository foodEntryRepository,
-        IServiceProvider serviceProvider,
+        INotificationTemplateRegistry templateRegistry,
+        IEnumerable<INotificationActionHandler> actionHandlers,
         ILogger<InAppNotificationService> logger
     )
     {
         _repository = repository;
         _broadcastService = broadcastService;
-        _foodEntryRepository = foodEntryRepository;
-        _serviceProvider = serviceProvider;
+        _templateRegistry = templateRegistry;
+        _actionHandlers = actionHandlers.ToDictionary(h => h.NotificationType, h => h);
         _logger = logger;
     }
 
@@ -54,9 +54,12 @@ public class InAppNotificationService : IInAppNotificationService
     /// <inheritdoc />
     public async Task<InAppNotificationDto> CreateNotificationAsync(
         string userId,
-        InAppNotificationType type,
-        NotificationUrgency urgency,
+        string type,
         string title,
+        NotificationCategory? category = null,
+        NotificationUrgency? urgency = null,
+        string? icon = null,
+        string? source = null,
         string? subtitle = null,
         string? sourceId = null,
         List<NotificationActionDto>? actions = null,
@@ -65,16 +68,31 @@ public class InAppNotificationService : IInAppNotificationService
         CancellationToken cancellationToken = default
     )
     {
+        var template = _templateRegistry.GetTemplate(type);
+
+        // Merge: caller values override template defaults
+        var resolvedCategory = category
+            ?? template?.Category
+            ?? throw new ArgumentException($"No category provided and no template registered for type '{type}'", nameof(type));
+        var resolvedUrgency = urgency ?? template?.DefaultUrgency ?? NotificationUrgency.Info;
+        var resolvedIcon = icon ?? template?.Icon;
+        var resolvedSource = source ?? template?.Source;
+        var resolvedActions = actions ?? template?.DefaultActions;
+        var resolvedConditions = resolutionConditions ?? template?.DefaultResolutionConditions;
+
         var entity = new InAppNotificationEntity
         {
             UserId = userId,
-            Type = type.ToString(),
-            Urgency = urgency,
+            Type = type,
+            Category = resolvedCategory,
+            Urgency = resolvedUrgency,
+            Icon = resolvedIcon,
+            Source = resolvedSource,
             Title = title,
             Subtitle = subtitle,
             SourceId = sourceId,
-            ActionsJson = InAppNotificationRepository.SerializeActions(actions),
-            ResolutionConditionsJson = InAppNotificationRepository.SerializeConditions(resolutionConditions),
+            ActionsJson = InAppNotificationRepository.SerializeActions(resolvedActions),
+            ResolutionConditionsJson = InAppNotificationRepository.SerializeConditions(resolvedConditions),
             MetadataJson = InAppNotificationRepository.SerializeMetadata(metadata)
         };
 
@@ -187,7 +205,6 @@ public class InAppNotificationService : IInAppNotificationService
         switch (actionId.ToLowerInvariant())
         {
             case "dismiss":
-                // Archive the notification as dismissed
                 return await ArchiveNotificationAsync(
                     notificationId,
                     NotificationArchiveReason.Dismissed,
@@ -195,7 +212,6 @@ public class InAppNotificationService : IInAppNotificationService
                 );
 
             case "navigate":
-                // Navigation is handled client-side, just mark as completed
                 return await ArchiveNotificationAsync(
                     notificationId,
                     NotificationArchiveReason.Completed,
@@ -203,68 +219,24 @@ public class InAppNotificationService : IInAppNotificationService
                 );
 
             default:
-                // Check for domain-specific action handling
-                if (notification.Type == InAppNotificationType.SuggestedMealMatch.ToString())
+                // Dispatch to type-specific action handler if registered
+                if (_actionHandlers.TryGetValue(notification.Type, out var handler))
                 {
-                    switch (actionId.ToLowerInvariant())
-                    {
-                        case "accept":
-                            // Accept action is handled via MealMatchingController
-                            // Just archive the notification here
-                            return await ArchiveNotificationAsync(
-                                notificationId,
-                                NotificationArchiveReason.Completed,
-                                cancellationToken);
-
-                        case "dismiss":
-                            if (notification.SourceId != null && Guid.TryParse(notification.SourceId, out var foodEntryId))
-                            {
-                                // Mark the food entry as standalone directly to avoid circular dependency
-                                await _foodEntryRepository.UpdateStatusAsync(
-                                    foodEntryId,
-                                    ConnectorFoodEntryStatus.Standalone,
-                                    null,
-                                    cancellationToken);
-                            }
-                            return await ArchiveNotificationAsync(
-                                notificationId,
-                                NotificationArchiveReason.Dismissed,
-                                cancellationToken);
-
-                        case "review":
-                            // Review opens a dialog client-side, just return true
-                            return true;
-                    }
+                    var metadata = DeserializeMetadata(notification.MetadataJson);
+                    return await handler.HandleAsync(
+                        notificationId,
+                        actionId,
+                        userId,
+                        notification.SourceId,
+                        metadata,
+                        cancellationToken
+                    );
                 }
 
-                // Handle tracker suggestion actions
-                if (notification.Type == InAppNotificationType.SuggestedTrackerMatch.ToString())
-                {
-                    // Lazy resolution to avoid circular dependency
-                    var trackerSuggestionService = _serviceProvider.GetRequiredService<ITrackerSuggestionService>();
-
-                    switch (actionId.ToLowerInvariant())
-                    {
-                        case "accept":
-                            // Accept resets the tracker (completes current instance, starts new one)
-                            return await trackerSuggestionService.AcceptSuggestionAsync(
-                                notificationId,
-                                userId,
-                                cancellationToken);
-
-                        case "dismiss":
-                            // Dismiss just archives the notification
-                            return await trackerSuggestionService.DismissSuggestionAsync(
-                                notificationId,
-                                userId,
-                                cancellationToken);
-                    }
-                }
-
-                // For other custom actions, log and mark as completed
+                // No handler registered — default to archiving as completed
                 _logger.LogInformation(
-                    "Executed custom action {ActionId} on notification {NotificationId}",
-                    actionId,
+                    "No action handler for type {Type}, archiving notification {NotificationId} as completed",
+                    notification.Type,
                     notificationId
                 );
                 return await ArchiveNotificationAsync(
@@ -278,7 +250,7 @@ public class InAppNotificationService : IInAppNotificationService
     /// <inheritdoc />
     public async Task<bool> ArchiveBySourceAsync(
         string userId,
-        InAppNotificationType type,
+        string type,
         string sourceId,
         NotificationArchiveReason reason,
         CancellationToken cancellationToken = default
@@ -286,7 +258,7 @@ public class InAppNotificationService : IInAppNotificationService
     {
         var notification = await _repository.FindBySourceAsync(
             userId,
-            type.ToString(),
+            type,
             sourceId,
             cancellationToken
         );
@@ -303,5 +275,25 @@ public class InAppNotificationService : IInAppNotificationService
         }
 
         return await ArchiveNotificationAsync(notification.Id, reason, cancellationToken);
+    }
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
+    private static Dictionary<string, object>? DeserializeMetadata(string? json)
+    {
+        if (string.IsNullOrEmpty(json))
+            return null;
+
+        try
+        {
+            return JsonSerializer.Deserialize<Dictionary<string, object>>(json, JsonOptions);
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

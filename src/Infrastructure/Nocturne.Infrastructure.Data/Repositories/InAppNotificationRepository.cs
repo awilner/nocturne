@@ -204,6 +204,8 @@ public class InAppNotificationRepository : IInAppNotificationRepository
                 ? parsedType
                 : default,
             Category = entity.Category,
+            Icon = entity.Icon,
+            Source = entity.Source,
             Urgency = entity.Urgency,
             Title = entity.Title,
             Subtitle = entity.Subtitle,

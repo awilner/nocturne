@@ -22,9 +22,12 @@ public interface IInAppNotificationService
     /// Create a new notification for a user
     /// </summary>
     /// <param name="userId">The user ID to create the notification for</param>
-    /// <param name="type">The notification type</param>
-    /// <param name="urgency">The urgency level</param>
+    /// <param name="type">The notification type string (e.g., "tracker.unconfigured", "SuggestedMealMatch")</param>
     /// <param name="title">The notification title</param>
+    /// <param name="category">Optional category override (falls back to template default)</param>
+    /// <param name="urgency">Optional urgency override (falls back to template default)</param>
+    /// <param name="icon">Optional icon override (falls back to template default)</param>
+    /// <param name="source">Optional source override (falls back to template default)</param>
     /// <param name="subtitle">Optional subtitle</param>
     /// <param name="sourceId">Optional source entity ID for grouping and resolution</param>
     /// <param name="actions">Optional list of available actions</param>
@@ -34,9 +37,12 @@ public interface IInAppNotificationService
     /// <returns>The created notification</returns>
     Task<InAppNotificationDto> CreateNotificationAsync(
         string userId,
-        InAppNotificationType type,
-        NotificationUrgency urgency,
+        string type,
         string title,
+        NotificationCategory? category = null,
+        NotificationUrgency? urgency = null,
+        string? icon = null,
+        string? source = null,
         string? subtitle = null,
         string? sourceId = null,
         List<NotificationActionDto>? actions = null,
@@ -77,14 +83,14 @@ public interface IInAppNotificationService
     /// Archive a notification by its source
     /// </summary>
     /// <param name="userId">The user ID</param>
-    /// <param name="type">The notification type</param>
+    /// <param name="type">The notification type string</param>
     /// <param name="sourceId">The source entity ID</param>
     /// <param name="reason">The reason for archiving</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if a notification was found and archived, false otherwise</returns>
     Task<bool> ArchiveBySourceAsync(
         string userId,
-        InAppNotificationType type,
+        string type,
         string sourceId,
         NotificationArchiveReason reason,
         CancellationToken cancellationToken = default
