@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpenApi.Remote.Attributes;
+using Nocturne.API.Models.Requests.V4;
 using Nocturne.API.Services;
 using Nocturne.Core.Constants;
 using Nocturne.Core.Contracts;
@@ -85,10 +86,25 @@ public class NutritionController : ControllerBase
     [RemoteForm(Invalidates = ["GetCarbIntakes"])]
     [ProducesResponseType(typeof(CarbIntake), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<CarbIntake>> CreateCarbIntake([FromBody] CarbIntake model, CancellationToken ct = default)
+    public async Task<ActionResult<CarbIntake>> CreateCarbIntake([FromBody] CreateCarbIntakeRequest request, CancellationToken ct = default)
     {
-        if (model.Timestamp == default)
+        if (request.Timestamp == default)
             return Problem(detail: "Timestamp must be set", statusCode: 400, title: "Bad Request");
+
+        var model = new CarbIntake
+        {
+            Timestamp = request.Timestamp.UtcDateTime,
+            UtcOffset = request.UtcOffset,
+            Device = request.Device,
+            App = request.App,
+            DataSource = request.DataSource,
+            Carbs = request.Carbs,
+            SyncIdentifier = request.SyncIdentifier,
+            CarbTime = request.CarbTime,
+            AbsorptionTime = request.AbsorptionTime,
+            CorrelationId = request.CorrelationId,
+        };
+
         var created = await _carbIntakeRepo.CreateAsync(model, ct);
         return CreatedAtAction(nameof(GetCarbIntakeById), new { id = created.Id }, created);
     }
@@ -101,10 +117,33 @@ public class NutritionController : ControllerBase
     [ProducesResponseType(typeof(CarbIntake), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<CarbIntake>> UpdateCarbIntake(Guid id, [FromBody] CarbIntake model, CancellationToken ct = default)
+    public async Task<ActionResult<CarbIntake>> UpdateCarbIntake(Guid id, [FromBody] UpdateCarbIntakeRequest request, CancellationToken ct = default)
     {
-        if (model.Timestamp == default)
+        if (request.Timestamp == default)
             return Problem(detail: "Timestamp must be set", statusCode: 400, title: "Bad Request");
+
+        var existing = await _carbIntakeRepo.GetByIdAsync(id, ct);
+        if (existing is null)
+            return NotFound();
+
+        var model = new CarbIntake
+        {
+            Id = id,
+            Timestamp = request.Timestamp.UtcDateTime,
+            UtcOffset = request.UtcOffset,
+            Device = request.Device,
+            App = request.App,
+            DataSource = request.DataSource,
+            Carbs = request.Carbs,
+            SyncIdentifier = request.SyncIdentifier,
+            CarbTime = request.CarbTime,
+            AbsorptionTime = request.AbsorptionTime,
+            CorrelationId = request.CorrelationId ?? existing.CorrelationId,
+            LegacyId = existing.LegacyId,
+            CreatedAt = existing.CreatedAt,
+            AdditionalProperties = existing.AdditionalProperties,
+        };
+
         try
         {
             var updated = await _carbIntakeRepo.UpdateAsync(id, model, ct);
