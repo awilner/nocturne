@@ -536,14 +536,14 @@ public class DebugController : ControllerBase
         var notification = await _notificationService.CreateNotificationAsync(
             userId,
             request.Type,
-            request.Urgency,
             request.Title ?? $"Test {request.Type} Notification",
-            request.Subtitle,
-            request.SourceId,
-            request.Actions,
-            request.ResolutionConditions,
-            request.Metadata,
-            cancellationToken
+            urgency: request.Urgency,
+            subtitle: request.Subtitle,
+            sourceId: request.SourceId,
+            actions: request.Actions,
+            resolutionConditions: request.ResolutionConditions,
+            metadata: request.Metadata,
+            cancellationToken: cancellationToken
         );
 
         return Ok(notification);
@@ -580,12 +580,12 @@ public class DebugController : ControllerBase
 
         var notificationType = type.ToLowerInvariant() switch
         {
-            "tracker" => InAppNotificationType.TrackerAlert,
-            "stats" or "statistics" => InAppNotificationType.StatisticsSummary,
-            "low" or "predicted" => InAppNotificationType.PredictedLow,
-            "meal" => InAppNotificationType.SuggestedMealMatch,
-            "help" => InAppNotificationType.HelpResponse,
-            _ => InAppNotificationType.TrackerAlert
+            "tracker" => "tracker.alert",
+            "stats" or "statistics" => "statistics.summary",
+            "low" or "predicted" => "glucose.predicted_low",
+            "meal" => "meal_matching.suggested_match",
+            "help" => "help.response",
+            _ => "tracker.alert"
         };
 
         var notificationTitle = title ?? $"Test Notification ({DateTime.UtcNow:HH:mm:ss})";
@@ -600,18 +600,16 @@ public class DebugController : ControllerBase
         var notification = await _notificationService.CreateNotificationAsync(
             userId,
             notificationType,
-            urgency,
             notificationTitle,
+            urgency: urgency,
             subtitle: $"This is a test notification created at {DateTime.UtcNow:u}",
             sourceId: $"test-{Guid.NewGuid():N}",
-            actions: null,
-            resolutionConditions: null,
             metadata: new Dictionary<string, object>
             {
                 ["testCreatedAt"] = DateTime.UtcNow.ToString("o"),
                 ["testType"] = type
             },
-            cancellationToken
+            cancellationToken: cancellationToken
         );
 
         return Ok(new
@@ -675,7 +673,7 @@ public class TestNotificationRequest
     /// <summary>
     /// Type of notification to create
     /// </summary>
-    public InAppNotificationType Type { get; set; } = InAppNotificationType.TrackerAlert;
+    public string Type { get; set; } = "tracker.alert";
 
     /// <summary>
     /// Urgency level for the notification

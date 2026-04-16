@@ -545,8 +545,7 @@ public class CompressionLowDetectionService : BackgroundService, ICompressionLow
         // The metadata contains the count and nightOf for interpolation.
         await notificationService.CreateNotificationAsync(
             userId: userId,
-            type: InAppNotificationType.CompressionLowReview,
-            urgency: NotificationUrgency.Info,
+            type: "glucose.compression_low_review",
             title: "compression_low_detected",
             subtitle: "compression_low_detected_subtitle",
             sourceId: nightOf.ToString("yyyy-MM-dd"),

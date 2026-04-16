@@ -204,7 +204,7 @@ public class CompressionLowService : ICompressionLowService
             {
                 await _notificationService.ArchiveBySourceAsync(
                     userId: "default",
-                    type: InAppNotificationType.CompressionLowReview,
+                    type: "glucose.compression_low_review",
                     sourceId: nightOf.ToString("yyyy-MM-dd"),
                     reason: NotificationArchiveReason.Completed,
                     cancellationToken: cancellationToken);

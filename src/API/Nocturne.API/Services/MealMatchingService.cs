@@ -318,10 +318,9 @@ public class MealMatchingService : IMealMatchingService
 
         await _notificationService.CreateNotificationAsync(
             userId,
-            InAppNotificationType.SuggestedMealMatch,
-            NotificationUrgency.Info,
+            "meal_matching.suggested_match",
             title,
-            subtitle,
+            subtitle: subtitle,
             sourceId: entry.Id.ToString(),
             actions: actions,
             metadata: metadata,

@@ -97,7 +97,7 @@ public class AccessRequestController(
             {
                 await notificationService.ArchiveBySourceAsync(
                     ownerId.ToString(),
-                    InAppNotificationType.AnonymousLoginRequest,
+                    "passkey.anonymous_login_request",
                     subjectId.ToString(),
                     NotificationArchiveReason.Completed,
                     ct);
@@ -140,7 +140,7 @@ public class AccessRequestController(
             {
                 await notificationService.ArchiveBySourceAsync(
                     ownerId.ToString(),
-                    InAppNotificationType.AnonymousLoginRequest,
+                    "passkey.anonymous_login_request",
                     subjectId.ToString(),
                     NotificationArchiveReason.Dismissed,
                     ct);

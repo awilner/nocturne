@@ -222,7 +222,7 @@ public class TrackerSuggestionService : ITrackerSuggestionService
             return false;
         }
 
-        if (notification.Type != InAppNotificationType.SuggestedTrackerMatch.ToString())
+        if (notification.Type != "tracker.suggested_match")
         {
             _logger.LogWarning(
                 "Notification {NotificationId} is not a SuggestedTrackerMatch type",
@@ -441,7 +441,7 @@ public class TrackerSuggestionService : ITrackerSuggestionService
         // Check for existing active notification with the same tracker definition
         var existingNotification = await _notificationRepository.FindBySourceAsync(
             userId,
-            InAppNotificationType.SuggestedTrackerMatch.ToString(),
+            "tracker.suggested_match",
             definitionId.ToString(),
             cancellationToken
         );
@@ -518,8 +518,11 @@ public class TrackerSuggestionService : ITrackerSuggestionService
         var entity = new InAppNotificationEntity
         {
             UserId = userId,
-            Type = InAppNotificationType.SuggestedTrackerMatch.ToString(),
+            Type = "tracker.suggested_match",
+            Category = NotificationCategory.ActionRequired,
             Urgency = NotificationUrgency.Info,
+            Icon = "refresh-cw",
+            Source = "tracker-service",
             Title = title,
             Subtitle = subtitle,
             SourceId = definitionId.ToString(), // Use definition ID as source for deduplication

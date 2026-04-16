@@ -835,8 +835,7 @@ public class PasskeyController : ControllerBase
             {
                 await notificationService.CreateNotificationAsync(
                     ownerId.ToString(),
-                    InAppNotificationType.AnonymousLoginRequest,
-                    NotificationUrgency.Info,
+                    "passkey.anonymous_login_request",
                     $"{displayName} has requested access",
                     subtitle: message != null && message.Length > 100 ? message[..100] : message,
                     sourceId: credResult.SubjectId.ToString(),

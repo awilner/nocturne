@@ -110,7 +110,7 @@ public class MealMatchingController : ControllerBase
             // Archive the notification
             await _notificationService.ArchiveBySourceAsync(
                 userId,
-                InAppNotificationType.SuggestedMealMatch,
+                "meal_matching.suggested_match",
                 request.FoodEntryId.ToString(),
                 NotificationArchiveReason.Completed,
                 HttpContext.RequestAborted);
@@ -144,7 +144,7 @@ public class MealMatchingController : ControllerBase
         // Archive the notification
         await _notificationService.ArchiveBySourceAsync(
             userId,
-            InAppNotificationType.SuggestedMealMatch,
+            "meal_matching.suggested_match",
             request.FoodEntryId.ToString(),
             NotificationArchiveReason.Dismissed,
             HttpContext.RequestAborted);
