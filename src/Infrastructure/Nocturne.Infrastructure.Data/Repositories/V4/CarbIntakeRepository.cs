@@ -114,13 +114,31 @@ public class CarbIntakeRepository : ICarbIntakeRepository
     }
 
     /// <summary>
-    /// Creates a new carbohydrate intake record.
+    /// Creates a new carbohydrate intake record. When <c>DataSource</c> and
+    /// <c>SyncIdentifier</c> match an existing row for this tenant, the record is
+    /// updated in place rather than inserted — making the operation idempotent
+    /// for connector replays. Tenant scoping is implicit via the DbContext's
+    /// RLS-equivalent query filter.
     /// </summary>
     /// <param name="model">The carbohydrate intake to create.</param>
     /// <param name="ct">The cancellation token.</param>
-    /// <returns>The created carbohydrate intake.</returns>
+    /// <returns>The created or updated carbohydrate intake.</returns>
     public async Task<CarbIntake> CreateAsync(CarbIntake model, CancellationToken ct = default)
     {
+        if (!string.IsNullOrEmpty(model.DataSource) && !string.IsNullOrEmpty(model.SyncIdentifier))
+        {
+            var existing = await _context.CarbIntakes
+                .FirstOrDefaultAsync(
+                    e => e.DataSource == model.DataSource && e.SyncIdentifier == model.SyncIdentifier,
+                    ct);
+            if (existing != null)
+            {
+                CarbIntakeMapper.UpdateEntity(existing, model);
+                await _context.SaveChangesAsync(ct);
+                return CarbIntakeMapper.ToDomainModel(existing);
+            }
+        }
+
         var entity = CarbIntakeMapper.ToEntity(model);
         _context.CarbIntakes.Add(entity);
         await _context.SaveChangesAsync(ct);
