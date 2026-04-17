@@ -101,7 +101,7 @@ public class AlertRulesController : ControllerBase
             ConfirmationReadings = request.ConfirmationReadings > 0 ? request.ConfirmationReadings : 1,
             IsEnabled = request.IsEnabled,
             SortOrder = request.SortOrder,
-            Severity = request.Severity ?? "normal",
+            Severity = request.Severity ?? AlertRuleSeverity.Normal,
             ClientConfiguration = request.ClientConfiguration is not null
                 ? JsonSerializer.Serialize(request.ClientConfiguration)
                 : "{}",
@@ -181,7 +181,7 @@ public class AlertRulesController : ControllerBase
         rule.ConfirmationReadings = request.ConfirmationReadings > 0 ? request.ConfirmationReadings : 1;
         rule.IsEnabled = request.IsEnabled;
         rule.SortOrder = request.SortOrder;
-        rule.Severity = request.Severity ?? "normal";
+        rule.Severity = request.Severity ?? AlertRuleSeverity.Normal;
         rule.ClientConfiguration = request.ClientConfiguration is not null
             ? JsonSerializer.Serialize(request.ClientConfiguration)
             : "{}";
@@ -390,13 +390,13 @@ public class AlertRuleResponse
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public string ConditionType { get; set; } = string.Empty;
+    public AlertConditionType ConditionType { get; set; } = AlertConditionType.Threshold;
     public object ConditionParams { get; set; } = new { };
     public int HysteresisMinutes { get; set; }
     public int ConfirmationReadings { get; set; }
     public bool IsEnabled { get; set; }
     public int SortOrder { get; set; }
-    public string Severity { get; set; } = "normal";
+    public AlertRuleSeverity Severity { get; set; } = AlertRuleSeverity.Normal;
     public object ClientConfiguration { get; set; } = new { };
     public List<AlertScheduleResponse> Schedules { get; set; } = [];
 }
@@ -433,13 +433,13 @@ public class CreateAlertRuleRequest
 {
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public string ConditionType { get; set; } = string.Empty;
+    public AlertConditionType ConditionType { get; set; } = AlertConditionType.Threshold;
     public object? ConditionParams { get; set; }
     public int HysteresisMinutes { get; set; }
     public int ConfirmationReadings { get; set; } = 1;
     public bool IsEnabled { get; set; } = true;
     public int SortOrder { get; set; }
-    public string? Severity { get; set; }
+    public AlertRuleSeverity? Severity { get; set; }
     public object? ClientConfiguration { get; set; }
     public List<CreateAlertScheduleRequest>? Schedules { get; set; }
 }
@@ -448,13 +448,13 @@ public class UpdateAlertRuleRequest
 {
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public string ConditionType { get; set; } = string.Empty;
+    public AlertConditionType ConditionType { get; set; } = AlertConditionType.Threshold;
     public object? ConditionParams { get; set; }
     public int HysteresisMinutes { get; set; }
     public int ConfirmationReadings { get; set; } = 1;
     public bool IsEnabled { get; set; } = true;
     public int SortOrder { get; set; }
-    public string? Severity { get; set; }
+    public AlertRuleSeverity? Severity { get; set; }
     public object? ClientConfiguration { get; set; }
     public List<CreateAlertScheduleRequest>? Schedules { get; set; }
 }

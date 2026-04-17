@@ -228,7 +228,7 @@ internal sealed class AlertDeliveryService(
                 .Join(db.AlertRules, e => e.AlertRuleId, r => r.Id, (_, r) => r.Severity)
                 .FirstOrDefaultAsync(ct);
 
-            if (string.Equals(severity, "critical", StringComparison.OrdinalIgnoreCase))
+            if (severity == AlertRuleSeverity.Critical)
                 return false; // Critical bypasses quiet hours
         }
 

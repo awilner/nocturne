@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.Infrastructure.Data.Entities;
 
@@ -37,11 +38,11 @@ public class AlertRuleEntity : ITenantScoped
     public string? Description { get; set; }
 
     /// <summary>
-    /// Condition type: "threshold" | "rate_of_change" | "signal_loss" | "composite"
+    /// Condition type discriminator.
     /// </summary>
     [Column("condition_type")]
     [MaxLength(32)]
-    public string ConditionType { get; set; } = string.Empty;
+    public AlertConditionType ConditionType { get; set; } = AlertConditionType.Threshold;
 
     /// <summary>
     /// JSONB condition parameters (thresholds, rates, durations, composite children, etc.)
@@ -62,11 +63,11 @@ public class AlertRuleEntity : ITenantScoped
     public int ConfirmationReadings { get; set; } = 1;
 
     /// <summary>
-    /// Alert severity. "normal" or "critical". Critical alerts bypass quiet hours.
+    /// Alert severity. Critical alerts bypass quiet hours.
     /// </summary>
     [Column("severity")]
     [MaxLength(16)]
-    public string Severity { get; set; } = "normal";
+    public AlertRuleSeverity Severity { get; set; } = AlertRuleSeverity.Normal;
 
     /// <summary>
     /// Client-side presentation config (audio, visual, snooze). Stored as JSONB.

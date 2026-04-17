@@ -20,7 +20,7 @@
   } from "lucide-svelte";
 
   type SelectedChannel = {
-    channelType: string;
+    channelType: ChannelType;
     destination: string;
     destinationLabel: string;
   };
@@ -67,22 +67,22 @@
     },
   };
 
-  const platformMap: Record<string, string> = {
+  const platformMap: Partial<Record<ChannelType, string>> = {
     [ChannelType.DiscordDm]: "discord",
     [ChannelType.SlackDm]: "slack",
     [ChannelType.Telegram]: "telegram",
-    [ChannelType.WhatsApp]: "whatsapp",
+    [ChannelType.Whatsapp]: "whatsapp",
   };
 
-  function isEnabled(channelType: string): boolean {
+  function isEnabled(channelType: ChannelType): boolean {
     return channels.some((c) => c.channelType === channelType);
   }
 
-  function getWebhookUrl(channelType: string): string {
+  function getWebhookUrl(channelType: ChannelType): string {
     return channels.find((c) => c.channelType === channelType)?.destination ?? "";
   }
 
-  function toggleChannel(channelType: string, checked: boolean) {
+  function toggleChannel(channelType: ChannelType, checked: boolean) {
     if (checked) {
       const meta = channelMeta[channelType];
       channels = [
@@ -98,19 +98,19 @@
     }
   }
 
-  function updateWebhookUrl(channelType: string, url: string) {
+  function updateWebhookUrl(channelType: ChannelType, url: string) {
     channels = channels.map((c) =>
       c.channelType === channelType ? { ...c, destination: url } : c
     );
   }
 
-  function isLinked(channelType: string): boolean {
+  function isLinked(channelType: ChannelType): boolean {
     const platform = platformMap[channelType];
     if (!platform) return true;
     return linkedPlatforms.includes(platform);
   }
 
-  function getPlatformName(channelType: string): string {
+  function getPlatformName(channelType: ChannelType): string {
     const platform = platformMap[channelType];
     if (!platform) return "";
     return platform.charAt(0).toUpperCase() + platform.slice(1);
@@ -146,7 +146,8 @@
 {:else}
   <div class="space-y-3">
     {#each visibleChannels as channel (channel.channelType)}
-      {@const ct = channel.channelType ?? ""}
+      {@const ct = channel.channelType}
+      {#if ct !== undefined}
       {@const meta = channelMeta[ct]}
       {@const enabled = isEnabled(ct)}
       {@const degraded = channel.status === ChannelStatus.Degraded}
@@ -197,6 +198,7 @@
             </div>
           {/if}
         </div>
+      {/if}
       {/if}
     {/each}
   </div>

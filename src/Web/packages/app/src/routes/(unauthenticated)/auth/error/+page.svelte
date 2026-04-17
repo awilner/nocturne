@@ -3,56 +3,58 @@
   import * as Card from "$lib/components/ui/card";
   import { AlertTriangle, ArrowLeft, RefreshCw } from "lucide-svelte";
   import { page } from "$app/state";
+  import { AuthErrorCode } from "$api-clients";
 
   // Get error details from URL params
-  const error = $derived(page.url.searchParams.get("error") || "unknown_error");
+  const rawError = $derived(page.url.searchParams.get("error") || AuthErrorCode.ServerError);
+  const error = $derived(rawError as AuthErrorCode);
   const description = $derived(
     page.url.searchParams.get("description") ||
       "An authentication error occurred"
   );
 
   /** Get a user-friendly error title based on error code */
-  function getErrorTitle(error: string): string {
-    const titles: Record<string, string> = {
-      invalid_state: "Session Expired",
-      invalid_intent: "Session Expired",
-      identity_already_linked: "Account Already Linked",
-      access_denied: "Access Denied",
-      invalid_request: "Invalid Request",
-      unauthorized_client: "Authorization Error",
-      unsupported_response_type: "Configuration Error",
-      invalid_scope: "Permission Error",
-      server_error: "Server Error",
-      temporarily_unavailable: "Service Unavailable",
-      callback_failed: "Authentication Failed",
-      provider_error: "Provider Error",
-      oidc_disabled: "Authentication Disabled",
+  function getErrorTitle(code: AuthErrorCode): string {
+    const titles: Partial<Record<AuthErrorCode, string>> = {
+      [AuthErrorCode.InvalidState]: "Session Expired",
+      [AuthErrorCode.InvalidIntent]: "Session Expired",
+      [AuthErrorCode.IdentityAlreadyLinked]: "Account Already Linked",
+      [AuthErrorCode.AccessDenied]: "Access Denied",
+      [AuthErrorCode.InvalidRequest]: "Invalid Request",
+      [AuthErrorCode.UnauthorizedClient]: "Authorization Error",
+      [AuthErrorCode.UnsupportedResponseType]: "Configuration Error",
+      [AuthErrorCode.InvalidScope]: "Permission Error",
+      [AuthErrorCode.ServerError]: "Server Error",
+      [AuthErrorCode.TemporarilyUnavailable]: "Service Unavailable",
+      [AuthErrorCode.CallbackFailed]: "Authentication Failed",
+      [AuthErrorCode.ProviderError]: "Provider Error",
+      [AuthErrorCode.OidcDisabled]: "Authentication Disabled",
     };
-    return titles[error] || "Authentication Error";
+    return titles[code] ?? "Authentication Error";
   }
 
   /** Get a user-friendly suggestion based on error code */
-  function getSuggestion(error: string): string {
-    const suggestions: Record<string, string> = {
-      invalid_state:
+  function getSuggestion(code: AuthErrorCode): string {
+    const suggestions: Partial<Record<AuthErrorCode, string>> = {
+      [AuthErrorCode.InvalidState]:
         "Your session may have expired. Please try linking again.",
-      invalid_intent:
+      [AuthErrorCode.InvalidIntent]:
         "Your session expired before the link could be completed. Please try linking again.",
-      identity_already_linked:
+      [AuthErrorCode.IdentityAlreadyLinked]:
         "This provider account is already linked to another Nocturne user. If this is your account, sign in with that provider directly.",
-      access_denied:
+      [AuthErrorCode.AccessDenied]:
         "You may not have permission to access this resource. Contact your administrator if you believe this is an error.",
-      invalid_request:
+      [AuthErrorCode.InvalidRequest]:
         "There was a problem with the authentication request. Please try again.",
-      callback_failed:
+      [AuthErrorCode.CallbackFailed]:
         "The authentication process was interrupted. Please try logging in again.",
-      provider_error:
+      [AuthErrorCode.ProviderError]:
         "There was an issue with the authentication provider. Please try again later.",
-      oidc_disabled:
+      [AuthErrorCode.OidcDisabled]:
         "Authentication is not currently enabled. Please contact your administrator.",
     };
     return (
-      suggestions[error] ||
+      suggestions[code] ??
       "Please try logging in again. If the problem persists, contact your administrator."
     );
   }

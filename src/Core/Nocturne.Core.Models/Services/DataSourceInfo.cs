@@ -30,7 +30,7 @@ public class DataSourceInfo
     /// Category of data source: cgm, pump, uploader, aid-system, connector, manual, unknown
     /// </summary>
     [JsonPropertyName("category")]
-    public string Category { get; set; } = "unknown";
+    public DataSourceCategory Category { get; set; } = DataSourceCategory.Unknown;
 
     /// <summary>
     /// More specific type of data source (e.g., "xdrip", "dexcom-share", "loop", "aaps")
@@ -115,7 +115,7 @@ public class AvailableConnector
     /// Category: cgm, pump, data, food
     /// </summary>
     [JsonPropertyName("category")]
-    public string Category { get; set; } = string.Empty;
+    public DataSourceCategory Category { get; set; } = DataSourceCategory.Unknown;
 
     /// <summary>
     /// Description of what this connector does
@@ -260,7 +260,7 @@ public class UploaderApp
     /// Category: cgm, pump, aid-system, uploader
     /// </summary>
     [JsonPropertyName("category")]
-    public string Category { get; set; } = string.Empty;
+    public DataSourceCategory Category { get; set; } = DataSourceCategory.Unknown;
 
     /// <summary>
     /// Icon identifier

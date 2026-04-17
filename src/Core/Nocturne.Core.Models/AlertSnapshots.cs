@@ -1,8 +1,10 @@
+using Nocturne.Core.Models.Alerts;
+
 namespace Nocturne.Core.Models;
 
-public record AlertRuleSnapshot(Guid Id, Guid TenantId, string Name, string ConditionType,
+public record AlertRuleSnapshot(Guid Id, Guid TenantId, string Name, AlertConditionType ConditionType,
     string ConditionParams, int HysteresisMinutes, int ConfirmationReadings,
-    string Severity, string ClientConfiguration, int SortOrder);
+    AlertRuleSeverity Severity, string ClientConfiguration, int SortOrder);
 
 public record AlertScheduleSnapshot(Guid Id, Guid AlertRuleId, string Name, bool IsDefault,
     string? DaysOfWeek, TimeOnly? StartTime, TimeOnly? EndTime, string Timezone);
@@ -28,4 +30,4 @@ public record SignalLossRuleSnapshot(Guid Id, Guid TenantId, string ConditionPar
 
 public record SnoozedInstanceSnapshot(Guid InstanceId, Guid TenantId, Guid AlertExcursionId,
     Guid AlertScheduleId, int CurrentStepOrder, string Status, int SnoozeCount,
-    Guid AlertRuleId, string ConditionType, string ConditionParams, string ClientConfiguration);
+    Guid AlertRuleId, AlertConditionType ConditionType, string ConditionParams, string ClientConfiguration);

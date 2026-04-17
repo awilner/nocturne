@@ -17,6 +17,7 @@
     ActiveExcursionResponse,
     AlertHistoryResponse,
   } from "$api-clients";
+  import { AlertConditionType } from "$api-clients";
   import {
     Card,
     CardContent,
@@ -46,7 +47,6 @@
     Zap,
     WifiOff,
     TrendingDown,
-    TrendingUp,
     ArrowUpRight,
     Moon,
     Save,
@@ -76,17 +76,15 @@
   let quietHoursOverrideCritical = $state(true);
   let quietHoursSaving = $state(false);
 
-  function getConditionIcon(conditionType: string | undefined) {
+  function getConditionIcon(conditionType: AlertConditionType | undefined) {
     switch (conditionType) {
-      case "threshold_low":
+      case AlertConditionType.Threshold:
         return TrendingDown;
-      case "threshold_high":
-        return TrendingUp;
-      case "rate_of_change":
+      case AlertConditionType.RateOfChange:
         return Zap;
-      case "signal_loss":
+      case AlertConditionType.SignalLoss:
         return WifiOff;
-      case "composite":
+      case AlertConditionType.Composite:
         return Shield;
       default:
         return Bell;
@@ -94,31 +92,27 @@
   }
 
   function getConditionBadgeVariant(
-    conditionType: string | undefined,
+    conditionType: AlertConditionType | undefined,
   ): "default" | "secondary" | "destructive" | "outline" {
     switch (conditionType) {
-      case "threshold_low":
+      case AlertConditionType.Threshold:
         return "destructive";
-      case "threshold_high":
-        return "default";
-      case "signal_loss":
+      case AlertConditionType.SignalLoss:
         return "secondary";
       default:
         return "outline";
     }
   }
 
-  function getConditionLabel(conditionType: string | undefined): string {
+  function getConditionLabel(conditionType: AlertConditionType | undefined): string {
     switch (conditionType) {
-      case "threshold_low":
-        return "Low Threshold";
-      case "threshold_high":
-        return "High Threshold";
-      case "rate_of_change":
+      case AlertConditionType.Threshold:
+        return "Threshold";
+      case AlertConditionType.RateOfChange:
         return "Rate of Change";
-      case "signal_loss":
+      case AlertConditionType.SignalLoss:
         return "Signal Loss";
-      case "composite":
+      case AlertConditionType.Composite:
         return "Composite";
       default:
         return conditionType ?? "Unknown";
@@ -130,17 +124,19 @@
     if (!params) return "No condition configured";
 
     switch (rule.conditionType) {
-      case "threshold_low":
-        return `Below ${params.threshold ?? "?"} mg/dL`;
-      case "threshold_high":
-        return `Above ${params.threshold ?? "?"} mg/dL`;
-      case "rate_of_change": {
-        const dir = params.direction === "falling" ? "Falling" : "Rising";
-        return `${dir} faster than ${params.rateThreshold ?? "?"} mg/dL/min`;
+      case AlertConditionType.Threshold: {
+        const dir = (params as Record<string, unknown>)["direction"];
+        if (dir === "below") return `Below ${(params as Record<string, unknown>)["threshold"] ?? "?"} mg/dL`;
+        if (dir === "above") return `Above ${(params as Record<string, unknown>)["threshold"] ?? "?"} mg/dL`;
+        return `Threshold: ${(params as Record<string, unknown>)["threshold"] ?? "?"} mg/dL`;
       }
-      case "signal_loss":
-        return `No data for ${params.minutes ?? "?"} minutes`;
-      case "composite":
+      case AlertConditionType.RateOfChange: {
+        const dir = (params as Record<string, unknown>)["direction"] === "falling" ? "Falling" : "Rising";
+        return `${dir} faster than ${(params as Record<string, unknown>)["rateThreshold"] ?? "?"} mg/dL/min`;
+      }
+      case AlertConditionType.SignalLoss:
+        return `No data for ${(params as Record<string, unknown>)["minutes"] ?? "?"} minutes`;
+      case AlertConditionType.Composite:
         return "Multiple conditions combined";
       default:
         return "Custom condition";

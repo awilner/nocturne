@@ -2519,9 +2519,12 @@ public class NocturneDbContext : DbContext
         {
             entity.ToTable("alert_rules");
             entity.Property(e => e.Id).HasValueGenerator<GuidV7ValueGenerator>();
+            entity.Property(e => e.ConditionType).HasConversion(
+                new Converters.EnumMemberValueConverter<Core.Models.Alerts.AlertConditionType>());
             entity.Property(e => e.ConditionParams).HasColumnType("jsonb").HasDefaultValue("{}");
             entity.Property(e => e.ConfirmationReadings).HasDefaultValue(1);
-            entity.Property(e => e.Severity).HasDefaultValue("normal");
+            entity.Property(e => e.Severity).HasConversion(
+                new Converters.EnumMemberValueConverter<Core.Models.Alerts.AlertRuleSeverity>());
             entity.Property(e => e.ClientConfiguration).HasColumnType("jsonb").HasDefaultValue("{}");
             entity.Property(e => e.IsEnabled).HasDefaultValue(true);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");

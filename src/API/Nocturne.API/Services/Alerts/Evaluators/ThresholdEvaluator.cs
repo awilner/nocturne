@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Nocturne.Core.Contracts.Alerts;
 using Nocturne.Core.Models;
+using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.API.Services.Alerts.Evaluators;
 
@@ -12,7 +13,8 @@ public class ThresholdEvaluator : IConditionEvaluator
         PropertyNameCaseInsensitive = true
     };
 
-    public string ConditionType => "threshold";
+    public AlertConditionType ConditionType => AlertConditionType.Threshold;
+
 
     public bool Evaluate(string conditionParamsJson, SensorContext context)
     {

@@ -1,3 +1,4 @@
+using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
 namespace Nocturne.Core.Models.Alerts;
@@ -8,6 +9,9 @@ namespace Nocturne.Core.Models.Alerts;
 [JsonConverter(typeof(JsonStringEnumConverter<AlertRuleSeverity>))]
 public enum AlertRuleSeverity
 {
+    [EnumMember(Value = "normal"), JsonStringEnumMemberName("normal")]
     Normal,
+
+    [EnumMember(Value = "critical"), JsonStringEnumMemberName("critical")]
     Critical,
 }

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Nocturne.Core.Contracts.Alerts;
 using Nocturne.Core.Models;
+using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.API.Services.Alerts.Evaluators;
 
@@ -19,7 +20,7 @@ public class SignalLossEvaluator : IConditionEvaluator
         _timeProvider = timeProvider;
     }
 
-    public string ConditionType => "signal_loss";
+    public AlertConditionType ConditionType => AlertConditionType.SignalLoss;
 
     public bool Evaluate(string conditionParamsJson, SensorContext context)
     {

@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using OpenApi.Remote.Attributes;
 using Nocturne.API.Authorization;
+using Nocturne.API.Models.OAuth;
 using Nocturne.API.Multitenancy;
 using Nocturne.Connectors.Core.Extensions;
 using Nocturne.Core.Constants;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models;
 using Nocturne.Core.Models.Configuration;
+using Nocturne.Core.Models.Services;
 
 namespace Nocturne.API.Controllers;
 
@@ -191,6 +193,44 @@ public class MetadataController : ControllerBase
             CurrentTenantId = tenantContext?.TenantId,
             CurrentTenantDisplayName = tenantContext?.DisplayName,
         });
+    }
+
+    /// <summary>
+    /// Get data source categories metadata
+    /// This endpoint ensures NSwag generates TypeScript types for DataSourceCategory
+    /// </summary>
+    /// <returns>Data source categories metadata</returns>
+    [HttpGet("data-source-categories")]
+    [RemoteQuery]
+    [ProducesResponseType(typeof(DataSourceCategoriesMetadata), 200)]
+    public ActionResult<DataSourceCategoriesMetadata> GetDataSourceCategories()
+    {
+        return Ok(
+            new DataSourceCategoriesMetadata
+            {
+                AvailableCategories = Enum.GetValues<DataSourceCategory>(),
+                Description = "Available data source categories",
+            }
+        );
+    }
+
+    /// <summary>
+    /// Get authentication error codes metadata
+    /// This endpoint ensures NSwag generates TypeScript types for AuthErrorCode
+    /// </summary>
+    /// <returns>Auth error codes metadata</returns>
+    [HttpGet("auth-error-codes")]
+    [RemoteQuery]
+    [ProducesResponseType(typeof(AuthErrorCodesMetadata), 200)]
+    public ActionResult<AuthErrorCodesMetadata> GetAuthErrorCodes()
+    {
+        return Ok(
+            new AuthErrorCodesMetadata
+            {
+                AvailableCodes = Enum.GetValues<AuthErrorCode>(),
+                Description = "Authentication error codes returned by the auth flow",
+            }
+        );
     }
 
     private static WidgetDefinition[] GetAllWidgetDefinitions() =>
@@ -550,4 +590,36 @@ public class MultitenancyInfo
     /// Whether self-service tenant creation is allowed
     /// </summary>
     public bool AllowSelfServiceCreation { get; set; }
+}
+
+/// <summary>
+/// Metadata about data source categories for NSwag generation
+/// </summary>
+public class DataSourceCategoriesMetadata
+{
+    /// <summary>
+    /// Array of all available data source categories
+    /// </summary>
+    public DataSourceCategory[] AvailableCategories { get; set; } = [];
+
+    /// <summary>
+    /// Description of the data source categories
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Metadata about authentication error codes for NSwag generation
+/// </summary>
+public class AuthErrorCodesMetadata
+{
+    /// <summary>
+    /// Array of all available authentication error codes
+    /// </summary>
+    public AuthErrorCode[] AvailableCodes { get; set; } = [];
+
+    /// <summary>
+    /// Description of the auth error codes
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
 }

@@ -61,7 +61,7 @@ public class AlertsController : ControllerBase
             Id = e.Id,
             AlertRuleId = e.AlertRuleId,
             RuleName = e.AlertRule?.Name ?? string.Empty,
-            ConditionType = e.AlertRule?.ConditionType ?? string.Empty,
+            ConditionType = e.AlertRule?.ConditionType ?? AlertConditionType.Threshold,
             StartedAt = e.StartedAt,
             AcknowledgedAt = e.AcknowledgedAt,
             AcknowledgedBy = e.AcknowledgedBy,
@@ -124,7 +124,7 @@ public class AlertsController : ControllerBase
                 Id = e.Id,
                 AlertRuleId = e.AlertRuleId,
                 RuleName = e.AlertRule?.Name ?? string.Empty,
-                ConditionType = e.AlertRule?.ConditionType ?? string.Empty,
+                ConditionType = e.AlertRule?.ConditionType ?? AlertConditionType.Threshold,
                 StartedAt = e.StartedAt,
                 EndedAt = e.EndedAt!.Value,
                 AcknowledgedAt = e.AcknowledgedAt,
@@ -320,7 +320,7 @@ public class ActiveExcursionResponse
     public Guid Id { get; set; }
     public Guid AlertRuleId { get; set; }
     public string RuleName { get; set; } = string.Empty;
-    public string ConditionType { get; set; } = string.Empty;
+    public AlertConditionType ConditionType { get; set; } = AlertConditionType.Threshold;
     public DateTime StartedAt { get; set; }
     public DateTime? AcknowledgedAt { get; set; }
     public string? AcknowledgedBy { get; set; }
@@ -352,7 +352,7 @@ public class HistoryExcursionResponse
     public Guid Id { get; set; }
     public Guid AlertRuleId { get; set; }
     public string RuleName { get; set; } = string.Empty;
-    public string ConditionType { get; set; } = string.Empty;
+    public AlertConditionType ConditionType { get; set; } = AlertConditionType.Threshold;
     public DateTime StartedAt { get; set; }
     public DateTime EndedAt { get; set; }
     public DateTime? AcknowledgedAt { get; set; }

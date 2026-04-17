@@ -2,6 +2,7 @@ using System.Text.Json;
 using Nocturne.Core.Contracts.Alerts;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models;
+using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.API.Services.Alerts;
 
@@ -299,10 +300,10 @@ public class AlertSweepService : BackgroundService
     /// For "above" (high alerts): favorable if BG is falling (trend rate &lt; 0).
     /// For other condition types: not favorable (don't extend).
     /// </summary>
-    private static bool IsTrendFavorable(string conditionType, string conditionParams, double? trendRate)
+    private static bool IsTrendFavorable(AlertConditionType conditionType, string conditionParams, double? trendRate)
     {
         if (trendRate is null) return false;
-        if (conditionType != "threshold") return false;
+        if (conditionType != AlertConditionType.Threshold) return false;
 
         try
         {

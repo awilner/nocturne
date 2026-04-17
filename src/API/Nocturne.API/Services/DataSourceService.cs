@@ -145,7 +145,14 @@ public class DataSourceService : IDataSourceService
             {
                 Id = connector.ConnectorName.ToLowerInvariant(),
                 Name = connector.DisplayName,
-                Category = connector.Category.ToString().ToLowerInvariant(),
+                Category = connector.Category switch
+                {
+                    Nocturne.Connectors.Core.Models.ConnectorCategory.Cgm => DataSourceCategory.Cgm,
+                    Nocturne.Connectors.Core.Models.ConnectorCategory.Pump => DataSourceCategory.Pump,
+                    Nocturne.Connectors.Core.Models.ConnectorCategory.Nutrition => DataSourceCategory.Connector,
+                    Nocturne.Connectors.Core.Models.ConnectorCategory.Sync => DataSourceCategory.Connector,
+                    _ => DataSourceCategory.Connector,
+                },
                 Description = connector.Description,
                 Icon = connector.Icon,
                 Available = true,
@@ -221,7 +228,7 @@ public class DataSourceService : IDataSourceService
                 Id = "xdrip",
                 Name = "xDrip+",
                 Platform = "android",
-                Category = "cgm",
+                Category = DataSourceCategory.Cgm,
                 Description =
                     "Popular Android CGM app supporting many sensors. Can upload data directly to Nocturne.",
                 Icon = "xdrip",
@@ -266,7 +273,7 @@ public class DataSourceService : IDataSourceService
                 Id = "spike",
                 Name = "Spike",
                 Platform = "ios",
-                Category = "cgm",
+                Category = DataSourceCategory.Cgm,
                 Description = "iOS CGM app supporting Dexcom, Libre, and other sensors.",
                 Icon = "spike",
                 Url = "https://spike-app.com",
@@ -309,7 +316,7 @@ public class DataSourceService : IDataSourceService
                 Id = "loop",
                 Name = "Loop",
                 Platform = "ios",
-                Category = "aid-system",
+                Category = DataSourceCategory.AidSystem,
                 Description = "DIY automated insulin delivery system for iOS.",
                 Icon = "loop",
                 Url = "https://loopkit.github.io/loopdocs/",
@@ -346,7 +353,7 @@ public class DataSourceService : IDataSourceService
                 Id = "aaps",
                 Name = "AAPS (AndroidAPS)",
                 Platform = "android",
-                Category = "aid-system",
+                Category = DataSourceCategory.AidSystem,
                 Description = "DIY automated insulin delivery system for Android.",
                 Icon = "aaps",
                 Url = "https://wiki.aaps.app",
@@ -390,7 +397,7 @@ public class DataSourceService : IDataSourceService
                 Id = "trio",
                 Name = "Trio",
                 Platform = "ios",
-                Category = "aid-system",
+                Category = DataSourceCategory.AidSystem,
                 Description = "Open source automated insulin delivery system for iOS.",
                 Icon = "trio",
                 Url = "https://diy-trio.org",
@@ -427,7 +434,7 @@ public class DataSourceService : IDataSourceService
                 Id = "iaps",
                 Name = "iAPS",
                 Platform = "ios",
-                Category = "aid-system",
+                Category = DataSourceCategory.AidSystem,
                 Description =
                     "Open source automated insulin delivery system for iOS (fork of OpenAPS).",
                 Icon = "iaps",
@@ -465,7 +472,7 @@ public class DataSourceService : IDataSourceService
                 Id = "nightscout-uploader",
                 Name = "Nightscout Uploader",
                 Platform = "android",
-                Category = "uploader",
+                Category = DataSourceCategory.Uploader,
                 Description = "Android app for uploading data from various BG meters and CGMs.",
                 Icon = "nightscout",
                 Url = "https://github.com/nightscout/android-uploader",
@@ -502,7 +509,7 @@ public class DataSourceService : IDataSourceService
                 Id = "xdrip4ios",
                 Name = "xDrip4iOS",
                 Platform = "ios",
-                Category = "cgm",
+                Category = DataSourceCategory.Cgm,
                 Description =
                     "iOS CGM app supporting Dexcom, Libre, and other sensors with Nightscout upload.",
                 Icon = "xdrip4ios",
@@ -546,7 +553,7 @@ public class DataSourceService : IDataSourceService
                 Id = "juggluco",
                 Name = "Juggluco",
                 Platform = "android",
-                Category = "cgm",
+                Category = DataSourceCategory.Cgm,
                 Description =
                     "Android app for FreeStyle Libre sensors with Nightscout upload support.",
                 Icon = "juggluco",
@@ -590,7 +597,7 @@ public class DataSourceService : IDataSourceService
                 Id = "glucotracker",
                 Name = "GlucoTracker",
                 Platform = "android",
-                Category = "cgm",
+                Category = DataSourceCategory.Cgm,
                 Description =
                     "Android glucose tracking app with Nightscout upload capability.",
                 Icon = "glucotracker",
@@ -673,7 +680,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "xDrip4iOS";
             info.SourceType = "xdrip4ios";
-            info.Category = "cgm";
+            info.Category = DataSourceCategory.Cgm;
             info.Icon = "xdrip4ios";
             info.Description = ExtractDeviceDescription(deviceId, "xDrip4iOS on");
         }
@@ -681,7 +688,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "xDrip+";
             info.SourceType = "xdrip";
-            info.Category = "cgm";
+            info.Category = DataSourceCategory.Cgm;
             info.Icon = "xdrip";
             info.Description = ExtractDeviceDescription(deviceId, "xDrip+ on");
         }
@@ -689,7 +696,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "Juggluco";
             info.SourceType = "juggluco";
-            info.Category = "cgm";
+            info.Category = DataSourceCategory.Cgm;
             info.Icon = "juggluco";
             info.Description = ExtractDeviceDescription(deviceId, "Juggluco on");
         }
@@ -697,7 +704,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "GlucoTracker";
             info.SourceType = "glucotracker";
-            info.Category = "cgm";
+            info.Category = DataSourceCategory.Cgm;
             info.Icon = "glucotracker";
             info.Description = ExtractDeviceDescription(deviceId, "GlucoTracker on");
         }
@@ -705,7 +712,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "Spike";
             info.SourceType = "spike";
-            info.Category = "cgm";
+            info.Category = DataSourceCategory.Cgm;
             info.Icon = "spike";
             info.Description = ExtractDeviceDescription(deviceId, "Spike");
         }
@@ -713,7 +720,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "Loop";
             info.SourceType = "loop";
-            info.Category = "aid-system";
+            info.Category = DataSourceCategory.AidSystem;
             info.Icon = "loop";
             info.Description = "Loop iOS AID System";
         }
@@ -721,7 +728,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "AndroidAPS";
             info.SourceType = "aaps";
-            info.Category = "aid-system";
+            info.Category = DataSourceCategory.AidSystem;
             info.Icon = "aaps";
             info.Description = "AndroidAPS AID System";
         }
@@ -729,7 +736,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "OpenAPS";
             info.SourceType = "openaps";
-            info.Category = "aid-system";
+            info.Category = DataSourceCategory.AidSystem;
             info.Icon = "openaps";
             info.Description = "OpenAPS AID System";
         }
@@ -737,7 +744,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "Trio";
             info.SourceType = "trio";
-            info.Category = "aid-system";
+            info.Category = DataSourceCategory.AidSystem;
             info.Icon = "trio";
             info.Description = "Trio iOS AID System";
         }
@@ -745,7 +752,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "iAPS";
             info.SourceType = "iaps";
-            info.Category = "aid-system";
+            info.Category = DataSourceCategory.AidSystem;
             info.Icon = "iaps";
             info.Description = "iAPS iOS AID System";
         }
@@ -753,7 +760,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "Dexcom";
             info.SourceType = "dexcom";
-            info.Category = "cgm";
+            info.Category = DataSourceCategory.Cgm;
             info.Icon = "dexcom";
             info.Description = ExtractDeviceDescription(deviceId, "Dexcom CGM");
         }
@@ -761,7 +768,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "FreeStyle Libre";
             info.SourceType = "libre";
-            info.Category = "cgm";
+            info.Category = DataSourceCategory.Cgm;
             info.Icon = "libre";
             info.Description = "FreeStyle Libre CGM";
         }
@@ -773,7 +780,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "Medtronic";
             info.SourceType = "medtronic";
-            info.Category = "pump";
+            info.Category = DataSourceCategory.Pump;
             info.Icon = "medtronic";
             info.Description = "Medtronic Pump/CGM";
         }
@@ -781,7 +788,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "Omnipod";
             info.SourceType = "omnipod";
-            info.Category = "pump";
+            info.Category = DataSourceCategory.Pump;
             info.Icon = "omnipod";
             info.Description = "Omnipod Pump";
         }
@@ -789,7 +796,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "Tandem";
             info.SourceType = "tandem";
-            info.Category = "pump";
+            info.Category = DataSourceCategory.Pump;
             info.Icon = "tandem";
             info.Description = "Tandem Pump";
         }
@@ -798,7 +805,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = connectorInfo.ConnectorName;
             info.SourceType = connectorInfo.DataSourceId;
-            info.Category = "connector";
+            info.Category = DataSourceCategory.Connector;
             info.Icon = connectorInfo.Icon;
             info.Description = connectorInfo.Description;
         }
@@ -806,7 +813,7 @@ public class DataSourceService : IDataSourceService
         {
             info.Name = "Demo Data";
             info.SourceType = "demo";
-            info.Category = "demo";
+            info.Category = DataSourceCategory.Unknown;
             info.Icon = "demo";
             info.Description = "Simulated demo data";
         }
@@ -815,7 +822,7 @@ public class DataSourceService : IDataSourceService
             // Unknown device - use the raw identifier
             info.Name = CleanDeviceName(deviceId);
             info.SourceType = "unknown";
-            info.Category = "unknown";
+            info.Category = DataSourceCategory.Unknown;
             info.Icon = "device";
             info.Description = deviceId;
         }

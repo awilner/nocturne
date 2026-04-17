@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Nocturne.Core.Contracts.Alerts;
 using Nocturne.Core.Models;
+using Nocturne.Core.Models.Alerts;
 using Nocturne.Infrastructure.Data.Entities;
 
 namespace Nocturne.Infrastructure.Data.Repositories;
@@ -347,7 +348,7 @@ public class AlertRepository : IAlertRepository
 
         return await context.AlertRules
             .AsNoTracking()
-            .Where(r => r.IsEnabled && r.ConditionType == "signal_loss")
+            .Where(r => r.IsEnabled && r.ConditionType == AlertConditionType.SignalLoss)
             .Select(r => new SignalLossRuleSnapshot(r.Id, r.TenantId, r.ConditionParams))
             .ToListAsync(ct);
     }

@@ -1,3 +1,5 @@
+using Nocturne.Core.Models.Alerts;
+
 namespace Nocturne.Core.Models;
 
 /// <summary>
@@ -53,11 +55,11 @@ public class AlertRule
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public string ConditionType { get; set; } = string.Empty;
+    public AlertConditionType ConditionType { get; set; } = AlertConditionType.Threshold;
     public string ConditionParams { get; set; } = "{}";
     public int HysteresisMinutes { get; set; }
     public int ConfirmationReadings { get; set; } = 1;
-    public string Severity { get; set; } = "normal";
+    public AlertRuleSeverity Severity { get; set; } = AlertRuleSeverity.Normal;
     public string ClientConfiguration { get; set; } = "{}";
     public bool IsEnabled { get; set; } = true;
     public int SortOrder { get; set; }
@@ -82,7 +84,7 @@ public class AlertExcursion
 // Alert payload — what delivery providers receive (structured data, not pre-rendered text)
 public record AlertPayload
 {
-    public required string AlertType { get; init; }
+    public required AlertConditionType AlertType { get; init; }
     public required string RuleName { get; init; }
     public required decimal? GlucoseValue { get; init; }
     public required string? Trend { get; init; }

@@ -1,4 +1,5 @@
 using Nocturne.Core.Models;
+using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.Core.Contracts.Alerts;
 
@@ -9,10 +10,9 @@ namespace Nocturne.Core.Contracts.Alerts;
 public interface IConditionEvaluator
 {
     /// <summary>
-    /// Discriminator value that matches the JSON "type" field
-    /// (e.g. "threshold", "rate_of_change", "signal_loss", "composite").
+    /// Discriminator value matching the condition type stored on the rule.
     /// </summary>
-    string ConditionType { get; }
+    AlertConditionType ConditionType { get; }
 
     /// <summary>
     /// Evaluate the condition against the current sensor context.

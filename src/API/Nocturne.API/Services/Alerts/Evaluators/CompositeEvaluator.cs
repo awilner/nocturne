@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Nocturne.Core.Contracts.Alerts;
 using Nocturne.Core.Models;
+using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.API.Services.Alerts.Evaluators;
 
@@ -24,7 +25,7 @@ public class CompositeEvaluator : IConditionEvaluator
     private ConditionEvaluatorRegistry Registry =>
         _registry ??= _serviceProvider.GetRequiredService<ConditionEvaluatorRegistry>();
 
-    public string ConditionType => "composite";
+    public AlertConditionType ConditionType => AlertConditionType.Composite;
 
     public bool Evaluate(string conditionParamsJson, SensorContext context)
     {

@@ -12,6 +12,9 @@
   import {
     ChannelStatus,
     type ChannelStatusEntry,
+    AlertConditionType,
+    AlertRuleSeverity,
+    ChannelType,
   } from "$api-clients";
   import type {
     AlertRuleResponse,
@@ -656,15 +659,15 @@
   }
 
   // Map condition type labels
-  const conditionTypeLabels: Record<string, string> = {
-    threshold: "Threshold",
-    rate_of_change: "Rate of Change",
-    signal_loss: "Signal Loss",
+  const conditionTypeLabels: Partial<Record<AlertConditionType, string>> = {
+    [AlertConditionType.Threshold]: "Threshold",
+    [AlertConditionType.RateOfChange]: "Rate of Change",
+    [AlertConditionType.SignalLoss]: "Signal Loss",
   };
 
-  const severityLabels: Record<string, string> = {
-    normal: "Normal",
-    critical: "Critical",
+  const severityLabels: Partial<Record<AlertRuleSeverity, string>> = {
+    [AlertRuleSeverity.Normal]: "Normal",
+    [AlertRuleSeverity.Critical]: "Critical",
   };
 
   const thresholdDirLabels: Record<string, string> = {
@@ -677,13 +680,13 @@
     rising: "Rising",
   };
 
-  const channelTypeLabels: Record<string, string> = {
-    web_push: "Web Push",
-    webhook: "Webhook",
-    discord_dm: "Discord DM",
-    slack_dm: "Slack DM",
-    telegram: "Telegram",
-    whatsapp: "WhatsApp",
+  const channelTypeLabels: Partial<Record<ChannelType, string>> = {
+    [ChannelType.WebPush]: "Web Push",
+    [ChannelType.Webhook]: "Webhook",
+    [ChannelType.DiscordDm]: "Discord DM",
+    [ChannelType.SlackDm]: "Slack DM",
+    [ChannelType.Telegram]: "Telegram",
+    [ChannelType.Whatsapp]: "WhatsApp",
   };
 </script>
 
@@ -731,7 +734,7 @@
             <Label for="rule-severity">Severity</Label>
             <Select.Root type="single" bind:value={severity}>
               <Select.Trigger id="rule-severity">
-                {severityLabels[severity] ?? severity}
+                {severityLabels[severity as AlertRuleSeverity] ?? severity}
               </Select.Trigger>
               <Select.Content>
                 <Select.Item value="normal" label="Normal" />
@@ -758,7 +761,7 @@
             {:else}
               <Select.Root type="single" bind:value={conditionType}>
                 <Select.Trigger id="rule-condition-type">
-                  {conditionTypeLabels[conditionType] ?? conditionType}
+                  {conditionTypeLabels[conditionType as AlertConditionType] ?? conditionType}
                 </Select.Trigger>
                 <Select.Content>
                   <Select.Item value="threshold" label="Threshold" />
@@ -1289,14 +1292,14 @@
                                   >
                                     <Select.Trigger>
                                       {channelTypeLabels[
-                                        channel.channelType
+                                        channel.channelType as ChannelType
                                       ] ?? channel.channelType}
                                     </Select.Trigger>
                                     <Select.Content>
                                       {#each availableChannels as ch}
                                         <Select.Item
                                           value={ch.channelType ?? ""}
-                                          label={channelTypeLabels[ch.channelType ?? ""] ?? ch.channelType ?? ""}
+                                          label={channelTypeLabels[ch.channelType as ChannelType] ?? ch.channelType ?? ""}
                                         />
                                       {/each}
                                       {#if availableChannels.length === 0}

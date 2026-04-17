@@ -1,7 +1,8 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { createRule } from "$api/generated/alertRules.generated.remote";
-  import type { CreateAlertRuleRequest } from "$api-clients";
+  import type { CreateAlertRuleRequest, CreateAlertStepChannelRequest } from "$api-clients";
+  import { AlertConditionType, AlertRuleSeverity, ChannelType } from "$api-clients";
   import {
     Card,
     CardContent,
@@ -37,7 +38,7 @@
     name: string;
     description: string;
     icon: typeof TrendingDown;
-    conditionType: string;
+    conditionType: AlertConditionType;
     conditionParams: Record<string, unknown>;
     threshold: number;
     thresholdUnit: string;
@@ -45,7 +46,7 @@
     confirmationReadings: number;
     hysteresisMinutes: number;
     enabled: boolean;
-    severity: string;
+    severity: AlertRuleSeverity;
     clientConfiguration: Record<string, unknown>;
   };
 
@@ -55,7 +56,7 @@
       name: "Urgent Low",
       description: "Critical low glucose alert for immediate attention",
       icon: AlertTriangle,
-      conditionType: "threshold_low",
+      conditionType: AlertConditionType.Threshold,
       conditionParams: { threshold: 54, direction: "below" },
       threshold: 54,
       thresholdUnit: "mg/dL",
@@ -63,7 +64,7 @@
       confirmationReadings: 1,
       hysteresisMinutes: 15,
       enabled: true,
-      severity: "critical",
+      severity: AlertRuleSeverity.Critical,
       clientConfiguration: {
         audio: { enabled: true, sound: "alarm-urgent", ascending: true, startVolume: 50, maxVolume: 100, ascendDurationSeconds: 30, repeatCount: 3 },
         visual: { flashEnabled: true, flashColor: "#ff0000", persistentBanner: true, wakeScreen: true },
@@ -75,7 +76,7 @@
       name: "Low",
       description: "Low glucose warning before it becomes urgent",
       icon: TrendingDown,
-      conditionType: "threshold_low",
+      conditionType: AlertConditionType.Threshold,
       conditionParams: { threshold: 70, direction: "below" },
       threshold: 70,
       thresholdUnit: "mg/dL",
@@ -83,7 +84,7 @@
       confirmationReadings: 2,
       hysteresisMinutes: 15,
       enabled: true,
-      severity: "normal",
+      severity: AlertRuleSeverity.Normal,
       clientConfiguration: {
         audio: { enabled: true, sound: "alarm-low", ascending: true, startVolume: 30, maxVolume: 80, ascendDurationSeconds: 30, repeatCount: 2 },
         visual: { flashEnabled: false, flashColor: "#ff0000", persistentBanner: true, wakeScreen: false },
@@ -95,7 +96,7 @@
       name: "High",
       description: "High glucose alert for sustained elevated readings",
       icon: TrendingUp,
-      conditionType: "threshold_high",
+      conditionType: AlertConditionType.Threshold,
       conditionParams: { threshold: 250, direction: "above" },
       threshold: 250,
       thresholdUnit: "mg/dL",
@@ -103,7 +104,7 @@
       confirmationReadings: 3,
       hysteresisMinutes: 30,
       enabled: false,
-      severity: "normal",
+      severity: AlertRuleSeverity.Normal,
       clientConfiguration: {
         audio: { enabled: true, sound: "alarm-high", ascending: false, startVolume: 60, maxVolume: 60, ascendDurationSeconds: 0, repeatCount: 2 },
         visual: { flashEnabled: false, flashColor: "#ff0000", persistentBanner: true, wakeScreen: false },
@@ -115,7 +116,7 @@
       name: "Urgent High",
       description: "Critical high glucose alert requiring prompt action",
       icon: AlertTriangle,
-      conditionType: "threshold_high",
+      conditionType: AlertConditionType.Threshold,
       conditionParams: { threshold: 300, direction: "above" },
       threshold: 300,
       thresholdUnit: "mg/dL",
@@ -123,7 +124,7 @@
       confirmationReadings: 2,
       hysteresisMinutes: 30,
       enabled: false,
-      severity: "critical",
+      severity: AlertRuleSeverity.Critical,
       clientConfiguration: {
         audio: { enabled: true, sound: "alarm-urgent", ascending: true, startVolume: 50, maxVolume: 100, ascendDurationSeconds: 30, repeatCount: 3 },
         visual: { flashEnabled: true, flashColor: "#ff0000", persistentBanner: true, wakeScreen: true },
@@ -135,10 +136,10 @@
       name: "Fast Drop",
       description: "Rapid glucose decline combined with low threshold",
       icon: Zap,
-      conditionType: "composite",
+      conditionType: AlertConditionType.Composite,
       conditionParams: {
         conditions: [
-          { type: "threshold_low", threshold: 100 },
+          { type: "threshold", threshold: 100, direction: "below" },
           { type: "rate_of_change", rateThreshold: 3.0, direction: "falling" },
         ],
       },
@@ -148,7 +149,7 @@
       confirmationReadings: 2,
       hysteresisMinutes: 15,
       enabled: false,
-      severity: "normal",
+      severity: AlertRuleSeverity.Normal,
       clientConfiguration: {
         audio: { enabled: true, sound: "alert", ascending: true, startVolume: 40, maxVolume: 90, ascendDurationSeconds: 30, repeatCount: 2 },
         visual: { flashEnabled: false, flashColor: "#ff0000", persistentBanner: true, wakeScreen: false },
@@ -160,7 +161,7 @@
       name: "Sensor Lost",
       description: "Alert when CGM signal is lost for an extended period",
       icon: WifiOff,
-      conditionType: "signal_loss",
+      conditionType: AlertConditionType.SignalLoss,
       conditionParams: { minutes: 15 },
       threshold: 15,
       thresholdUnit: "minutes",
@@ -168,7 +169,7 @@
       confirmationReadings: 1,
       hysteresisMinutes: 5,
       enabled: false,
-      severity: "normal",
+      severity: AlertRuleSeverity.Normal,
       clientConfiguration: {
         audio: { enabled: true, sound: "chime", ascending: false, startVolume: 50, maxVolume: 50, ascendDurationSeconds: 0, repeatCount: 1 },
         visual: { flashEnabled: false, flashColor: "#ff0000", persistentBanner: true, wakeScreen: false },
@@ -178,7 +179,7 @@
   ]);
 
   // Step 2: Delivery channels
-  let selectedChannels = $state<Array<{ channelType: string; destination: string; destinationLabel: string }>>([]);
+  let selectedChannels = $state<Array<{ channelType: ChannelType; destination: string; destinationLabel: string }>>([]);
 
   // Step 3: Saving state
   let saving = $state(false);
@@ -191,12 +192,12 @@
     if (!preset) return;
     preset.threshold = value;
 
-    if (preset.conditionType === "composite") {
+    if (preset.conditionType === AlertConditionType.Composite) {
       const conditions = preset.conditionParams.conditions as Array<Record<string, unknown>>;
       if (conditions?.[0]) {
         conditions[0].threshold = value;
       }
-    } else if (preset.conditionType === "signal_loss") {
+    } else if (preset.conditionType === AlertConditionType.SignalLoss) {
       preset.conditionParams.minutes = value;
     } else {
       preset.conditionParams.threshold = value;
@@ -216,9 +217,9 @@
 
     try {
       for (const preset of selectedPresets) {
-        const channels = selectedChannels.filter(c =>
-          c.channelType !== "webhook" || c.destination
-        );
+        const channels: CreateAlertStepChannelRequest[] = selectedChannels
+          .filter(c => c.channelType !== ChannelType.Webhook || c.destination)
+          .map(c => ({ channelType: c.channelType, destination: c.destination, destinationLabel: c.destinationLabel }));
 
         const request: CreateAlertRuleRequest = {
           name: preset.name,
@@ -451,7 +452,7 @@
                 <PresetIcon class="h-4 w-4 text-primary shrink-0" />
                 <div class="flex-1 min-w-0">
                   <span class="text-sm font-medium">{preset.name}</span>
-                  {#if preset.severity === "critical"}
+                  {#if preset.severity === AlertRuleSeverity.Critical}
                     <Badge variant="destructive" class="ml-2 text-xs">Critical</Badge>
                   {/if}
                   <span class="text-xs text-muted-foreground ml-2">
