@@ -5,6 +5,19 @@
   import { goto } from "$app/navigation";
   import { markSetupComplete } from "./setup.remote";
   import ConnectorSetup from "$lib/components/connectors/ConnectorSetup.svelte";
+  import { getAuthState } from "$routes/(unauthenticated)/auth/auth.remote";
+
+  const authStateQuery = getAuthState();
+  const isAuthenticated = $derived(
+    authStateQuery.current?.isAuthenticated ?? false,
+  );
+
+  // Redirect to account creation if not authenticated
+  $effect(() => {
+    if (!authStateQuery.loading && !isAuthenticated) {
+      goto("/setup/account", { replaceState: true });
+    }
+  });
 
   let showMigration = $state(false);
 
