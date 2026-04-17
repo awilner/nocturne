@@ -230,24 +230,24 @@ public class SelectOption
 /// <summary>
 /// Platform an uploader app runs on
 /// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter<UploaderPlatform>))]
 public enum UploaderPlatform
 {
-    Android,
-    iOS,
-    Desktop,
-    Web,
+    [JsonStringEnumMemberName("android")] Android,
+    [JsonStringEnumMemberName("ios")] iOS,
+    [JsonStringEnumMemberName("desktop")] Desktop,
+    [JsonStringEnumMemberName("web")] Web,
 }
 
 /// <summary>
 /// Category of uploader app
 /// </summary>
-[JsonConverter(typeof(JsonStringEnumConverter))]
+[JsonConverter(typeof(JsonStringEnumConverter<UploaderCategory>))]
 public enum UploaderCategory
 {
-    Cgm,
-    AidSystem,
-    Uploader,
+    [JsonStringEnumMemberName("cgm")] Cgm,
+    [JsonStringEnumMemberName("aid-system")] AidSystem,
+    [JsonStringEnumMemberName("uploader")] Uploader,
 }
 
 /// <summary>
