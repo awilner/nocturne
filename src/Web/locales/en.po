@@ -34,6 +34,8 @@ msgstr "Error ID: {0}"
 #: src/lib/components/WebSocketStatus.svelte
 #: src/lib/components/dashboard/widgets/ConnectionStatusWidget.svelte
 #: src/routes/(fullscreen)/auth/bot/authorize/done/+page.svelte
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/auth/bot/authorize/done/+page.svelte
@@ -852,6 +854,7 @@ msgstr "Auto-detecting..."
 #: src/lib/components/patient/PatientDeviceManager.svelte
 #: src/lib/components/profile/ProfileEditDialog.svelte
 #: src/lib/components/status-pills/TrackerPill.svelte
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/compatibility/[id]/+page.svelte
 #: src/routes/compatibility/[id]/+page.svelte
@@ -913,6 +916,7 @@ msgid "Method"
 msgstr "Method"
 
 #: src/lib/components/treatments/TreatmentCategoryTabs.svelte
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/compatibility/+page.svelte
 #: src/routes/compatibility/+page.svelte
@@ -1813,6 +1817,7 @@ msgstr ""
 "{0}g carbs\n"
 "· {1}% match"
 
+#: src/lib/components/dashboard/SetupCard.svelte
 #: src/lib/components/meal-matching/MealMatchReviewDialog.svelte
 #: src/routes/meals/+page.svelte
 msgid "Dismiss"
@@ -2231,6 +2236,7 @@ msgid "Available"
 msgstr "Available"
 
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
@@ -2709,6 +2715,8 @@ msgid "Or continue with"
 msgstr "Or continue with"
 
 #: src/lib/components/auth/LoginForm.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
+#: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
 msgid "<0/> Redirecting..."
 msgstr "<0/> Redirecting..."
@@ -3937,7 +3945,6 @@ msgid "Settings"
 msgstr "Settings"
 
 #: src/lib/components/layout/AppSidebar.svelte
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Setup"
 msgstr "Setup"
@@ -3949,7 +3956,6 @@ msgid "Account"
 msgstr "Account"
 
 #: src/lib/components/layout/AppSidebar.svelte
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/(fullscreen)/setup/patient/+page.svelte
 #: src/routes/settings/patient/+page.svelte
 #: src/routes/settings/setup/+page.svelte
@@ -3981,7 +3987,6 @@ msgstr "Features"
 msgid "Notifications & Trackers"
 msgstr "Notifications & Trackers"
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Connectors"
 msgstr "Connectors"
@@ -8362,6 +8367,7 @@ msgstr "Array Length"
 msgid "Performance"
 msgstr "Performance"
 
+#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/compatibility/[id]/+page.svelte
 msgid "← Back"
 msgstr "← Back"
@@ -10724,6 +10730,7 @@ msgstr ""
 msgid "Failed to load admin data"
 msgstr "Failed to load admin data"
 
+#: src/lib/components/dashboard/SetupCard.svelte
 #: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/admin/+page.svelte
 msgid "Public"
@@ -11371,12 +11378,14 @@ msgstr "<0/> Set Up an Uploader"
 msgid "Connect your CGM app or AID system to push data to Nocturne"
 msgstr "Connect your CGM app or AID system to push data to Nocturne"
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/settings/connectors/+page.svelte
 #: src/routes/settings/setup/uploaders/+page.svelte
 msgid "CGM Apps"
 msgstr "CGM Apps"
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/settings/connectors/+page.svelte
 #: src/routes/settings/setup/uploaders/+page.svelte
@@ -12179,8 +12188,8 @@ msgstr "Pronouns"
 msgid "<0/> Save Changes"
 msgstr "<0/> Save Changes"
 
+#: src/lib/components/dashboard/SetupCard.svelte
 #: src/lib/components/rbac/PermissionPicker.svelte
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/patient/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Devices"
@@ -12223,7 +12232,7 @@ msgstr "Until {0}"
 msgid "SN: {0}"
 msgstr "SN: {0}"
 
-#: src/routes/(fullscreen)/setup/+page.svelte
+#: src/lib/components/dashboard/SetupCard.svelte
 #: src/routes/settings/patient/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Insulins"
@@ -12289,7 +12298,6 @@ msgid "Serial Number"
 msgstr "Serial Number"
 
 #: src/lib/components/patient/PatientDeviceManager.svelte
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Optional"
 msgstr "Optional"
@@ -13276,34 +13284,28 @@ msgstr "Therapy - Settings - Nocturne"
 msgid "Redirecting to Profile..."
 msgstr "Redirecting to Profile..."
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Set your diabetes type and clinical information"
 msgstr "Set your diabetes type and clinical information"
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Add the devices you currently use"
 msgstr "Add the devices you currently use"
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Add the insulins you currently use"
 msgstr "Add the insulins you currently use"
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Connect external data sources"
 msgstr "Connect external data sources"
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/(fullscreen)/setup/profile/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 #: src/routes/settings/setup/profile/+page.svelte
 msgid "Therapy Profile"
 msgstr "Therapy Profile"
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Configure your basal rates and therapy settings"
 msgstr "Configure your basal rates and therapy settings"
@@ -15023,14 +15025,12 @@ msgstr "Sensor Lost"
 msgid "Alert when CGM signal is lost for an extended period"
 msgstr "Alert when CGM signal is lost for an extended period"
 
-#: src/routes/settings/alerts/setup/+page.svelte
-msgid "Browser Push Notification"
-msgstr "Browser Push Notification"
+#~ msgid "Browser Push Notification"
+#~ msgstr "Browser Push Notification"
 
+#: src/lib/components/alerts/ChannelPicker.svelte
 #: src/lib/components/alerts/RuleEditorSheet.svelte
 #: src/lib/components/alerts/RuleEditorSheet.svelte
-#: src/routes/settings/alerts/setup/+page.svelte
-#: src/routes/settings/alerts/setup/+page.svelte
 msgid "Webhook"
 msgstr "Webhook"
 
@@ -15096,45 +15096,37 @@ msgstr "{0}m hysteresis"
 msgid "Choose how you want to receive alert notifications."
 msgstr "Choose how you want to receive alert notifications."
 
-#: src/routes/settings/alerts/setup/+page.svelte
-#: src/routes/settings/alerts/setup/+page.svelte
-msgid "Browser Push Notifications"
-msgstr "Browser Push Notifications"
+#~ msgid "Browser Push Notifications"
+#~ msgstr "Browser Push Notifications"
 
-#: src/routes/settings/alerts/setup/+page.svelte
+#: src/lib/components/alerts/ChannelPicker.svelte
 msgid "Receive alerts directly in your browser"
 msgstr "Receive alerts directly in your browser"
 
-#: src/routes/settings/alerts/setup/+page.svelte
+#: src/lib/components/alerts/ChannelPicker.svelte
 msgid "Send alert data to a custom URL"
 msgstr "Send alert data to a custom URL"
 
-#: src/routes/settings/alerts/setup/+page.svelte
-msgid "Webhook URL"
-msgstr "Webhook URL"
+#~ msgid "Webhook URL"
+#~ msgstr "Webhook URL"
 
-#: src/routes/settings/alerts/setup/+page.svelte
-#: src/routes/settings/alerts/setup/+page.svelte
-#: src/routes/settings/alerts/setup/+page.svelte
-msgid "Coming Soon"
-msgstr "Coming Soon"
+#~ msgid "Coming Soon"
+#~ msgstr "Coming Soon"
 
-#: src/routes/settings/alerts/setup/+page.svelte
 #: src/routes/settings/connectors/+page.svelte
 msgid "Discord"
 msgstr "Discord"
 
-#: src/routes/settings/alerts/setup/+page.svelte
-msgid "Send alerts to a Discord channel"
-msgstr "Send alerts to a Discord channel"
+#~ msgid "Send alerts to a Discord channel"
+#~ msgstr "Send alerts to a Discord channel"
 
-#: src/routes/settings/alerts/setup/+page.svelte
+#: src/lib/components/alerts/ChannelPicker.svelte
+#: src/lib/components/alerts/RuleEditorSheet.svelte
 msgid "Telegram"
 msgstr "Telegram"
 
-#: src/routes/settings/alerts/setup/+page.svelte
-msgid "Send alerts to a Telegram chat"
-msgstr "Send alerts to a Telegram chat"
+#~ msgid "Send alerts to a Telegram chat"
+#~ msgstr "Send alerts to a Telegram chat"
 
 #: src/routes/settings/alerts/setup/+page.svelte
 msgid "Review your alert configuration before saving."
@@ -15167,10 +15159,8 @@ msgstr ""
 "No delivery channels configured. Alerts will still be visible in\n"
 "the dashboard, but no push notifications will be sent."
 
-#. placeholder {0}: webhookUrl
-#: src/routes/settings/alerts/setup/+page.svelte
-msgid "Webhook: {0}"
-msgstr "Webhook: {0}"
+#~ msgid "Webhook: {0}"
+#~ msgstr "Webhook: {0}"
 
 #: src/routes/settings/alerts/setup/+page.svelte
 msgid "Medical Disclaimer"
@@ -15507,16 +15497,15 @@ msgstr "Allow critical alerts during quiet hours"
 #~ msgid "<0/> {0} Synced Successfully"
 #~ msgstr "<0/> {0} Synced Successfully"
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Uploaders"
 msgstr "Uploaders"
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Configure a phone app to push data to Nocturne"
 msgstr "Configure a phone app to push data to Nocturne"
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/settings/setup/uploaders/+page.svelte
 msgid "General Uploaders"
@@ -15529,16 +15518,19 @@ msgstr "General Uploaders"
 msgid "Failed to load uploader apps"
 msgstr "Failed to load uploader apps"
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/settings/setup/uploaders/+page.svelte
 msgid "Android"
 msgstr "Android"
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/settings/setup/uploaders/+page.svelte
 msgid "Desktop"
 msgstr "Desktop"
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/settings/setup/uploaders/+page.svelte
 msgid "Web"
@@ -15598,11 +15590,13 @@ msgstr "<0/> Download {0}"
 
 #. placeholder {0}: selectedApp?.name
 #. placeholder {1}: ds.entriesLast24h ?? 0
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/settings/setup/uploaders/+page.svelte
 msgid "{0} is sending data. {1} entries in the last 24 hours."
 msgstr "{0} is sending data. {1} entries in the last 24 hours."
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/settings/setup/uploaders/+page.svelte
 msgid "Waiting for data"
@@ -15614,22 +15608,26 @@ msgstr "Waiting for data"
 msgid "Once you've configured {0}, it can take up to five minutes for the first glucose data to arrive. This page will update automatically."
 msgstr "Once you've configured {0}, it can take up to five minutes for the first glucose data to arrive. This page will update automatically."
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/settings/setup/uploaders/+page.svelte
 msgid "Failed to load setup instructions"
 msgstr "Failed to load setup instructions"
 
 #. placeholder {0}: selectedApp?.name
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/settings/setup/uploaders/+page.svelte
 msgid "Could not load setup details for {0}. Please try again."
 msgstr "Could not load setup details for {0}. Please try again."
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/settings/setup/uploaders/+page.svelte
 msgid "<0/> iOS"
 msgstr "<0/> iOS"
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/(fullscreen)/setup/uploaders/+page.svelte
 #: src/routes/settings/setup/uploaders/+page.svelte
 msgid "<0/> Android"
@@ -16155,6 +16153,7 @@ msgstr "Accept Invite - Nocturne"
 msgid "Invite Not Found"
 msgstr "Invite Not Found"
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
 msgid "This invite link is invalid or has expired."
 msgstr "This invite link is invalid or has expired."
@@ -16203,6 +16202,7 @@ msgstr "You're Invited"
 #~ msgid "You'll be able to see:"
 #~ msgstr "You'll be able to see:"
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
 msgid "<0/> Accept Invite"
 msgstr "<0/> Accept Invite"
@@ -16242,6 +16242,7 @@ msgstr "Link a Device"
 msgid "{0} - Nocturne"
 msgstr "{0} - Nocturne"
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/oauth/device/+page.svelte
 msgid "Device Authorized"
 msgstr "Device Authorized"
@@ -16250,14 +16251,17 @@ msgstr "Device Authorized"
 msgid "You can close this window and return to your device."
 msgstr "You can close this window and return to your device."
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/oauth/device/+page.svelte
 msgid "Authorization Denied"
 msgstr "Authorization Denied"
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/oauth/device/+page.svelte
 msgid "The device will not be granted access."
 msgstr "The device will not be granted access."
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/oauth/consent/+page.svelte
 #: src/routes/oauth/device/+page.svelte
 msgid "Authorize Application"
@@ -16280,11 +16284,13 @@ msgstr ""
 "This application is not in the Nocturne known app directory. Only\n"
 "approve if you trust this application."
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/oauth/consent/+page.svelte
 #: src/routes/oauth/device/+page.svelte
 msgid "This application is requesting permission to:"
 msgstr "This application is requesting permission to:"
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/oauth/consent/+page.svelte
 #: src/routes/oauth/device/+page.svelte
 msgid "This app cannot delete your data."
@@ -16299,12 +16305,14 @@ msgstr ""
 "This app is requesting full access, including the ability to delete\n"
 "data."
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/oauth/consent/+page.svelte
 #: src/routes/oauth/device/+page.svelte
 #: src/routes/settings/access-requests/+page.svelte
 msgid "<0/> Deny"
 msgstr "<0/> Deny"
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/oauth/consent/+page.svelte
 #: src/routes/oauth/device/+page.svelte
 #: src/routes/settings/access-requests/+page.svelte
@@ -16333,6 +16341,7 @@ msgstr "Additional Permissions"
 msgid "<0/> is requesting additional access to your Nocturne data."
 msgstr "<0/> is requesting additional access to your Nocturne data."
 
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/oauth/consent/+page.svelte
 msgid "<0/> wants to access your Nocturne data."
 msgstr "<0/> wants to access your Nocturne data."
@@ -16502,6 +16511,8 @@ msgstr "No access token available for this user."
 msgid "Invite not found or has expired."
 msgstr "Invite not found or has expired."
 
+#: src/routes/(fullscreen)/join/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/invite/[token]/+page.server.ts
 #: src/routes/invite/[token]/+page.svelte
 msgid "Failed to accept invite."
@@ -16529,6 +16540,7 @@ msgstr "Recovery code verification failed"
 #: src/lib/components/auth/LoginForm.svelte
 #: src/lib/components/auth/LoginForm.svelte
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
@@ -16553,6 +16565,7 @@ msgstr "Use a recovery code"
 #: src/lib/components/auth/LoginForm.svelte
 #: src/lib/components/auth/LoginForm.svelte
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
@@ -16607,6 +16620,7 @@ msgstr "Account created and passkey registered."
 
 #: src/routes/(fullscreen)/auth/help/+page.svelte
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/auth/help/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
@@ -16621,6 +16635,7 @@ msgid "Save these recovery codes in a safe place. Each code can only be used onc
 msgstr "Save these recovery codes in a safe place. Each code can only be used once."
 
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
@@ -16629,6 +16644,7 @@ msgid "<0/> Codes copied"
 msgstr "<0/> Codes copied"
 
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
@@ -16636,6 +16652,7 @@ msgstr "<0/> Codes copied"
 msgid "<0/> Copy recovery codes"
 msgstr "<0/> Copy recovery codes"
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
 msgid "Continue to Nocturne"
 msgstr "Continue to Nocturne"
@@ -16647,6 +16664,7 @@ msgid "Copy your recovery codes before continuing."
 msgstr "Copy your recovery codes before continuing."
 
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
@@ -16782,6 +16800,7 @@ msgstr ""
 msgid "Revoke"
 msgstr "Revoke"
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/settings/account/+page.svelte
 #: src/routes/settings/security/+page.svelte
 msgid "Failed to register passkey."
@@ -17020,12 +17039,10 @@ msgstr "<0/> Copied"
 msgid "<0/> Copy all codes"
 msgstr "<0/> Copy all codes"
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Passkey"
 msgstr "Passkey"
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Set up passwordless authentication with a passkey"
 msgstr "Set up passwordless authentication with a passkey"
@@ -17046,16 +17063,15 @@ msgstr "Failed to register passkey"
 msgid "Passkey Setup - Setup - Nocturne"
 msgstr "Passkey Setup - Setup - Nocturne"
 
-#: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/settings/setup/passkey/+page.svelte
 msgid "Set Up Your Passkey"
 msgstr "Set Up Your Passkey"
 
-#: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/settings/setup/passkey/+page.svelte
 msgid "Create a passkey for secure, passwordless authentication. You will also receive recovery codes in case you lose access to your passkey."
 msgstr "Create a passkey for secure, passwordless authentication. You will also receive recovery codes in case you lose access to your passkey."
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/settings/setup/passkey/+page.svelte
 msgid "This is how you will appear to others."
@@ -17091,11 +17107,13 @@ msgstr ""
 "passkey, you can use one of these codes to sign in. Each code can only\n"
 "be used once."
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/settings/setup/passkey/+page.svelte
 msgid "You must copy your recovery codes before continuing."
 msgstr "You must copy your recovery codes before continuing."
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/(fullscreen)/setup/passkey/+page.svelte
 #: src/routes/settings/setup/passkey/+page.svelte
 msgid ""
@@ -17137,6 +17155,7 @@ msgstr "Optional. Updates your display name if provided."
 
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
 #: src/routes/(fullscreen)/auth/recovery/+page.svelte
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
 #: src/routes/auth/bot/authorize/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
 #: src/routes/auth/recovery/+page.svelte
@@ -18190,6 +18209,7 @@ msgstr "Manage sharing"
 msgid "Full access"
 msgstr "Full access"
 
+#: src/routes/(fullscreen)/join/+page.svelte
 #: src/routes/invite/[token]/+page.svelte
 msgid "Loading invite..."
 msgstr "Loading invite..."
@@ -18587,12 +18607,10 @@ msgstr "<0/> Sync Failed"
 msgid "{0} synced so far"
 msgstr "{0} synced so far"
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Coming from Nightscout?"
 msgstr "Coming from Nightscout?"
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Migrate your data and keep both systems in sync during transition"
 msgstr "Migrate your data and keep both systems in sync during transition"
@@ -18811,6 +18829,7 @@ msgstr "Migration - Setup - Nocturne"
 #: src/lib/components/SiteFooter.svelte
 #: src/lib/components/SiteHeader.svelte
 #: src/lib/components/SiteHeader.svelte
+#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/(fullscreen)/setup/migrate/+page.svelte
 #: src/routes/settings/setup/migrate/+page.svelte
 msgid "Get Started"
@@ -18894,30 +18913,26 @@ msgstr "Enter your Nightscout URL and API secret to begin migrating your data"
 msgid "Passkey registered successfully. Recovery mode has been deactivated."
 msgstr "Passkey registered successfully. Recovery mode has been deactivated."
 
-#: src/routes/(fullscreen)/setup/+page.svelte
+#: src/lib/components/dashboard/SetupCard.svelte
 #: src/routes/(fullscreen)/setup/permissions/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 #: src/routes/settings/setup/permissions/+page.svelte
 msgid "Sharing & Privacy"
 msgstr "Sharing & Privacy"
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Choose who can see your data"
 msgstr "Choose who can see your data"
 
 #. placeholder {0}: requiredComplete
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "{0} of 6 required steps complete"
 msgstr "{0} of 6 required steps complete"
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Finishing..."
 msgstr "Finishing..."
 
-#: src/routes/(fullscreen)/setup/+page.svelte
 #: src/routes/settings/setup/+page.svelte
 msgid "Finish Setup"
 msgstr "Finish Setup"
@@ -21103,84 +21118,297 @@ msgstr "Failed to update food entry"
 msgid "Weight (kg)"
 msgstr "Weight (kg)"
 
-#: src/routes/(fullscreen)/connect/xdrip/+page.svelte
-msgid "Opening xDrip+"
-msgstr "Opening xDrip+"
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "No invite token provided. Please check the link you were given."
+msgstr "No invite token provided. Please check the link you were given."
 
-#: src/routes/(fullscreen)/connect/xdrip/+page.svelte
-msgid "Redirecting to xDrip+ to start the connection..."
-msgstr "Redirecting to xDrip+ to start the connection..."
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "This invite has expired."
+msgstr "This invite has expired."
 
-#: src/routes/(fullscreen)/connect/xdrip/+page.svelte
-msgid "Connect xDrip+"
-msgstr "Connect xDrip+"
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "This invite has been revoked."
+msgstr "This invite has been revoked."
 
-#: src/routes/(fullscreen)/connect/xdrip/+page.svelte
-msgid "xDrip+ didn't open automatically. You can try these options:"
-msgstr "xDrip+ didn't open automatically. You can try these options:"
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "This invite is no longer valid."
+msgstr "This invite is no longer valid."
 
-#: src/lib/components/XdripQuickConnect.svelte
-#: src/routes/(fullscreen)/connect/xdrip/+page.svelte
-msgid "<0/> Open in xDrip+"
-msgstr "<0/> Open in xDrip+"
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "Join - Nocturne"
+msgstr "Join - Nocturne"
 
-#: src/routes/(fullscreen)/connect/xdrip/+page.svelte
-msgid "Manual setup"
-msgstr "Manual setup"
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "Invalid Invite"
+msgstr "Invalid Invite"
 
-#: src/routes/(fullscreen)/connect/xdrip/+page.svelte
-msgid "In xDrip+, go to Settings > Cloud Upload > Nocturne, enter this URL:"
-msgstr "In xDrip+, go to Settings > Cloud Upload > Nocturne, enter this URL:"
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "You're In"
+msgstr "You're In"
 
-#: src/routes/(fullscreen)/connect/xdrip/+page.svelte
-msgid "Then tap \"Connect to Nocturne\" to authorize."
-msgstr "Then tap \"Connect to Nocturne\" to authorize."
+#. placeholder {0}: inviteInfo.tenantName ?? "the site"
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "Your account has been created and you've joined {0}."
+msgstr "Your account has been created and you've joined {0}."
 
-#: src/routes/(fullscreen)/connect/xdrip/+page.svelte
-msgid "Don't have xDrip+ installed?"
-msgstr "Don't have xDrip+ installed?"
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid ""
+"Save these recovery codes in a safe place. If you lose access to\n"
+"your passkey, you can use one of these codes to sign in. Each code\n"
+"can only be used once."
+msgstr ""
+"Save these recovery codes in a safe place. If you lose access to\n"
+"your passkey, you can use one of these codes to sign in. Each code\n"
+"can only be used once."
 
-#: src/routes/(fullscreen)/connect/xdrip/+page.svelte
-msgid "<0/> Download xDrip+"
-msgstr "<0/> Download xDrip+"
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "Accept Invite"
+msgstr "Accept Invite"
 
-#: src/lib/components/XdripQuickConnect.svelte
-msgid "Quick Connect"
-msgstr "Quick Connect"
+#: src/routes/(fullscreen)/join/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "<0/> has invited you to join"
+msgstr "<0/> has invited you to join"
 
-#: src/lib/components/XdripQuickConnect.svelte
-msgid "Automatically configure xDrip+ with your Nocturne instance."
-msgstr "Automatically configure xDrip+ with your Nocturne instance."
+#: src/routes/(fullscreen)/join/+page.svelte
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "You've been invited to join"
+msgstr "You've been invited to join"
 
-#: src/lib/components/XdripQuickConnect.svelte
-msgid "Or scan from another device"
-msgstr "Or scan from another device"
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "<0/> Joining..."
+msgstr "<0/> Joining..."
 
-#: src/lib/components/XdripQuickConnect.svelte
-#: src/lib/components/XdripQuickConnect.svelte
-msgid "QR code to connect xDrip+"
-msgstr "QR code to connect xDrip+"
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "Join Nocturne"
+msgstr "Join Nocturne"
 
-#: src/lib/components/XdripQuickConnect.svelte
-msgid "Scan this QR code with your phone's camera"
-msgstr "Scan this QR code with your phone's camera"
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid ""
+"<0/> <1/>.\n"
+"Create an account or sign in to accept."
+msgstr ""
+"<0/> <1/>.\n"
+"Create an account or sign in to accept."
 
-#: src/lib/components/XdripQuickConnect.svelte
-msgid "Or open this link on your phone"
-msgstr "Or open this link on your phone"
+#. placeholder {0}: provider.name
+#. placeholder {0}: provider.name
+#: src/routes/(fullscreen)/join/+page.svelte
+#: src/routes/(fullscreen)/setup/passkey/+page.svelte
+msgid "<0/> Continue with {0}"
+msgstr "<0/> Continue with {0}"
 
-#: src/lib/components/XdripQuickConnect.svelte
-msgid "<0/> Waiting for data from xDrip+..."
-msgstr "<0/> Waiting for data from xDrip+..."
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "Or create an account with a passkey"
+msgstr "Or create an account with a passkey"
 
-#: src/lib/components/XdripQuickConnect.svelte
-msgid "<0/> Connected! Data is flowing from xDrip+."
-msgstr "<0/> Connected! Data is flowing from xDrip+."
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "A unique identifier for your account."
+msgstr "A unique identifier for your account."
 
-#: src/lib/components/XdripQuickConnect.svelte
-msgid "No data from xDrip+ yet. This is normal if xDrip+ hasn't had a new reading."
-msgstr "No data from xDrip+ yet. This is normal if xDrip+ hasn't had a new reading."
+#: src/routes/(fullscreen)/join/+page.svelte
+msgid "<0/> Create account with passkey"
+msgstr "<0/> Create account with passkey"
 
-#: src/lib/components/XdripQuickConnect.svelte
-msgid "Check now"
-msgstr "Check now"
+#: src/routes/(fullscreen)/setup/passkey/+page.svelte
+msgid "Set Up Your Account"
+msgstr "Set Up Your Account"
+
+#: src/routes/(fullscreen)/setup/passkey/+page.svelte
+msgid "Choose how you want to authenticate. You can use an external provider for quick setup, or register a passkey for passwordless authentication."
+msgstr "Choose how you want to authenticate. You can use an external provider for quick setup, or register a passkey for passwordless authentication."
+
+#: src/routes/(fullscreen)/setup/passkey/+page.svelte
+msgid "Or set up with a passkey"
+msgstr "Or set up with a passkey"
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+#: src/lib/components/alerts/RuleEditorSheet.svelte
+msgid "Discord DM"
+msgstr "Discord DM"
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+#: src/lib/components/alerts/RuleEditorSheet.svelte
+msgid "Slack DM"
+msgstr "Slack DM"
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+#: src/lib/components/alerts/RuleEditorSheet.svelte
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid "Browser Push"
+msgstr "Browser Push"
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid "Send alerts as a Discord direct message"
+msgstr "Send alerts as a Discord direct message"
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid "Send alerts as a Slack direct message"
+msgstr "Send alerts as a Slack direct message"
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid "Send alerts to your Telegram chat"
+msgstr "Send alerts to your Telegram chat"
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid "Send alerts to your WhatsApp"
+msgstr "Send alerts to your WhatsApp"
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid "No notification channels are currently available."
+msgstr "No notification channels are currently available."
+
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid "Service hasn't reported recently — alerts may be delayed"
+msgstr "Service hasn't reported recently — alerts may be delayed"
+
+#. placeholder {0}: getPlatformName(ct)
+#: src/lib/components/alerts/ChannelPicker.svelte
+msgid ""
+"Account not linked. Use /connect in {0} to\n"
+"enable delivery."
+msgstr ""
+"Account not linked. Use /connect in {0} to\n"
+"enable delivery."
+
+#: src/lib/components/dashboard/SetupCard.svelte
+msgid "Patient details"
+msgstr "Patient details"
+
+#: src/lib/components/dashboard/SetupCard.svelte
+msgid "Therapy profile"
+msgstr "Therapy profile"
+
+#: src/lib/components/dashboard/SetupCard.svelte
+msgid "Finish setting up"
+msgstr "Finish setting up"
+
+#: src/routes/(fullscreen)/setup/+page.svelte
+msgid "Choose how you'd like to set up Nocturne."
+msgstr "Choose how you'd like to set up Nocturne."
+
+#: src/routes/(fullscreen)/setup/+page.svelte
+msgid "Migrate from Nightscout"
+msgstr "Migrate from Nightscout"
+
+#: src/routes/(fullscreen)/setup/+page.svelte
+msgid "Import your existing data — entries, treatments, and history."
+msgstr "Import your existing data — entries, treatments, and history."
+
+#: src/routes/(fullscreen)/setup/+page.svelte
+msgid "Start Fresh"
+msgstr "Start Fresh"
+
+#: src/routes/(fullscreen)/setup/+page.svelte
+msgid "Connect a glucose data source to get started."
+msgstr "Connect a glucose data source to get started."
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "Failed to load data sources"
+msgstr "Failed to load data sources"
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "Connect a Data Source - Setup - Nocturne"
+msgstr "Connect a Data Source - Setup - Nocturne"
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "Connect a Data Source"
+msgstr "Connect a Data Source"
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "Choose a cloud service or phone app to start sending glucose and treatment data to Nocturne."
+msgstr "Choose a cloud service or phone app to start sending glucose and treatment data to Nocturne."
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "<0/> Cloud Services"
+msgstr "<0/> Cloud Services"
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "<0/> Phone Apps"
+msgstr "<0/> Phone Apps"
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "No data sources available"
+msgstr "No data sources available"
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "There are no data sources available at this time."
+msgstr "There are no data sources available at this time."
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "Skip for now"
+msgstr "Skip for now"
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "<0/> Back to data sources"
+msgstr "<0/> Back to data sources"
+
+#: src/routes/(fullscreen)/setup/+page.svelte
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "Continue to Dashboard"
+msgstr "Continue to Dashboard"
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "Invalid or expired device code."
+msgstr "Invalid or expired device code."
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "Invalid or expired device code. Please check and try again."
+msgstr "Invalid or expired device code. Please check and try again."
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "Failed to approve. The code may have expired."
+msgstr "Failed to approve. The code may have expired."
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "Failed to deny the request."
+msgstr "Failed to deny the request."
+
+#. placeholder {0}: selectedApp?.name
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "{0} is now connected. You can return to your device."
+msgstr "{0} is now connected. You can return to your device."
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "Receiving Data"
+msgstr "Receiving Data"
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "It can take a few minutes for the first glucose reading to arrive. This page will update automatically."
+msgstr "It can take a few minutes for the first glucose reading to arrive. This page will update automatically."
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "This application is not in the Nocturne known app directory. Only approve if you trust it."
+msgstr "This application is not in the Nocturne known app directory. Only approve if you trust it."
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "This app is requesting full access, including the ability to delete data."
+msgstr "This app is requesting full access, including the ability to delete data."
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "Scan to Connect"
+msgstr "Scan to Connect"
+
+#. placeholder {0}: selectedApp?.name
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "Scan this QR code with your phone's camera to open {0} and start the connection."
+msgstr "Scan this QR code with your phone's camera to open {0} and start the connection."
+
+#. placeholder {0}: selectedApp?.name
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "QR code to connect {0}"
+msgstr "QR code to connect {0}"
+
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "Enter Authorization Code"
+msgstr "Enter Authorization Code"
+
+#. placeholder {0}: selectedApp?.name
+#: src/routes/(fullscreen)/setup/connect/+page.svelte
+msgid "After scanning, {0} will show an 8-character code. Enter it here to approve the connection."
+msgstr "After scanning, {0} will show an 8-character code. Enter it here to approve the connection."
