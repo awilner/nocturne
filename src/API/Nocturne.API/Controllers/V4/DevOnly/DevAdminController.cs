@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Nocturne.API.Authorization;
 using Nocturne.API.Models.DevOnly;
 using Nocturne.API.Services;
 using Nocturne.Connectors.Core.Models;
@@ -13,11 +14,12 @@ namespace Nocturne.API.Controllers.V4.DevOnly;
 
 /// <summary>
 /// Dev-only admin controller for snapshot export/import and connector sync.
-/// Will be conditionally excluded from production builds in a later task.
+/// Conditionally excluded from production builds.
 /// </summary>
 [ApiController]
 [Route("api/v4/dev-only/admin")]
 [AllowAnonymous]
+[AllowDuringSetup]
 [Produces("application/json")]
 public class DevAdminController : ControllerBase
 {
