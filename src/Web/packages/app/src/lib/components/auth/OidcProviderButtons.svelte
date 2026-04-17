@@ -10,6 +10,7 @@
     isRedirecting?: boolean;
     selectedProvider?: string | null;
     dividerText?: string;
+    showDivider?: boolean;
   }
 
   let {
@@ -19,6 +20,7 @@
     isRedirecting = false,
     selectedProvider = null,
     dividerText = "Or create an account with a passkey",
+    showDivider = true,
   }: Props = $props();
 
   function getButtonStyle(buttonColor?: string): string {
@@ -47,13 +49,15 @@
   {/each}
 </div>
 
-<div class="relative">
-  <div class="absolute inset-0 flex items-center">
-    <span class="w-full border-t"></span>
+{#if showDivider}
+  <div class="relative">
+    <div class="absolute inset-0 flex items-center">
+      <span class="w-full border-t"></span>
+    </div>
+    <div class="relative flex justify-center text-xs uppercase">
+      <span class="bg-background px-2 text-muted-foreground">
+        {dividerText}
+      </span>
+    </div>
   </div>
-  <div class="relative flex justify-center text-xs uppercase">
-    <span class="bg-background px-2 text-muted-foreground">
-      {dividerText}
-    </span>
-  </div>
-</div>
+{/if}
