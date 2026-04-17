@@ -21,7 +21,7 @@
   import * as Popover from "$lib/components/ui/popover";
   import * as Command from "$lib/components/ui/command";
   import type {
-    MealCarbIntake,
+    MealEvent,
     TreatmentFood,
     CarbIntakeFoodRequest,
     SuggestedMealMatch,
@@ -35,12 +35,27 @@
     CarbBreakdownBar,
     FoodEntryDetails,
   } from "$lib/components/treatments";
-  // addCarbIntakeFood imported above
   import { getMealNameForTime } from "$lib/constants/meal-times";
   import { cn } from "$lib/utils";
   import { MealMatchReviewDialog } from "$lib/components/meal-matching";
   import * as AlertDialog from "$lib/components/ui/alert-dialog";
-  // deleteCarbIntakeFood imported above
+
+  const GUID_EMPTY = "00000000-0000-0000-0000-000000000000";
+
+  /** Stable key for a MealEvent — correlationId for correlated events,
+   *  first carb intake id for orphans (Guid.Empty correlationId). */
+  function eventKey(event: MealEvent): string {
+    if (event.correlationId && event.correlationId !== GUID_EMPTY) {
+      return event.correlationId;
+    }
+    return event.carbIntakes?.[0]?.id ?? crypto.randomUUID();
+  }
+
+  /** Extract mills from an event's timestamp (Date or ISO string at runtime). */
+  function eventMills(event: MealEvent): number {
+    if (!event.timestamp) return 0;
+    return new Date(event.timestamp as unknown as string | Date).getTime();
+  }
 
   let dateRange = $state<{ from?: string; to?: string }>({});
   let filterMode = $state<"all" | "unattributed">("all");
@@ -62,12 +77,12 @@
 
   // Add food dialog state
   let showAddFoodDialog = $state(false);
-  let addFoodMeal = $state<MealCarbIntake | null>(null);
+  let addFoodEvent = $state<MealEvent | null>(null);
 
   // Edit food entry dialog state
   let showEditFoodEntryDialog = $state(false);
   let editFoodEntry = $state<TreatmentFood | null>(null);
-  let editFoodEntryMeal = $state<MealCarbIntake | null>(null);
+  let editFoodEntryEvent = $state<MealEvent | null>(null);
 
   // Meal match review dialog state
   let showReviewDialog = $state(false);
@@ -75,7 +90,7 @@
 
   // Unlink food confirmation state
   let showUnlinkConfirm = $state(false);
-  let unlinkTarget = $state<{ meal: MealCarbIntake; food: TreatmentFood } | null>(null);
+  let unlinkTarget = $state<{ event: MealEvent; food: TreatmentFood } | null>(null);
   let isUnlinking = $state(false);
 
   function handleDateChange(params: { from?: string; to?: string }) {
@@ -93,7 +108,7 @@
   });
 
   const mealsQuery = $derived(getMeals(queryParams));
-  const meals = $derived<MealCarbIntake[]>(mealsQuery.current ?? []);
+  const events = $derived<MealEvent[]>(mealsQuery.current ?? []);
 
   // Query for suggested meal matches using the endpoint
   const suggestionsQueryParams = $derived({
@@ -124,11 +139,26 @@
     return map;
   });
 
+  // Aggregate suggestions by event (across all carb intakes in the event)
+  const suggestionsByEvent = $derived.by(() => {
+    const map = new Map<string, SuggestedMealMatch[]>();
+    for (const event of events) {
+      const key = eventKey(event);
+      const eventSuggestions = (event.carbIntakes ?? []).flatMap(
+        (ci) => suggestionsByCarbIntake.get(ci.id ?? "") ?? []
+      );
+      if (eventSuggestions.length > 0) {
+        map.set(key, eventSuggestions);
+      }
+    }
+    return map;
+  });
+
   // Get unique food names for filter dropdown
   const uniqueFoods = $derived.by(() => {
     const foods = new Set<string>();
-    for (const meal of meals) {
-      for (const food of meal.foods ?? []) {
+    for (const event of events) {
+      for (const food of event.foods ?? []) {
         if (food.foodName) foods.add(food.foodName);
       }
     }
@@ -142,25 +172,23 @@
   });
 
   // Helper to get meal label for sorting
-  function getMealSortLabel(meal: MealCarbIntake): string {
-    const foods = meal.foods ?? [];
+  function getMealSortLabel(event: MealEvent): string {
+    const foods = event.foods ?? [];
     if (foods.length === 0) return "Meal";
     if (foods.length === 1 && foods[0].foodName) return foods[0].foodName;
-    return getMealNameForTime(
-      new Date(meal.carbIntake?.mills ?? Date.now())
-    );
+    return getMealNameForTime(new Date(event.timestamp as unknown as string | Date));
   }
 
-  // Filter and sort meals
-  const filteredAndSortedMeals = $derived.by(() => {
-    let filtered = meals;
+  // Filter and sort events
+  const filteredAndSortedEvents = $derived.by(() => {
+    let filtered = events;
 
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((meal) => {
+      filtered = filtered.filter((event) => {
         const searchable = [
-          ...(meal.foods?.map((f) => f.foodName ?? f.note) ?? []),
+          ...(event.foods?.map((f) => f.foodName ?? f.note) ?? []),
         ]
           .filter(Boolean)
           .join(" ")
@@ -171,32 +199,28 @@
 
     // Apply food name filter
     if (selectedFoods.length > 0) {
-      filtered = filtered.filter((meal) =>
-        meal.foods?.some(
+      filtered = filtered.filter((event) =>
+        event.foods?.some(
           (f) => f.foodName && selectedFoods.includes(f.foodName)
         )
       );
     }
 
-    // Sort meals
+    // Sort events
     const sorted = [...filtered].sort((a, b) => {
       let comparison = 0;
       switch (sortColumn) {
         case "time":
-          comparison =
-            (a.carbIntake?.mills ?? 0) - (b.carbIntake?.mills ?? 0);
+          comparison = eventMills(a) - eventMills(b);
           break;
         case "meal":
           comparison = getMealSortLabel(a).localeCompare(getMealSortLabel(b));
           break;
         case "carbs":
-          comparison =
-            (a.carbIntake?.carbs ?? 0) - (b.carbIntake?.carbs ?? 0);
+          comparison = (a.totalCarbs ?? 0) - (b.totalCarbs ?? 0);
           break;
         case "insulin":
-          comparison =
-            (a.correlatedBolus?.insulin ?? 0) -
-            (b.correlatedBolus?.insulin ?? 0);
+          comparison = (a.totalInsulin ?? 0) - (b.totalInsulin ?? 0);
           break;
       }
       return sortDirection === "asc" ? comparison : -comparison;
@@ -205,18 +229,18 @@
     return sorted;
   });
 
-  // Group meals by date for day separators
-  interface MealsByDay {
+  // Group events by date for day separators
+  interface EventsByDay {
     date: string;
     displayDate: string;
-    meals: MealCarbIntake[];
+    events: MealEvent[];
   }
 
-  const mealsByDay = $derived.by(() => {
-    const grouped = new Map<string, MealCarbIntake[]>();
+  const eventsByDay = $derived.by(() => {
+    const grouped = new Map<string, MealEvent[]>();
 
-    for (const meal of filteredAndSortedMeals) {
-      const mills = meal.carbIntake?.mills;
+    for (const event of filteredAndSortedEvents) {
+      const mills = eventMills(event);
       if (!mills) continue;
 
       const date = new Date(mills);
@@ -225,22 +249,23 @@
       if (!grouped.has(dateKey)) {
         grouped.set(dateKey, []);
       }
-      grouped.get(dateKey)!.push(meal);
+      grouped.get(dateKey)!.push(event);
     }
 
-    const result: MealsByDay[] = [];
-    for (const [date, dayMeals] of grouped) {
+    const result: EventsByDay[] = [];
+    for (const [date, dayEvents] of grouped) {
       result.push({
         date,
-        displayDate: new Date(
-          dayMeals[0].carbIntake?.mills ?? 0
-        ).toLocaleDateString(undefined, {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }),
-        meals: dayMeals,
+        displayDate: new Date(eventMills(dayEvents[0])).toLocaleDateString(
+          undefined,
+          {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }
+        ),
+        events: dayEvents,
       });
     }
 
@@ -298,43 +323,45 @@
     collapsedDates = newSet;
   }
 
-  function openAddFood(meal: MealCarbIntake) {
-    addFoodMeal = meal;
+  function openAddFood(event: MealEvent) {
+    addFoodEvent = event;
     showAddFoodDialog = true;
   }
 
-  function openEditFoodEntry(meal: MealCarbIntake, food: TreatmentFood) {
-    editFoodEntryMeal = meal;
+  function openEditFoodEntry(event: MealEvent, food: TreatmentFood) {
+    editFoodEntryEvent = event;
     editFoodEntry = food;
     showEditFoodEntryDialog = true;
   }
 
   function getRemainingCarbsForEntry(
-    meal: MealCarbIntake,
+    event: MealEvent,
     entryId: string | undefined
   ): number {
-    const totalCarbs = meal.carbIntake?.carbs ?? 0;
+    const totalCarbs = event.totalCarbs ?? 0;
     const otherAttributedCarbs =
-      meal.foods
+      event.foods
         ?.filter((f) => f.id !== entryId)
         .reduce((sum, f) => sum + (f.carbs ?? 0), 0) ?? 0;
     return Math.round((totalCarbs - otherAttributedCarbs) * 10) / 10;
   }
 
-  function confirmUnlinkFood(meal: MealCarbIntake, food: TreatmentFood) {
-    unlinkTarget = { meal, food };
+  function confirmUnlinkFood(event: MealEvent, food: TreatmentFood) {
+    unlinkTarget = { event, food };
     showUnlinkConfirm = true;
   }
 
   async function handleUnlinkFood() {
     if (!unlinkTarget) return;
-    const { meal, food } = unlinkTarget;
-    if (!meal.carbIntake?.id || !food.id) return;
+    const { event, food } = unlinkTarget;
+    // Route the delete to the carb intake the food belongs to
+    const carbIntakeId = food.carbIntakeId ?? event.carbIntakes?.[0]?.id;
+    if (!carbIntakeId || !food.id) return;
 
     isUnlinking = true;
     try {
       await deleteCarbIntakeFood({
-        id: meal.carbIntake.id,
+        id: carbIntakeId,
         foodEntryId: food.id,
       });
       toast.success("Food unlinked");
@@ -354,16 +381,17 @@
   }
 
   async function handleAddFoodSubmit(request: CarbIntakeFoodRequest) {
-    if (!addFoodMeal?.carbIntake?.id) return;
+    const carbIntakeId = addFoodEvent?.carbIntakes?.[0]?.id;
+    if (!carbIntakeId) return;
 
     try {
       await addCarbIntakeFood({
-        id: addFoodMeal.carbIntake.id,
+        id: carbIntakeId,
         request,
       });
       toast.success("Food added");
       showAddFoodDialog = false;
-      addFoodMeal = null;
+      addFoodEvent = null;
       mealsQuery.refresh();
     } catch (err) {
       console.error("Add food error:", err);
@@ -372,15 +400,15 @@
   }
 
   function formatTime(mills: number | undefined): string {
-    if (!mills) return "—";
+    if (!mills) return "--";
     return new Date(mills).toLocaleTimeString(undefined, {
       hour: "2-digit",
       minute: "2-digit",
     });
   }
 
-  function getMealLabel(meal: MealCarbIntake): string {
-    const foods = meal.foods ?? [];
+  function getMealLabel(event: MealEvent): string {
+    const foods = event.foods ?? [];
     if (foods.length === 0) {
       return "Meal";
     }
@@ -388,8 +416,7 @@
       return foods[0].foodName;
     }
     // Multiple foods - use meal time-based name
-    const date = new Date(meal.carbIntake?.mills ?? Date.now());
-    return getMealNameForTime(date);
+    return getMealNameForTime(new Date(event.timestamp as unknown as string | Date));
   }
 
   function getFoodsSummary(foods: TreatmentFood[] | undefined): string {
@@ -585,7 +612,7 @@
         <div class="flex flex-wrap items-center gap-2 pt-3 border-t text-sm">
           <span class="text-muted-foreground">Showing:</span>
           <span class="font-medium">
-            {filteredAndSortedMeals.length} of {meals.length}
+            {filteredAndSortedEvents.length} of {events.length}
           </span>
 
           {#each selectedFoods as food}
@@ -622,9 +649,9 @@
         <div class="flex items-center justify-center p-12">
           <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
-      {:else if filteredAndSortedMeals.length === 0}
+      {:else if filteredAndSortedEvents.length === 0}
         <div class="p-6 text-center text-sm text-muted-foreground">
-          {meals.length === 0
+          {events.length === 0
             ? "No meals found in this range."
             : "No meals match the current filters."}
         </div>
@@ -714,14 +741,14 @@
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {#each mealsByDay as day}
+            {#each eventsByDay as day}
               {@const isDateCollapsed = collapsedDates.has(day.date)}
-              {@const dayTotalCarbs = day.meals.reduce(
-                (sum, m) => sum + (m.carbIntake?.carbs ?? 0),
+              {@const dayTotalCarbs = day.events.reduce(
+                (sum, e) => sum + (e.totalCarbs ?? 0),
                 0
               )}
-              {@const dayTotalInsulin = day.meals.reduce(
-                (sum, m) => sum + (m.correlatedBolus?.insulin ?? 0),
+              {@const dayTotalInsulin = day.events.reduce(
+                (sum, e) => sum + (e.totalInsulin ?? 0),
                 0
               )}
               <!-- Day separator row -->
@@ -741,7 +768,7 @@
                     <Calendar class="h-4 w-4 text-muted-foreground" />
                     {day.displayDate}
                     <Badge variant="outline" class="ml-2">
-                      {day.meals.length} meal{day.meals.length !== 1 ? "s" : ""}
+                      {day.events.length} meal{day.events.length !== 1 ? "s" : ""}
                     </Badge>
                   </div>
                 </Table.Cell>
@@ -764,13 +791,12 @@
               </Table.Row>
 
               {#if !isDateCollapsed}
-                {#each day.meals as meal, mealIndex (`${day.date}-${mealIndex}-${meal.carbIntake?.id}`)}
-                  {@const isExpanded = expandedRows.has(
-                    meal.carbIntake?.id ?? ""
-                  )}
-                  {@const hasFoods = (meal.foods?.length ?? 0) > 0}
-                  {@const totalCarbs = meal.carbIntake?.carbs ?? 0}
-                  {@const mealSuggestions = suggestionsByCarbIntake.get(meal.carbIntake?.id ?? "") ?? []}
+                {#each day.events as event, eventIndex (`${day.date}-${eventIndex}-${eventKey(event)}`)}
+                  {@const key = eventKey(event)}
+                  {@const isExpanded = expandedRows.has(key)}
+                  {@const hasFoods = (event.foods?.length ?? 0) > 0}
+                  {@const totalCarbs = event.totalCarbs ?? 0}
+                  {@const eventSuggestions = suggestionsByEvent.get(key) ?? []}
 
                   <!-- Main meal row -->
                   <Table.Row
@@ -780,7 +806,7 @@
                       isExpanded && "bg-accent/30"
                     )}
                     onclick={() =>
-                      hasFoods && toggleRow(meal.carbIntake?.id ?? "")}
+                      hasFoods && toggleRow(key)}
                   >
                     <Table.Cell class="py-3">
                       {#if hasFoods}
@@ -790,7 +816,7 @@
                           class="h-6 w-6"
                           onclick={(e) => {
                             e.stopPropagation();
-                            toggleRow(meal.carbIntake?.id ?? "");
+                            toggleRow(key);
                           }}
                         >
                           {#if isExpanded}
@@ -803,19 +829,19 @@
                     </Table.Cell>
                     <Table.Cell class="py-3">
                       <div class="text-lg font-semibold tabular-nums">
-                        {formatTime(meal.carbIntake?.mills)}
+                        {formatTime(eventMills(event))}
                       </div>
                     </Table.Cell>
                     <Table.Cell class="py-3">
                       <div class="flex items-center gap-2">
                         <Utensils class="h-4 w-4 text-muted-foreground" />
                         <div>
-                          <div class="font-medium">{getMealLabel(meal)}</div>
+                          <div class="font-medium">{getMealLabel(event)}</div>
                           {#if hasFoods}
                             <div
                               class="text-xs text-muted-foreground line-clamp-1"
                             >
-                              {getFoodsSummary(meal.foods)}
+                              {getFoodsSummary(event.foods)}
                             </div>
                           {/if}
                         </div>
@@ -828,12 +854,12 @@
                           class="w-24 cursor-pointer hover:opacity-80 transition-opacity"
                           onclick={(e) => {
                             e.stopPropagation();
-                            openAddFood(meal);
+                            openAddFood(event);
                           }}
                         >
                           <CarbBreakdownBar
                             {totalCarbs}
-                            foods={meal.foods ?? []}
+                            foods={event.foods ?? []}
                           />
                         </button>
                         <span class="text-lg font-semibold tabular-nums">
@@ -842,31 +868,31 @@
                       </div>
                     </Table.Cell>
                     <Table.Cell class="py-3 text-right">
-                      {#if meal.correlatedBolus?.insulin}
+                      {#if (event.totalInsulin ?? 0) > 0}
                         <span class="font-medium tabular-nums">
-                          {meal.correlatedBolus.insulin.toFixed(1)}U
+                          {(event.totalInsulin ?? 0).toFixed(1)}U
                         </span>
                       {:else}
-                        <span class="text-muted-foreground">—</span>
+                        <span class="text-muted-foreground">--</span>
                       {/if}
                     </Table.Cell>
                     <Table.Cell class="py-3">
                       <Badge
-                        variant={meal.isAttributed ? "secondary" : "outline"}
+                        variant={event.isAttributed ? "secondary" : "outline"}
                       >
-                        {meal.isAttributed ? "Attributed" : "Unattributed"}
+                        {event.isAttributed ? "Attributed" : "Unattributed"}
                       </Badge>
                     </Table.Cell>
                     <Table.Cell class="py-3">
                     </Table.Cell>
                   </Table.Row>
 
-                  <!-- Suggested matches row (only for unattributed meals with suggestions) -->
-                  {#if !meal.isAttributed && mealSuggestions.length > 0}
+                  <!-- Suggested matches row (only for unattributed events with suggestions) -->
+                  {#if !event.isAttributed && eventSuggestions.length > 0}
                     <Table.Row class="bg-primary/5 hover:bg-primary/10 border-l-2 border-l-primary">
                       <Table.Cell colspan={7} class="py-2 px-4">
                         <div class="space-y-2">
-                          {#each mealSuggestions as match, matchIndex (`${match.foodEntryId}-${matchIndex}`)}
+                          {#each eventSuggestions as match, matchIndex (`${match.foodEntryId}-${matchIndex}`)}
                             <div class="flex items-center justify-between gap-4">
                               <div class="flex items-center gap-3 min-w-0">
                                 <Sparkles class="h-4 w-4 text-primary shrink-0" />
@@ -929,16 +955,16 @@
                           <!-- Food details -->
                           <div class="space-y-2">
                             <div class="text-sm font-medium">
-                              Foods ({meal.foods?.length})
+                              Foods ({event.foods?.length})
                             </div>
                             <div
                               class="grid gap-2 md:grid-cols-2 lg:grid-cols-3"
                             >
-                              {#each meal.foods ?? [] as food}
+                              {#each event.foods ?? [] as food}
                                 <div class="rounded-lg border bg-card p-3 text-sm transition-colors group relative hover:bg-accent/50">
                                   <button
                                     type="button"
-                                    onclick={() => openEditFoodEntry(meal, food)}
+                                    onclick={() => openEditFoodEntry(event, food)}
                                     class="w-full text-left cursor-pointer"
                                   >
                                     <div class="font-medium pr-6">
@@ -953,7 +979,7 @@
                                     type="button"
                                     onclick={(e) => {
                                       e.stopPropagation();
-                                      confirmUnlinkFood(meal, food);
+                                      confirmUnlinkFood(event, food);
                                     }}
                                     class="absolute top-2 right-2 p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive transition-opacity"
                                     title="Unlink food"
@@ -970,10 +996,10 @@
                             class="flex flex-wrap gap-4 text-sm text-muted-foreground"
                           >
                             <span>
-                              Attributed: {meal.attributedCarbs ?? 0}g
+                              Attributed: {event.attributedCarbs ?? 0}g
                             </span>
                             <span>
-                              Unspecified: {meal.unspecifiedCarbs ?? 0}g
+                              Unspecified: {event.unspecifiedCarbs ?? 0}g
                             </span>
                           </div>
                         </div>
@@ -994,12 +1020,12 @@
   bind:open={showAddFoodDialog}
   onOpenChange={(value) => {
     showAddFoodDialog = value;
-    if (!value) addFoodMeal = null;
+    if (!value) addFoodEvent = null;
   }}
   onSubmit={handleAddFoodSubmit}
-  totalCarbs={addFoodMeal?.carbIntake?.carbs ?? 0}
-  unspecifiedCarbs={addFoodMeal?.unspecifiedCarbs ??
-    addFoodMeal?.carbIntake?.carbs ??
+  totalCarbs={addFoodEvent?.totalCarbs ?? 0}
+  unspecifiedCarbs={addFoodEvent?.unspecifiedCarbs ??
+    addFoodEvent?.totalCarbs ??
     0}
 />
 
@@ -1009,14 +1035,14 @@
     showEditFoodEntryDialog = value;
     if (!value) {
       editFoodEntry = null;
-      editFoodEntryMeal = null;
+      editFoodEntryEvent = null;
     }
   }}
   entry={editFoodEntry}
-  treatmentId={editFoodEntryMeal?.carbIntake?.id}
-  totalCarbs={editFoodEntryMeal?.carbIntake?.carbs ?? 0}
-  remainingCarbs={editFoodEntryMeal
-    ? getRemainingCarbsForEntry(editFoodEntryMeal, editFoodEntry?.id)
+  treatmentId={editFoodEntry?.carbIntakeId ?? editFoodEntryEvent?.carbIntakes?.[0]?.id}
+  totalCarbs={editFoodEntryEvent?.totalCarbs ?? 0}
+  remainingCarbs={editFoodEntryEvent
+    ? getRemainingCarbsForEntry(editFoodEntryEvent, editFoodEntry?.id)
     : 0}
   onSave={handleFoodEntrySaved}
 />
