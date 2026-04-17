@@ -10,6 +10,7 @@ using Nocturne.API.Configuration;
 using Nocturne.API.Services.Auth;
 using Nocturne.API.Extensions;
 using Nocturne.API.Hubs;
+using Nocturne.API.Infrastructure;
 using Nocturne.API.Middleware;
 using Nocturne.API.Multitenancy;
 using OpenApi.Remote.Processors;
@@ -145,6 +146,13 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<NightscoutJsonFilter>();
+})
+.ConfigureApplicationPartManager(manager =>
+{
+    if (!builder.Environment.IsDevelopment())
+    {
+        manager.FeatureProviders.Add(new RemoveDevOnlyControllersFeatureProvider());
+    }
 });
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
