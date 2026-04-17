@@ -4,6 +4,7 @@ using Fido2NetLib.Objects;
 using Fido2NetLib.Serialization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Nocturne.Core.Contracts;
 using Nocturne.Infrastructure.Data;
 using Nocturne.Infrastructure.Data.Entities;
@@ -24,19 +25,22 @@ public class PasskeyService : IPasskeyService
     private readonly IDataProtector _protector;
     private readonly Fido2Configuration _fido2Config;
     private readonly ILogger<PasskeyService> _logger;
+    private readonly IHostEnvironment _environment;
 
     public PasskeyService(
         NocturneDbContext dbContext,
         IFido2 fido2,
         IDataProtectionProvider dataProtectionProvider,
         Microsoft.Extensions.Options.IOptions<Fido2Configuration> fido2Options,
-        ILogger<PasskeyService> logger)
+        ILogger<PasskeyService> logger,
+        IHostEnvironment environment)
     {
         _dbContext = dbContext;
         _fido2 = fido2;
         _protector = dataProtectionProvider.CreateProtector("Nocturne.Passkey.Challenge");
         _fido2Config = fido2Options.Value;
         _logger = logger;
+        _environment = environment;
     }
 
     /// <summary>
@@ -59,7 +63,8 @@ public class PasskeyService : IPasskeyService
 
             var uri = new Uri(origin);
             var rpId = _fido2Config.ServerDomain;
-            if (uri.Host == rpId || uri.Host.EndsWith($".{rpId}", StringComparison.OrdinalIgnoreCase))
+            if (_environment.IsDevelopment() ||
+                uri.Host == rpId || uri.Host.EndsWith($".{rpId}", StringComparison.OrdinalIgnoreCase))
             {
                 ((HashSet<string>)_fido2Config.Origins).Add(origin);
 
