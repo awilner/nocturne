@@ -10,7 +10,6 @@ using Nocturne.API.Configuration;
 using Nocturne.API.Services.Auth;
 using Nocturne.API.Extensions;
 using Nocturne.API.Hubs;
-using Nocturne.API.Infrastructure;
 using Nocturne.API.Middleware;
 using Nocturne.API.Multitenancy;
 using OpenApi.Remote.Processors;
@@ -496,6 +495,22 @@ static bool IsRunningInNSwagContext()
     }
 
     return false;
+}
+
+/// <summary>
+/// Removes controllers in the .DevOnly namespace from non-development environments.
+/// Defined here to avoid creating a Nocturne.API.Infrastructure namespace that
+/// collides with relative namespace resolution in other files.
+/// </summary>
+file class RemoveDevOnlyControllersFeatureProvider
+    : Microsoft.AspNetCore.Mvc.Controllers.ControllerFeatureProvider
+{
+    protected override bool IsController(System.Reflection.TypeInfo typeInfo)
+    {
+        if (typeInfo.Namespace?.Contains(".DevOnly", StringComparison.Ordinal) == true)
+            return false;
+        return base.IsController(typeInfo);
+    }
 }
 
 // Make Program accessible for testing
