@@ -516,8 +516,17 @@ public class DevAdminController : ControllerBase
                     var secretsJson = "{}";
                     if (c.SecretsPlaintext is { Count: > 0 })
                     {
-                        var encrypted = _encryption.EncryptSecrets(c.SecretsPlaintext);
-                        secretsJson = JsonSerializer.Serialize(encrypted, JsonOptions);
+                        if (_encryption.IsConfigured)
+                        {
+                            var encrypted = _encryption.EncryptSecrets(c.SecretsPlaintext);
+                            secretsJson = JsonSerializer.Serialize(encrypted, JsonOptions);
+                        }
+                        else
+                        {
+                            _logger.LogWarning(
+                                "Encryption not configured; skipping secret encryption for connector {Name}",
+                                c.ConnectorName);
+                        }
                     }
 
                     _db.ConnectorConfigurations.Add(new()
@@ -550,7 +559,6 @@ public class DevAdminController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Dev snapshot import failed");
-            await tx.RollbackAsync(ct);
             return StatusCode(500, new { success = false, error = ex.Message });
         }
     }
