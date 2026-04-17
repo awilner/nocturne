@@ -18,7 +18,20 @@ import * as js from '../../../locales/js.loader.server.js'
 import { locales } from '../../../locales/data.js'
 import supportedLocales from '../../../supportedLocales.json';
 import { LANGUAGE_COOKIE_NAME } from "$lib/stores/appearance-store.svelte";
-import { isPublicRoute, STATIC_ASSET_PREFIXES } from "$lib/config/public-routes";
+
+/** Static asset paths that bypass all middleware. */
+const STATIC_ASSET_PREFIXES = ["/_app", "/assets", "/favicon.ico"] as const;
+
+/** Route prefixes that bypass requireAuthentication enforcement. */
+const PUBLIC_PREFIXES = ["/auth", "/api", "/setup", "/clock", "/invite", "/terms", "/privacy"] as const;
+
+function isPublicRoute(pathname: string): boolean {
+  return (
+    pathname === "/" ||
+    PUBLIC_PREFIXES.some((p) => pathname.startsWith(p)) ||
+    STATIC_ASSET_PREFIXES.some((p) => pathname.startsWith(p))
+  );
+}
 
 // load at server startup
 loadLocales(main.key, main.loadIDs, main.loadCatalog, locales)
