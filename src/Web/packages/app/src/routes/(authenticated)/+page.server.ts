@@ -1,5 +1,4 @@
 import type { PageServerLoad } from './$types';
-import { redirect } from '@sveltejs/kit';
 import { transformChartData, type TransformedChartData } from '$lib/utils/chart-data-transform';
 
 // Hours of data for initial fast load (most recent)
@@ -7,13 +6,7 @@ const INITIAL_HOURS = 6;
 // Total hours to fetch (matches GLUCOSE_CHART_FETCH_HOURS)
 const TOTAL_HOURS = 48;
 
-export const load: PageServerLoad = async ({ locals, url }) => {
-	// Redirect to login if not authenticated
-	if (!locals.isAuthenticated) {
-		const returnUrl = url.pathname + url.search;
-		redirect(303, `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
-	}
-
+export const load: PageServerLoad = async ({ locals }) => {
 	const { apiClient } = locals;
 
 	const now = Date.now();
