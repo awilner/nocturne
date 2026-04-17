@@ -221,6 +221,7 @@ public class MetadataController : ControllerBase
     /// <returns>Auth error codes metadata</returns>
     [HttpGet("auth-error-codes")]
     [RemoteQuery]
+    [ApiExplorerSettings(IgnoreApi = false)]
     [ProducesResponseType(typeof(AuthErrorCodesMetadata), 200)]
     public ActionResult<AuthErrorCodesMetadata> GetAuthErrorCodes()
     {

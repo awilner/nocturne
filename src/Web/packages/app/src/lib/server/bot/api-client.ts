@@ -36,7 +36,7 @@ export function buildBotApiClient(api: ApiClient): BotApiClient {
       markFailed: (deliveryId, request, signal) =>
         api.alerts.markFailed(deliveryId, request, signal),
       getPendingDeliveries: (channelType, signal) =>
-        api.alerts.getPendingDeliveries(channelType, signal),
+        api.alerts.getPendingDeliveries(channelType as import('$api-clients').ChannelType[] | undefined, signal),
     },
     system: {
       heartbeat: (request, signal) => api.system.heartbeat(request, signal),

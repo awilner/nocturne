@@ -71,7 +71,7 @@
     [ChannelType.DiscordDm]: "discord",
     [ChannelType.SlackDm]: "slack",
     [ChannelType.Telegram]: "telegram",
-    [ChannelType.Whatsapp]: "whatsapp",
+    [ChannelType.WhatsApp]: "whatsapp",
   };
 
   function isEnabled(channelType: ChannelType): boolean {

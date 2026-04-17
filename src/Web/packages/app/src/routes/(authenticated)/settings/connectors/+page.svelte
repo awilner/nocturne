@@ -30,6 +30,7 @@
     ConnectorCapabilities,
     DeduplicationJobStatus,
   } from "$lib/api/generated/nocturne-api-client";
+  import { DataSourceCategory } from "$api-clients";
 
   // Extended type that includes description and runtime fields for UI display.
   // ConnectorStatusInfo has the configuration status (connectorName, isEnabled, etc.).
@@ -462,7 +463,7 @@
   }
 
   function isDemoDataSource(source: DataSourceInfo): boolean {
-    return source.category === "demo" || source.sourceType === "demo";
+    return source.sourceType === "demo";
   }
 
   function openDataSourceDialog(source: DataSourceInfo) {
