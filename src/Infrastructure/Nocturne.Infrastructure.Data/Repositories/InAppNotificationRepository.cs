@@ -200,9 +200,7 @@ public class InAppNotificationRepository : IInAppNotificationRepository
         return new InAppNotificationDto
         {
             Id = entity.Id,
-            Type = Enum.TryParse<InAppNotificationType>(entity.Type, out var parsedType)
-                ? parsedType
-                : default,
+            Type = entity.Type,
             Category = entity.Category,
             Icon = entity.Icon,
             Source = entity.Source,

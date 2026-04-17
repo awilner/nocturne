@@ -4,6 +4,8 @@ using Nocturne.API.Configuration;
 using Nocturne.API.Middleware.Handlers;
 using Nocturne.API.Services;
 using Nocturne.API.Services.AidDetection;
+using Nocturne.API.Services.NotificationActionHandlers;
+using Nocturne.API.Services.NotificationTemplates;
 using Nocturne.API.Services.ChartData;
 using Nocturne.API.Services.ChartData.Stages;
 using Nocturne.API.Services.Alerts;
@@ -534,6 +536,14 @@ public static class ServiceRegistrationExtensions
         services.AddScoped<IInAppNotificationRepository, InAppNotificationRepository>();
         services.AddScoped<IInAppNotificationService, InAppNotificationService>();
         services.AddHostedService<NotificationResolutionService>();
+
+        // Notification template registry (singleton -- templates are immutable after startup)
+        var templateRegistry = new NotificationTemplateRegistry().AddBuiltInTemplates();
+        services.AddSingleton<INotificationTemplateRegistry>(templateRegistry);
+
+        // Notification action handlers (scoped -- they may depend on scoped services)
+        services.AddScoped<INotificationActionHandler, MealMatchActionHandler>();
+        services.AddScoped<INotificationActionHandler, TrackerSuggestionActionHandler>();
 
         return services;
     }

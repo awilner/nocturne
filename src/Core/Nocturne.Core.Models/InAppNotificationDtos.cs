@@ -11,9 +11,9 @@ public class InAppNotificationDto
     public Guid Id { get; set; }
 
     /// <summary>
-    /// Type of notification for categorization and handling
+    /// Dotted string type for categorization and handling (e.g., "tracker.alert", "glucose.predicted_low")
     /// </summary>
-    public InAppNotificationType Type { get; set; }
+    public string Type { get; set; } = string.Empty;
 
     /// <summary>
     /// Broad rendering category that determines visual treatment
