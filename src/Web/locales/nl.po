@@ -475,6 +475,7 @@ msgid "Select"
 msgstr ""
 
 #: src/lib/components/TreatmentsTable.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/lib/components/profile/ProfileEditDialog.svelte
 #: src/lib/components/profile/ProfileEditDialog.svelte
 #: src/lib/components/schedule/ScheduleView.svelte
@@ -494,6 +495,7 @@ msgid "Blood Glucose"
 msgstr ""
 
 #: src/lib/components/TreatmentsTable.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/lib/components/reports/year-overview/DayDetailPanel.svelte
 #: src/lib/components/reports/year-overview/YearHeatmap.svelte
 #: src/lib/components/treatments/TreatmentStatsCard.svelte
@@ -1154,6 +1156,8 @@ msgstr ""
 #. placeholder {0}: foodEntry.fat
 #. placeholder {0}: scaledFat()
 #. placeholder {0}: foodEntry.fat
+#. placeholder {0}: dayTotalCarbs
+#. placeholder {0}: totalCarbs
 #. placeholder {0}: (snapshot.cob ?? 0).toFixed(0)
 #. placeholder {0}: Math.round(d.averageDailyCarbs)
 #. placeholder {0}: formatCarbDisplay(averages.avgCarbs)
@@ -1168,8 +1172,6 @@ msgstr ""
 #. placeholder {0}: totalCarbs.toFixed(0)
 #. placeholder {0}: food.carbs
 #. placeholder {0}: formatMacro(scaledCarbs)
-#. placeholder {0}: dayTotalCarbs
-#. placeholder {0}: totalCarbs
 #. placeholder {0}: (summary?.totals?.food?.carbs ?? 0).toFixed(0)
 #. placeholder {0}: row.carbs
 #. placeholder {0}: row.carbs
@@ -1186,6 +1188,8 @@ msgstr ""
 #: src/lib/components/meal-matching/MealMatchReviewDialog.svelte
 #: src/lib/components/meal-matching/MealMatchReviewDialog.svelte
 #: src/lib/components/meal-matching/MealMatchReviewDialog.svelte
+#: src/lib/components/meals/MealsTable.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/lib/components/reports/ApsStateCard.svelte
 #: src/lib/components/reports/GlycemicRiskIndexChart.svelte
 #: src/lib/components/reports/PeriodAverages.svelte
@@ -1200,8 +1204,6 @@ msgstr ""
 #: src/lib/components/treatments/TreatmentStatsCard.svelte
 #: src/routes/(authenticated)/food/FoodList.svelte
 #: src/routes/(authenticated)/food/QuickPickItem.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
 #: src/routes/(authenticated)/reports/day-in-review/+page.svelte
 #: src/routes/(authenticated)/reports/day-in-review/+page.svelte
 #: src/routes/calendar/+page.svelte
@@ -1224,6 +1226,8 @@ msgstr ""
 #. placeholder {0}: monthSummary.tdd.toFixed(1)
 #. placeholder {0}: snapshot.enactedBolusVolume.toFixed(2)
 #. placeholder {0}: insulin.toFixed(1)
+#. placeholder {0}: dayTotalInsulin.toFixed(1)
+#. placeholder {0}: meal.correlatedBolus.insulin.toFixed(1)
 #. placeholder {0}: totalIob.toFixed(2)
 #. placeholder {0}: snapshot.enactedBolusVolume.toFixed(2)
 #. placeholder {0}: snapshot.recommendedBolus.toFixed(2)
@@ -1237,8 +1241,6 @@ msgstr ""
 #. placeholder {0}: d.value.toFixed(2)
 #. placeholder {0}: formatInsulinDisplay(averages.avgTotalDaily)
 #. placeholder {0}: totalInsulin.toFixed(1)
-#. placeholder {0}: dayTotalInsulin.toFixed(1)
-#. placeholder {0}: meal.correlatedBolus.insulin.toFixed(1)
 #. placeholder {0}: (row.insulin ?? 0).toFixed(2)
 #. placeholder {0}: (row.insulin ?? 0).toFixed(2)
 #: src/lib/components/calendar/CalendarDayCell.svelte
@@ -1246,6 +1248,8 @@ msgstr ""
 #: src/lib/components/calendar/CalendarMonthSummary.svelte
 #: src/lib/components/dashboard/GlucoseChartCard.svelte
 #: src/lib/components/dashboard/glucose-chart/markers/BolusMarker.svelte
+#: src/lib/components/meals/MealsTable.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/lib/components/reports/ApsStateCard.svelte
 #: src/lib/components/reports/ApsStateCard.svelte
 #: src/lib/components/reports/ApsStateCard.svelte
@@ -1259,8 +1263,6 @@ msgstr ""
 #: src/lib/components/reports/InsulinDonutChart.svelte
 #: src/lib/components/reports/PeriodAverages.svelte
 #: src/lib/components/treatments/TreatmentStatsCard.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
 #: src/routes/(authenticated)/reports/day-in-review/+page.svelte
 #: src/routes/calendar/+page.svelte
 #: src/routes/calendar/+page.svelte
@@ -1788,10 +1790,10 @@ msgstr ""
 msgid "Method"
 msgstr ""
 
+#: src/lib/components/meals/MealsFilterBar.svelte
 #: src/lib/components/treatments/TreatmentCategoryTabs.svelte
 #: src/routes/(authenticated)/compatibility/+page.svelte
 #: src/routes/(authenticated)/compatibility/+page.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
 #: src/routes/(authenticated)/reports/data-quality/compression-lows/+page.svelte
 #: src/routes/(authenticated)/reports/data-quality/compression-lows/+page.svelte
 #: src/routes/(fullscreen)/setup/connect/+page.svelte
@@ -1869,9 +1871,9 @@ msgstr ""
 #: src/lib/components/connectors/ConnectorDetailsDialog.svelte
 #: src/lib/components/connectors/DataSourceManageDialog.svelte
 #: src/lib/components/dashboard/glucose-chart/dialogs/DeliveryInspectionDialog.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/lib/components/status-pills/COBPill.svelte
 #: src/routes/(authenticated)/compatibility/+page.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
 #: src/routes/(authenticated)/settings/admin/tenants/+page.svelte
 #: src/routes/compatibility/+page.svelte
 #: src/routes/meals/+page.svelte
@@ -2212,6 +2214,7 @@ msgstr ""
 #: src/lib/components/dashboard/RecentTreatmentsCard.svelte
 #: src/lib/components/dashboard/glucose-chart/ChartLegend.svelte
 #: src/lib/components/dashboard/glucose-chart/ChartTooltip.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/lib/components/reports/year-overview/DayDetailPanel.svelte
 #: src/lib/components/reports/year-overview/YearHeatmap.svelte
 #: src/lib/components/treatments/TreatmentStatsCard.svelte
@@ -2438,14 +2441,14 @@ msgstr ""
 
 #: src/lib/components/connectors/UploaderAppsCard.svelte
 #: src/lib/components/entries/FoodBreakdown.svelte
+#: src/lib/components/meals/MealsTable.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/lib/components/trackers/TrackerCompletionDialog.svelte
 #: src/lib/components/trackers/TrackerStartDialog.svelte
 #: src/lib/components/treatments/CarbBreakdownBar.svelte
 #: src/lib/components/treatments/TreatmentFoodBreakdown.svelte
 #: src/lib/components/treatments/TreatmentFoodEntryEditDialog.svelte
 #: src/lib/components/treatments/TreatmentFoodSelectorDialog.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
 #: src/routes/(authenticated)/notifications/+page.svelte
 #: src/routes/(authenticated)/settings/trackers/+page.svelte
 #: src/routes/meals/+page.svelte
@@ -2716,7 +2719,8 @@ msgid "Duration: {0} · {1} <0/>"
 msgstr ""
 
 #: src/lib/components/icons/TreatmentTypeIcon.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealsTable.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/routes/(authenticated)/meals/+page.svelte
 #: src/routes/meals/+page.svelte
 #: src/routes/meals/+page.svelte
@@ -2747,7 +2751,7 @@ msgstr ""
 #~ msgid "Failed to delete treatment"
 #~ msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/routes/meals/+page.svelte
 msgid "No foods attributed"
 msgstr ""
@@ -2774,90 +2778,83 @@ msgstr ""
 #~ msgid "Pair carb treatments with foods when you want more detail."
 #~ msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealsFilterBar.svelte
 #: src/routes/meals/+page.svelte
 msgid "Unattributed only"
 msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealsFilterBar.svelte
 #: src/routes/meals/+page.svelte
 msgid "Search meals..."
 msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
 #: src/routes/meals/+page.svelte
 msgid "<0/> Foods <1/> <2/>"
 msgstr ""
 
+#: src/lib/components/meals/MealsFilterBar.svelte
 #: src/lib/components/treatments/FoodSearchCombobox.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
 #: src/routes/meals/+page.svelte
 msgid "Search foods..."
 msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealsFilterBar.svelte
 #: src/routes/meals/+page.svelte
 msgid "No foods found."
 msgstr ""
 
+#: src/lib/components/meals/MealsFilterBar.svelte
 #: src/lib/components/treatments/TreatmentsDataTable.svelte
 #: src/lib/components/treatments/TreatmentsDataTable.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
 #: src/routes/meals/+page.svelte
 msgid "<0/> Clear filter"
 msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealsFilterBar.svelte
 #: src/routes/(authenticated)/reports/treatments/+page.svelte
 #: src/routes/meals/+page.svelte
 #: src/routes/reports/treatments/+page.svelte
 msgid "<0/> Clear filters"
 msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealsFilterBar.svelte
 #: src/routes/(authenticated)/reports/treatments/+page.svelte
 #: src/routes/meals/+page.svelte
 #: src/routes/reports/treatments/+page.svelte
 msgid "Showing:"
 msgstr ""
 
-#. placeholder {0}: filteredAndSortedMeals.length
-#. placeholder {1}: meals.length
 #. placeholder {0}: filteredRows.length
 #. placeholder {1}: allRows.length
-#: src/routes/(authenticated)/meals/+page.svelte
+#. placeholder {1}: allRows.length
 #: src/routes/(authenticated)/reports/treatments/+page.svelte
 #: src/routes/meals/+page.svelte
 #: src/routes/reports/treatments/+page.svelte
 msgid "{0} of {1}"
 msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/routes/meals/+page.svelte
 msgid "No meals found in this range."
 msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/routes/meals/+page.svelte
 msgid "No meals match the current filters."
 msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
 #: src/routes/meals/+page.svelte
 msgid "Time <0/>"
 msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
 #: src/routes/meals/+page.svelte
 msgid "Meal <0/>"
 msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
 #: src/routes/meals/+page.svelte
 msgid "Carbs <0/>"
 msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
 #: src/routes/meals/+page.svelte
 msgid "Insulin <0/>"
 msgstr ""
@@ -2867,18 +2864,18 @@ msgstr ""
 #. placeholder {0}: day.meals.length
 #. placeholder {1}: day.meals.length !== 1 ? "s" : ""
 #: src/lib/components/dashboard/widgets/MealsWidget.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/routes/meals/+page.svelte
 msgid "{0} meal{1}"
 msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/routes/meals/+page.svelte
 msgid "Attributed"
 msgstr ""
 
+#: src/lib/components/meals/MealsTable.svelte
 #: src/lib/components/treatments/CarbBreakdownBar.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
 #: src/routes/meals/+page.svelte
 msgid "Unattributed"
 msgstr ""
@@ -2896,19 +2893,19 @@ msgid "Edit"
 msgstr ""
 
 #. placeholder {0}: meal.foods?.length
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/routes/meals/+page.svelte
 msgid "Foods ({0})"
 msgstr ""
 
 #. placeholder {0}: meal.attributedCarbs ?? 0
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/routes/meals/+page.svelte
 msgid "Attributed: {0}g"
 msgstr ""
 
 #. placeholder {0}: meal.unspecifiedCarbs ?? 0
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/routes/meals/+page.svelte
 msgid "Unspecified: {0}g"
 msgstr ""
@@ -15528,7 +15525,7 @@ msgstr ""
 #~ msgstr ""
 
 #: src/lib/components/meal-matching/MealMatchReviewDialog.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealSuggestionRow.svelte
 #: src/routes/meals/+page.svelte
 msgid "Food entry"
 msgstr ""
@@ -15571,13 +15568,13 @@ msgstr ""
 
 #: src/lib/components/dashboard/SetupCard.svelte
 #: src/lib/components/meal-matching/MealMatchReviewDialog.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealSuggestionRow.svelte
 #: src/routes/meals/+page.svelte
 msgid "Dismiss"
 msgstr ""
 
 #: src/lib/components/meal-matching/MealMatchReviewDialog.svelte
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealSuggestionRow.svelte
 #: src/routes/meals/+page.svelte
 msgid "Accept"
 msgstr ""
@@ -15611,7 +15608,7 @@ msgstr ""
 #~ "· {2}% match"
 #~ msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealSuggestionRow.svelte
 #: src/routes/meals/+page.svelte
 msgid "Review"
 msgstr ""
@@ -15660,9 +15657,9 @@ msgstr ""
 msgid "Logged time"
 msgstr ""
 
-#. placeholder {0}: match.carbs
-#. placeholder {1}: Math.round((match.matchScore ?? 0) * 100)
-#: src/routes/(authenticated)/meals/+page.svelte
+#. placeholder {0}: suggestion.carbs
+#. placeholder {1}: Math.round((suggestion.matchScore ?? 0) * 100)
+#: src/lib/components/meals/MealSuggestionRow.svelte
 #: src/routes/meals/+page.svelte
 msgid ""
 "{0}g carbs\n"
@@ -18060,7 +18057,7 @@ msgstr ""
 msgid "Failed to unlink food"
 msgstr ""
 
-#: src/routes/(authenticated)/meals/+page.svelte
+#: src/lib/components/meals/MealsTable.svelte
 #: src/routes/(authenticated)/meals/+page.svelte
 #: src/routes/meals/+page.svelte
 #: src/routes/meals/+page.svelte
@@ -27286,4 +27283,8 @@ msgstr ""
 
 #: src/routes/(unauthenticated)/setup/account/+page.svelte
 msgid "Set up the admin account for your Nocturne instance."
+msgstr ""
+
+#: src/lib/components/meals/MealsFilterBar.svelte
+msgid "Foods <0/> <1/>"
 msgstr ""

@@ -1,3 +1,4 @@
 @import "@nocturne/ui/theme.css";
+@source "../node_modules/@nocturne/ui/src";
 @source not "../locales/";
 @source '../node_modules/layerchart/dist';
