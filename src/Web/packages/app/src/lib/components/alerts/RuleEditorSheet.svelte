@@ -38,8 +38,7 @@
     ChevronUp,
   } from "lucide-svelte";
   import GeneralTab from "./GeneralTab.svelte";
-  import AudioSection from "./AudioSection.svelte";
-  import VisualSection from "./VisualSection.svelte";
+  import PresentationTab from "./PresentationTab.svelte";
 
   interface Props {
     open: boolean;
@@ -585,15 +584,11 @@
 
         <!-- Presentation Tab -->
         <Tabs.Content value="presentation" class="space-y-6 pt-4">
-          <AudioSection
-            bind:audio={clientConfig.audio}
+          <PresentationTab
+            bind:clientConfig
             {customSounds}
             onSoundsChanged={(sounds) => { customSounds = sounds; }}
           />
-
-          <Separator />
-
-          <VisualSection bind:visual={clientConfig.visual} />
         </Tabs.Content>
 
         <!-- Snooze Tab -->
