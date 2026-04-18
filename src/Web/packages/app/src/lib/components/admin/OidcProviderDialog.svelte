@@ -72,7 +72,7 @@
     testingProvider = true;
     testResult = null;
     try {
-      const { testOidcProviderConfig } = await import("../../routes/(authenticated)/settings/admin/oidc-providers.remote");
+      const { testOidcProviderConfig } = await import("../../../routes/(authenticated)/settings/admin/oidc-providers.remote");
       testResult = await testOidcProviderConfig({
         issuerUrl: providerIssuerUrl,
         clientId: providerClientId,
