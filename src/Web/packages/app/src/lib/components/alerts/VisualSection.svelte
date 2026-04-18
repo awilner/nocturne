@@ -1,13 +1,7 @@
 <script lang="ts">
   import { Switch } from "$lib/components/ui/switch";
   import { Label } from "$lib/components/ui/label";
-
-  interface VisualConfig {
-    flashEnabled: boolean;
-    flashColor: string;
-    persistentBanner: boolean;
-    wakeScreen: boolean;
-  }
+  import type { VisualConfig } from "./types";
 
   interface Props {
     visual: VisualConfig;

@@ -8,29 +8,8 @@
   import { Badge } from "$lib/components/ui/badge";
   import { Separator } from "$lib/components/ui/separator";
   import { Plus, X, Trash2, ChevronDown, ChevronUp } from "lucide-svelte";
-
-  interface EditableChannel {
-    channelType: ChannelType | string;
-    destination: string;
-    destinationLabel: string;
-  }
-
-  interface EditableStep {
-    stepOrder: number;
-    delaySeconds: number;
-    channels: EditableChannel[];
-  }
-
-  interface EditableSchedule {
-    name: string;
-    isDefault: boolean;
-    daysOfWeek: number[];
-    startTime: string;
-    endTime: string;
-    timezone: string;
-    escalationSteps: EditableStep[];
-    expanded: boolean;
-  }
+  import { defaultSchedule } from "./types";
+  import type { EditableStep, EditableSchedule } from "./types";
 
   interface Props {
     schedules: EditableSchedule[];
@@ -49,31 +28,6 @@
     [ChannelType.Telegram]: "Telegram",
     [ChannelType.WhatsApp]: "WhatsApp",
   };
-
-  function defaultSchedule(): EditableSchedule {
-    return {
-      name: "Default Schedule",
-      isDefault: true,
-      daysOfWeek: [],
-      startTime: "00:00",
-      endTime: "23:59",
-      timezone: "UTC",
-      escalationSteps: [
-        {
-          stepOrder: 0,
-          delaySeconds: 0,
-          channels: [
-            {
-              channelType: ChannelType.WebPush,
-              destination: "",
-              destinationLabel: "",
-            },
-          ],
-        },
-      ],
-      expanded: true,
-    };
-  }
 
   function addSchedule() {
     const newSched = defaultSchedule();

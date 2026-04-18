@@ -17,17 +17,7 @@
     Upload,
     Trash2,
   } from "lucide-svelte";
-
-  interface AudioConfig {
-    enabled: boolean;
-    sound: string;
-    customSoundId: string | null;
-    ascending: boolean;
-    startVolume: number;
-    maxVolume: number;
-    ascendDurationSeconds: number;
-    repeatCount: number;
-  }
+  import type { AudioConfig } from "./types";
 
   interface Props {
     audio: AudioConfig;

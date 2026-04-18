@@ -3,29 +3,7 @@
   import { Separator } from "$lib/components/ui/separator";
   import AudioSection from "./AudioSection.svelte";
   import VisualSection from "./VisualSection.svelte";
-
-  interface AudioConfig {
-    enabled: boolean;
-    sound: string;
-    customSoundId: string | null;
-    ascending: boolean;
-    startVolume: number;
-    maxVolume: number;
-    ascendDurationSeconds: number;
-    repeatCount: number;
-  }
-
-  interface VisualConfig {
-    flashEnabled: boolean;
-    flashColor: string;
-    persistentBanner: boolean;
-    wakeScreen: boolean;
-  }
-
-  interface ClientConfiguration {
-    audio: AudioConfig;
-    visual: VisualConfig;
-  }
+  import type { ClientConfiguration } from "./types";
 
   interface Props {
     clientConfig: ClientConfiguration;

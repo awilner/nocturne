@@ -6,14 +6,7 @@
   import { Badge } from "$lib/components/ui/badge";
   import { Separator } from "$lib/components/ui/separator";
   import { X } from "lucide-svelte";
-
-  interface SnoozeConfig {
-    defaultMinutes: number;
-    options: number[];
-    maxCount: number;
-    smartSnooze: boolean;
-    smartSnoozeExtendMinutes: number;
-  }
+  import type { SnoozeConfig } from "./types";
 
   interface Props {
     snooze: SnoozeConfig;

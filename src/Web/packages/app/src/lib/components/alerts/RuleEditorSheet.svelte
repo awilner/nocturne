@@ -28,6 +28,8 @@
   import PresentationTab from "./PresentationTab.svelte";
   import SnoozeTab from "./SnoozeTab.svelte";
   import SchedulesTab from "./SchedulesTab.svelte";
+  import { defaultSchedule } from "./types";
+  import type { ClientConfiguration, EditableSchedule } from "./types";
 
   interface Props {
     open: boolean;
@@ -36,63 +38,6 @@
   }
 
   let { open = $bindable(), rule, onSave }: Props = $props();
-
-  // --- Audio config type ---
-  interface AudioConfig {
-    enabled: boolean;
-    sound: string;
-    customSoundId: string | null;
-    ascending: boolean;
-    startVolume: number;
-    maxVolume: number;
-    ascendDurationSeconds: number;
-    repeatCount: number;
-  }
-
-  interface VisualConfig {
-    flashEnabled: boolean;
-    flashColor: string;
-    persistentBanner: boolean;
-    wakeScreen: boolean;
-  }
-
-  interface SnoozeConfig {
-    defaultMinutes: number;
-    options: number[];
-    maxCount: number;
-    smartSnooze: boolean;
-    smartSnoozeExtendMinutes: number;
-  }
-
-  interface ClientConfiguration {
-    audio: AudioConfig;
-    visual: VisualConfig;
-    snooze: SnoozeConfig;
-  }
-
-  // --- Schedule editing types ---
-  interface EditableChannel {
-    channelType: ChannelType | string;
-    destination: string;
-    destinationLabel: string;
-  }
-
-  interface EditableStep {
-    stepOrder: number;
-    delaySeconds: number;
-    channels: EditableChannel[];
-  }
-
-  interface EditableSchedule {
-    name: string;
-    isDefault: boolean;
-    daysOfWeek: number[];
-    startTime: string;
-    endTime: string;
-    timezone: string;
-    escalationSteps: EditableStep[];
-    expanded: boolean;
-  }
 
   // --- Defaults ---
   function defaultClientConfig(): ClientConfiguration {
@@ -120,31 +65,6 @@
         smartSnooze: false,
         smartSnoozeExtendMinutes: 10,
       },
-    };
-  }
-
-  function defaultSchedule(): EditableSchedule {
-    return {
-      name: "Default Schedule",
-      isDefault: true,
-      daysOfWeek: [],
-      startTime: "00:00",
-      endTime: "23:59",
-      timezone: "UTC",
-      escalationSteps: [
-        {
-          stepOrder: 0,
-          delaySeconds: 0,
-          channels: [
-            {
-              channelType: ChannelType.WebPush,
-              destination: "",
-              destinationLabel: "",
-            },
-          ],
-        },
-      ],
-      expanded: true,
     };
   }
 
