@@ -417,9 +417,20 @@ class Program
 #pragma warning disable ASPIRECERTIFICATES001
         var gateway = builder.AddYarp("gateway").WithExternalHttpEndpoints();
 
+        var customDomain = builder.Configuration["LocalDev:Domain"];
+
         if (builder.ExecutionContext.IsRunMode)
         {
-            gateway.WithHttpsDeveloperCertificate();
+            if (!string.IsNullOrEmpty(customDomain))
+            {
+                var cert = MkcertHelper.EnsureCertificate(customDomain);
+                gateway.WithHttpsCertificate(cert);
+            }
+            else
+            {
+                gateway.WithHttpsDeveloperCertificate();
+            }
+
             if (!isWorktree)
             {
                 gateway.WithHttpsEndpoint(port: 1612);
@@ -482,19 +493,36 @@ class Program
         if (builder.ExecutionContext.IsRunMode)
         {
             var gatewayEndpoint = gateway.GetEndpoint("https");
-            var baseDomainExpr = ReferenceExpression.Create(
-                $"{gatewayEndpoint.Property(EndpointProperty.Host)}:{gatewayEndpoint.Property(EndpointProperty.Port)}"
-            );
+            var baseDomainExpr = !string.IsNullOrEmpty(customDomain)
+                ? ReferenceExpression.Create(
+                    $"{customDomain}:{gatewayEndpoint.Property(EndpointProperty.Port)}"
+                )
+                : ReferenceExpression.Create(
+                    $"{gatewayEndpoint.Property(EndpointProperty.Host)}:{gatewayEndpoint.Property(EndpointProperty.Port)}"
+                );
+
+            // Inject Multitenancy:BaseDomain into the API (single source of truth)
+            api.WithEnvironment("Multitenancy__BaseDomain", baseDomainExpr);
+
             ((IResourceBuilder<IResourceWithEnvironment>)web).WithEnvironment(
                 "PUBLIC_BASE_DOMAIN",
                 baseDomainExpr
             );
+
+            var hmrHost = !string.IsNullOrEmpty(customDomain) ? customDomain : "localhost";
             ((IResourceBuilder<IResourceWithEnvironment>)web)
                 .WithEnvironment(
                     "VITE_HMR_CLIENT_PORT",
                     gatewayEndpoint.Property(EndpointProperty.Port)
                 )
-                .WithEnvironment("VITE_HMR_HOST", "localhost");
+                .WithEnvironment("VITE_HMR_HOST", hmrHost);
+
+            // Warn if custom domain doesn't resolve
+            if (!string.IsNullOrEmpty(customDomain))
+            {
+                var port = isWorktree ? 0 : 1612;
+                MkcertHelper.WarnIfDomainUnresolvable(customDomain, port);
+            }
         }
 
         // ------------------------------------------------------------------
