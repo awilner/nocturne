@@ -58,6 +58,7 @@
   import TrackerExpirationMarker from "./markers/TrackerExpirationMarker.svelte";
   import { mergeChartData } from "$lib/utils/chart-data-merge";
   import type { TransformedChartData } from "$lib/utils/chart-data-transform";
+  import { SWIM_LANE_HEIGHT, getSwimLanePositions } from "./chart-layout";
 
   interface ComponentProps {
     demoMode?: boolean;
@@ -650,8 +651,6 @@
   });
 
   // ===== TRACK CONFIGURATION =====
-  const SWIM_LANE_HEIGHT = 0.04;
-
   const trackConfig = $derived.by(() => {
     const showBasalTrack = showBasal;
     const showIobTrack = showIob || showCob;
@@ -681,72 +680,6 @@
       showIobTrack,
     };
   });
-
-  // Swim lane position types
-  type SwimLanePosition = {
-    top: number;
-    bottom: number;
-    visible: boolean;
-  };
-
-  type SwimLanePositions = {
-    pumpMode: SwimLanePosition;
-    override: SwimLanePosition;
-    profile: SwimLanePosition;
-    activity: SwimLanePosition;
-  };
-
-  let cachedSwimLaneHeight = 0;
-  let cachedBasalTrackBottom = 0;
-  let cachedSwimLanes: typeof trackConfig.swimLanes | null = null;
-  let cachedSwimLanePositions: SwimLanePositions | null = null;
-
-  function getSwimLanePositions(
-    contextHeight: number,
-    basalTrackBottom: number,
-    swimLanes: typeof trackConfig.swimLanes
-  ): SwimLanePositions {
-    const swimLaneHeight = contextHeight * SWIM_LANE_HEIGHT;
-
-    if (
-      cachedSwimLanePositions &&
-      swimLaneHeight === cachedSwimLaneHeight &&
-      basalTrackBottom === cachedBasalTrackBottom &&
-      cachedSwimLanes &&
-      swimLanes.pumpMode === cachedSwimLanes.pumpMode &&
-      swimLanes.override === cachedSwimLanes.override &&
-      swimLanes.profile === cachedSwimLanes.profile &&
-      swimLanes.activity === cachedSwimLanes.activity
-    ) {
-      return cachedSwimLanePositions;
-    }
-
-    let currentY = basalTrackBottom;
-    const positions: SwimLanePositions = {
-      pumpMode: { top: 0, bottom: 0, visible: false },
-      override: { top: 0, bottom: 0, visible: false },
-      profile: { top: 0, bottom: 0, visible: false },
-      activity: { top: 0, bottom: 0, visible: false },
-    };
-
-    const laneOrder = ["pumpMode", "override", "profile", "activity"] as const;
-    for (const lane of laneOrder) {
-      const visible = swimLanes[lane];
-      positions[lane] = {
-        top: currentY,
-        bottom: visible ? currentY + swimLaneHeight : currentY,
-        visible,
-      };
-      if (visible) currentY += swimLaneHeight;
-    }
-
-    cachedSwimLaneHeight = swimLaneHeight;
-    cachedBasalTrackBottom = basalTrackBottom;
-    cachedSwimLanes = { ...swimLanes };
-    cachedSwimLanePositions = positions;
-
-    return positions;
-  }
 
   // ===== HELPER FUNCTIONS =====
   const bisectDate = bisector((d: { time: Date }) => d.time).left;
