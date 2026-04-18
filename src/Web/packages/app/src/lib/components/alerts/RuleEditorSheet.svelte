@@ -22,24 +22,12 @@
   } from "$api-clients";
   import * as Sheet from "$lib/components/ui/sheet";
   import * as Tabs from "$lib/components/ui/tabs";
-  import * as Select from "$lib/components/ui/select";
-  import { Input } from "$lib/components/ui/input";
   import { Button } from "$lib/components/ui/button";
-  import { Switch } from "$lib/components/ui/switch";
-  import { Label } from "$lib/components/ui/label";
-  import { Badge } from "$lib/components/ui/badge";
-  import { Separator } from "$lib/components/ui/separator";
-  import {
-    Loader2,
-    Plus,
-    X,
-    Trash2,
-    ChevronDown,
-    ChevronUp,
-  } from "lucide-svelte";
+  import { Loader2 } from "lucide-svelte";
   import GeneralTab from "./GeneralTab.svelte";
   import PresentationTab from "./PresentationTab.svelte";
   import SnoozeTab from "./SnoozeTab.svelte";
+  import SchedulesTab from "./SchedulesTab.svelte";
 
   interface Props {
     open: boolean;
@@ -195,8 +183,6 @@
   let isEditMode = $derived(rule !== null);
   let title = $derived(isEditMode ? "Edit Rule" : "Create Rule");
 
-  const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
   // --- Initialization ---
   function initFromRule(r: AlertRuleResponse | null) {
     if (r) {
@@ -213,7 +199,11 @@
       if (ct === AlertConditionType.Composite) {
         isComposite = true;
         conditionType = AlertConditionType.Composite;
-      } else if (ct === AlertConditionType.Threshold || (ct as string) === "threshold_low" || (ct as string) === "threshold_high") {
+      } else if (
+        ct === AlertConditionType.Threshold ||
+        (ct as string) === "threshold_low" ||
+        (ct as string) === "threshold_high"
+      ) {
         isComposite = false;
         conditionType = AlertConditionType.Threshold;
       } else if (ct === AlertConditionType.RateOfChange) {
@@ -270,8 +260,7 @@
             options: cc.snooze?.options ?? [5, 15, 30, 60],
             maxCount: cc.snooze?.maxCount ?? 5,
             smartSnooze: cc.snooze?.smartSnooze ?? false,
-            smartSnoozeExtendMinutes:
-              cc.snooze?.smartSnoozeExtendMinutes ?? 10,
+            smartSnoozeExtendMinutes: cc.snooze?.smartSnoozeExtendMinutes ?? 10,
           },
         };
       } else {
@@ -340,17 +329,21 @@
       // Sounds unavailable
     }
 
-    getChannelStatuses().then(res => {
-      availableChannels = (res?.channels ?? []).filter(
-        c => c.status !== ChannelStatus.Unavailable
-      );
-    }).catch(() => {});
+    getChannelStatuses()
+      .then((res) => {
+        availableChannels = (res?.channels ?? []).filter(
+          (c) => c.status !== ChannelStatus.Unavailable
+        );
+      })
+      .catch(() => {});
   });
 
   // --- Condition type mapping ---
   function getApiConditionType(): string {
     if (conditionType === AlertConditionType.Threshold) {
-      return thresholdDirection === "above" ? "threshold_high" : "threshold_low";
+      return thresholdDirection === "above"
+        ? "threshold_high"
+        : "threshold_low";
     }
     return conditionType;
   }
@@ -358,11 +351,22 @@
   function getConditionParams(): Record<string, unknown> {
     switch (conditionType) {
       case AlertConditionType.Threshold:
-        return { direction: thresholdDirection, value: thresholdValue, threshold: thresholdValue };
+        return {
+          direction: thresholdDirection,
+          value: thresholdValue,
+          threshold: thresholdValue,
+        };
       case AlertConditionType.RateOfChange:
-        return { direction: rocDirection, rate: rocRate, rateThreshold: rocRate };
+        return {
+          direction: rocDirection,
+          rate: rocRate,
+          rateThreshold: rocRate,
+        };
       case AlertConditionType.SignalLoss:
-        return { timeout_minutes: signalLossTimeout, minutes: signalLossTimeout };
+        return {
+          timeout_minutes: signalLossTimeout,
+          minutes: signalLossTimeout,
+        };
       default:
         return {};
     }
@@ -392,18 +396,22 @@
                   channelType: ch.channelType as ChannelType,
                   destination: ch.destination || undefined,
                   destinationLabel: ch.destinationLabel || undefined,
-                }),
+                })
               ),
-            }),
+            })
           ),
-        }),
+        })
       );
 
       const payload = {
         name,
         description: description || undefined,
-        conditionType: isComposite ? AlertConditionType.Composite : getApiConditionType(),
-        conditionParams: isComposite ? rule?.conditionParams : getConditionParams(),
+        conditionType: isComposite
+          ? AlertConditionType.Composite
+          : getApiConditionType(),
+        conditionParams: isComposite
+          ? rule?.conditionParams
+          : getConditionParams(),
         hysteresisMinutes,
         confirmationReadings,
         isEnabled,
@@ -428,93 +436,6 @@
     }
   }
 
-  // --- Schedule management ---
-  function addSchedule() {
-    const newSched = defaultSchedule();
-    newSched.isDefault = false;
-    newSched.name = `Schedule ${schedules.length + 1}`;
-    schedules = [...schedules, newSched];
-  }
-
-  function removeSchedule(index: number) {
-    if (schedules.length <= 1) return;
-    schedules = schedules.filter((_, i) => i !== index);
-  }
-
-  function toggleScheduleDefault(index: number) {
-    schedules = schedules.map((s, i) => ({
-      ...s,
-      isDefault: i === index,
-      expanded: s.expanded,
-    }));
-  }
-
-  function toggleScheduleExpand(index: number) {
-    schedules = schedules.map((s, i) => ({
-      ...s,
-      expanded: i === index ? !s.expanded : s.expanded,
-    }));
-  }
-
-  function toggleDay(schedIndex: number, day: number) {
-    const sched = schedules[schedIndex];
-    if (sched.daysOfWeek.includes(day)) {
-      sched.daysOfWeek = sched.daysOfWeek.filter((d) => d !== day);
-    } else {
-      sched.daysOfWeek = [...sched.daysOfWeek, day].sort();
-    }
-    schedules = [...schedules];
-  }
-
-  // --- Escalation step management ---
-  function addStep(schedIndex: number) {
-    const sched = schedules[schedIndex];
-    const newStep: EditableStep = {
-      stepOrder: sched.escalationSteps.length,
-      delaySeconds: 60,
-      channels: [],
-    };
-    sched.escalationSteps = [...sched.escalationSteps, newStep];
-    schedules = [...schedules];
-  }
-
-  function removeStep(schedIndex: number, stepIndex: number) {
-    const sched = schedules[schedIndex];
-    if (stepIndex === 0) return;
-    sched.escalationSteps = sched.escalationSteps
-      .filter((_, i) => i !== stepIndex)
-      .map((s, i) => ({ ...s, stepOrder: i }));
-    schedules = [...schedules];
-  }
-
-  function addChannel(schedIndex: number, stepIndex: number) {
-    const step = schedules[schedIndex].escalationSteps[stepIndex];
-    const defaultType = availableChannels[0]?.channelType ?? ChannelType.WebPush;
-    step.channels = [
-      ...step.channels,
-      { channelType: defaultType, destination: "", destinationLabel: "" },
-    ];
-    schedules = [...schedules];
-  }
-
-  function removeChannel(
-    schedIndex: number,
-    stepIndex: number,
-    channelIndex: number,
-  ) {
-    const step = schedules[schedIndex].escalationSteps[stepIndex];
-    step.channels = step.channels.filter((_, i) => i !== channelIndex);
-    schedules = [...schedules];
-  }
-
-  const channelTypeLabels: Partial<Record<ChannelType, string>> = {
-    [ChannelType.WebPush]: "Web Push",
-    [ChannelType.Webhook]: "Webhook",
-    [ChannelType.DiscordDm]: "Discord DM",
-    [ChannelType.SlackDm]: "Slack DM",
-    [ChannelType.Telegram]: "Telegram",
-    [ChannelType.WhatsApp]: "WhatsApp",
-  };
 </script>
 
 <Sheet.Root bind:open>
@@ -532,13 +453,13 @@
       <Tabs.Root bind:value={activeTab}>
         <Tabs.List class="w-full">
           <Tabs.Trigger value="general" class="flex-1">General</Tabs.Trigger>
-          <Tabs.Trigger value="presentation" class="flex-1"
-            >Presentation</Tabs.Trigger
-          >
+          <Tabs.Trigger value="presentation" class="flex-1">
+            Presentation
+          </Tabs.Trigger>
           <Tabs.Trigger value="snooze" class="flex-1">Snooze</Tabs.Trigger>
-          <Tabs.Trigger value="schedules" class="flex-1"
-            >Schedules</Tabs.Trigger
-          >
+          <Tabs.Trigger value="schedules" class="flex-1">
+            Schedules
+          </Tabs.Trigger>
         </Tabs.List>
 
         <!-- General Tab -->
@@ -566,7 +487,9 @@
           <PresentationTab
             bind:clientConfig
             {customSounds}
-            onSoundsChanged={(sounds) => { customSounds = sounds; }}
+            onSoundsChanged={(sounds) => {
+              customSounds = sounds;
+            }}
           />
         </Tabs.Content>
 
@@ -577,230 +500,7 @@
 
         <!-- Schedules Tab -->
         <Tabs.Content value="schedules" class="space-y-4 pt-4">
-          {#each schedules as schedule, schedIdx}
-            <div class="rounded-md border">
-              <!-- Schedule header -->
-              <button
-                class="flex items-center justify-between w-full p-3 text-left hover:bg-muted/50 transition-colors"
-                onclick={() => toggleScheduleExpand(schedIdx)}
-              >
-                <div class="flex items-center gap-2">
-                  <span class="text-sm font-medium">
-                    {schedule.name || "Unnamed Schedule"}
-                  </span>
-                  {#if schedule.isDefault}
-                    <Badge variant="secondary">Default</Badge>
-                  {/if}
-                </div>
-                {#if schedule.expanded}
-                  <ChevronUp class="h-4 w-4 text-muted-foreground" />
-                {:else}
-                  <ChevronDown class="h-4 w-4 text-muted-foreground" />
-                {/if}
-              </button>
-
-              {#if schedule.expanded}
-                <div class="border-t p-3 space-y-4">
-                  <div class="space-y-2">
-                    <Label>Name</Label>
-                    <Input
-                      bind:value={schedule.name}
-                      placeholder="Schedule name"
-                    />
-                  </div>
-
-                  <div class="flex items-center justify-between">
-                    <Label>Default Schedule</Label>
-                    <Switch
-                      checked={schedule.isDefault}
-                      onCheckedChange={() => toggleScheduleDefault(schedIdx)}
-                    />
-                  </div>
-
-                  {#if !schedule.isDefault}
-                    <div class="grid grid-cols-2 gap-4">
-                      <div class="space-y-2">
-                        <Label>Start Time</Label>
-                        <Input type="time" bind:value={schedule.startTime} />
-                      </div>
-                      <div class="space-y-2">
-                        <Label>End Time</Label>
-                        <Input type="time" bind:value={schedule.endTime} />
-                      </div>
-                    </div>
-                  {/if}
-
-                  <div class="space-y-2">
-                    <Label>Days of Week</Label>
-                    <div class="flex gap-1">
-                      {#each dayLabels as dayLabel, dayIdx}
-                        <button
-                          class="h-8 w-10 rounded-md border text-xs font-medium transition-colors {schedule.daysOfWeek.includes(
-                            dayIdx,
-                          )
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-background hover:bg-muted'}"
-                          onclick={() => toggleDay(schedIdx, dayIdx)}
-                        >
-                          {dayLabel}
-                        </button>
-                      {/each}
-                    </div>
-                    <p class="text-xs text-muted-foreground">
-                      {schedule.daysOfWeek.length === 0 ||
-                      schedule.daysOfWeek.length === 7
-                        ? "Every day"
-                        : `${schedule.daysOfWeek.map((d) => dayLabels[d]).join(", ")}`}
-                    </p>
-                  </div>
-
-                  <div class="space-y-2">
-                    <Label>Timezone</Label>
-                    <Input
-                      bind:value={schedule.timezone}
-                      placeholder="UTC"
-                    />
-                  </div>
-
-                  <Separator />
-
-                  <!-- Escalation Steps -->
-                  <div class="space-y-3">
-                    <h4 class="text-sm font-medium">Escalation Steps</h4>
-
-                    {#each schedule.escalationSteps as step, stepIdx}
-                      <div class="relative pl-4 border-l-2 border-muted pb-3">
-                        <div class="space-y-3">
-                          <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium"
-                              >Step {stepIdx + 1}</span
-                            >
-                            {#if stepIdx > 0}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                class="h-7 w-7 text-destructive"
-                                onclick={() =>
-                                  removeStep(schedIdx, stepIdx)}
-                              >
-                                <Trash2 class="h-3 w-3" />
-                              </Button>
-                            {/if}
-                          </div>
-
-                          <div class="space-y-2">
-                            <Label>Delay (seconds)</Label>
-                            <Input
-                              type="number"
-                              bind:value={step.delaySeconds}
-                              disabled={stepIdx === 0}
-                            />
-                            {#if stepIdx === 0}
-                              <p class="text-xs text-muted-foreground">
-                                First step fires immediately
-                              </p>
-                            {/if}
-                          </div>
-
-                          <!-- Channels -->
-                          <div class="space-y-2">
-                            {#each step.channels as channel, chIdx}
-                              <div
-                                class="flex items-start gap-2 p-2 rounded-md border bg-background"
-                              >
-                                <div class="flex-1 space-y-2">
-                                  <Select.Root
-                                    type="single"
-                                    bind:value={channel.channelType}
-                                  >
-                                    <Select.Trigger>
-                                      {channelTypeLabels[
-                                        channel.channelType as ChannelType
-                                      ] ?? channel.channelType}
-                                    </Select.Trigger>
-                                    <Select.Content>
-                                      {#each availableChannels as ch}
-                                        <Select.Item
-                                          value={ch.channelType ?? ""}
-                                          label={channelTypeLabels[ch.channelType as ChannelType] ?? ch.channelType ?? ""}
-                                        />
-                                      {/each}
-                                      {#if availableChannels.length === 0}
-                                        <Select.Item value={ChannelType.WebPush} label="Web Push" />
-                                        <Select.Item value={ChannelType.Webhook} label="Webhook" />
-                                      {/if}
-                                    </Select.Content>
-                                  </Select.Root>
-                                  <Input
-                                    bind:value={channel.destination}
-                                    placeholder="Destination"
-                                  />
-                                  <Input
-                                    bind:value={channel.destinationLabel}
-                                    placeholder="Label (optional)"
-                                  />
-                                </div>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  class="h-7 w-7 text-destructive shrink-0"
-                                  onclick={() =>
-                                    removeChannel(
-                                      schedIdx,
-                                      stepIdx,
-                                      chIdx,
-                                    )}
-                                >
-                                  <X class="h-3 w-3" />
-                                </Button>
-                              </div>
-                            {/each}
-
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onclick={() =>
-                                addChannel(schedIdx, stepIdx)}
-                            >
-                              <Plus class="h-3 w-3 mr-1" />
-                              Add Channel
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    {/each}
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onclick={() => addStep(schedIdx)}
-                    >
-                      <Plus class="h-3 w-3 mr-1" />
-                      Add Step
-                    </Button>
-                  </div>
-
-                  <Separator />
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    class="text-destructive"
-                    disabled={schedules.length <= 1}
-                    onclick={() => removeSchedule(schedIdx)}
-                  >
-                    <Trash2 class="h-3 w-3 mr-1" />
-                    Remove Schedule
-                  </Button>
-                </div>
-              {/if}
-            </div>
-          {/each}
-
-          <Button variant="outline" onclick={addSchedule}>
-            <Plus class="h-4 w-4 mr-2" />
-            Add Schedule
-          </Button>
+          <SchedulesTab bind:schedules {availableChannels} />
         </Tabs.Content>
       </Tabs.Root>
     </div>
