@@ -46,11 +46,7 @@ public static class MkcertHelper
         try
         {
             var addresses = Dns.GetHostAddresses(domain);
-            var hasLoopback = addresses.Any(a =>
-                IPAddress.IsLoopback(a)
-                || a.Equals(IPAddress.Any)
-                || a.Equals(IPAddress.IPv6Any)
-            );
+            var hasLoopback = addresses.Any(IPAddress.IsLoopback);
 
             if (hasLoopback)
                 return;
@@ -70,8 +66,10 @@ public static class MkcertHelper
         Console.WriteLine($"[Nocturne.Aspire] WARNING: '{domain}' does not resolve to loopback.");
         Console.WriteLine($"  Add the following to {hostsPath}:");
         Console.WriteLine($"    127.0.0.1  {domain}");
-        Console.WriteLine($"    127.0.0.1  *.{domain}");
-        Console.WriteLine($"  Then access the app at https://{domain}{portHint}");
+        Console.WriteLine($"    127.0.0.1  <your-tenant>.{domain}");
+        Console.WriteLine();
+        Console.WriteLine("  Note: hosts files don't support wildcards. Add one line per tenant slug.");
+        Console.WriteLine($"  Then access the app at https://<your-tenant>.{domain}{portHint}");
         Console.WriteLine();
     }
 
@@ -81,7 +79,7 @@ public static class MkcertHelper
         {
             RunProcess("mkcert", "-version");
         }
-        catch
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or FileNotFoundException or InvalidOperationException)
         {
             string installHint;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -128,9 +126,17 @@ public static class MkcertHelper
         using var process = Process.Start(psi)
             ?? throw new InvalidOperationException($"Failed to start {fileName}");
 
+        // Read stderr async to avoid deadlock when pipe buffers fill.
+        var errorTask = process.StandardError.ReadToEndAsync();
         var output = process.StandardOutput.ReadToEnd().Trim();
-        var error = process.StandardError.ReadToEnd().Trim();
-        process.WaitForExit(30_000);
+        var error = errorTask.GetAwaiter().GetResult().Trim();
+
+        if (!process.WaitForExit(30_000))
+        {
+            process.Kill();
+            throw new InvalidOperationException(
+                $"{fileName} timed out after 30 seconds. If mkcert -install prompted for a password, run it manually first.");
+        }
 
         if (process.ExitCode != 0)
         {
