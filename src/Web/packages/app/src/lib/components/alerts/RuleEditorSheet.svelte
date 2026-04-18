@@ -28,7 +28,7 @@
   import PresentationTab from "./PresentationTab.svelte";
   import SnoozeTab from "./SnoozeTab.svelte";
   import SchedulesTab from "./SchedulesTab.svelte";
-  import { defaultSchedule } from "./types";
+  import { defaultClientConfig, defaultSchedule, parseRule } from "./types";
   import type { ClientConfiguration, EditableSchedule } from "./types";
 
   interface Props {
@@ -38,35 +38,6 @@
   }
 
   let { open = $bindable(), rule, onSave }: Props = $props();
-
-  // --- Defaults ---
-  function defaultClientConfig(): ClientConfiguration {
-    return {
-      audio: {
-        enabled: true,
-        sound: "alarm-default",
-        customSoundId: null,
-        ascending: false,
-        startVolume: 50,
-        maxVolume: 80,
-        ascendDurationSeconds: 30,
-        repeatCount: 2,
-      },
-      visual: {
-        flashEnabled: false,
-        flashColor: "#ff0000",
-        persistentBanner: true,
-        wakeScreen: false,
-      },
-      snooze: {
-        defaultMinutes: 15,
-        options: [5, 15, 30, 60],
-        maxCount: 5,
-        smartSnooze: false,
-        smartSnoozeExtendMinutes: 10,
-      },
-    };
-  }
 
   // --- State ---
   let activeTab = $state<string>("general");
@@ -104,139 +75,30 @@
   let title = $derived(isEditMode ? "Edit Rule" : "Create Rule");
 
   // --- Initialization ---
-  function initFromRule(r: AlertRuleResponse | null) {
-    if (r) {
-      name = r.name ?? "";
-      description = r.description ?? "";
-      severity = (r.severity as AlertRuleSeverity) ?? AlertRuleSeverity.Normal;
-      isEnabled = r.isEnabled ?? true;
-      hysteresisMinutes = r.hysteresisMinutes ?? 5;
-      confirmationReadings = r.confirmationReadings ?? 1;
-      sortOrder = r.sortOrder ?? 0;
-
-      // Condition type
-      const ct = r.conditionType ?? AlertConditionType.Threshold;
-      if (ct === AlertConditionType.Composite) {
-        isComposite = true;
-        conditionType = AlertConditionType.Composite;
-      } else if (
-        ct === AlertConditionType.Threshold ||
-        (ct as string) === "threshold_low" ||
-        (ct as string) === "threshold_high"
-      ) {
-        isComposite = false;
-        conditionType = AlertConditionType.Threshold;
-      } else if (ct === AlertConditionType.RateOfChange) {
-        isComposite = false;
-        conditionType = AlertConditionType.RateOfChange;
-      } else if (ct === AlertConditionType.SignalLoss) {
-        isComposite = false;
-        conditionType = AlertConditionType.SignalLoss;
-      } else {
-        isComposite = false;
-        conditionType = ct as AlertConditionType;
-      }
-
-      // Condition params
-      const params = r.conditionParams;
-      if (params) {
-        if (conditionType === AlertConditionType.Threshold) {
-          if (params.direction === "above") {
-            thresholdDirection = "above";
-          } else {
-            thresholdDirection = "below";
-          }
-          thresholdValue = params.threshold ?? params.value ?? 70;
-        } else if (conditionType === AlertConditionType.RateOfChange) {
-          rocDirection = params.direction ?? "falling";
-          rocRate = params.rateThreshold ?? params.rate ?? 3.0;
-        } else if (conditionType === AlertConditionType.SignalLoss) {
-          signalLossTimeout = params.minutes ?? params.timeout_minutes ?? 15;
-        }
-      }
-
-      // Client configuration
-      const cc = r.clientConfiguration;
-      if (cc) {
-        clientConfig = {
-          audio: {
-            enabled: cc.audio?.enabled ?? true,
-            sound: cc.audio?.sound ?? "alarm-default",
-            customSoundId: cc.audio?.customSoundId ?? null,
-            ascending: cc.audio?.ascending ?? false,
-            startVolume: cc.audio?.startVolume ?? 50,
-            maxVolume: cc.audio?.maxVolume ?? 80,
-            ascendDurationSeconds: cc.audio?.ascendDurationSeconds ?? 30,
-            repeatCount: cc.audio?.repeatCount ?? 2,
-          },
-          visual: {
-            flashEnabled: cc.visual?.flashEnabled ?? false,
-            flashColor: cc.visual?.flashColor ?? "#ff0000",
-            persistentBanner: cc.visual?.persistentBanner ?? true,
-            wakeScreen: cc.visual?.wakeScreen ?? false,
-          },
-          snooze: {
-            defaultMinutes: cc.snooze?.defaultMinutes ?? 15,
-            options: cc.snooze?.options ?? [5, 15, 30, 60],
-            maxCount: cc.snooze?.maxCount ?? 5,
-            smartSnooze: cc.snooze?.smartSnooze ?? false,
-            smartSnoozeExtendMinutes: cc.snooze?.smartSnoozeExtendMinutes ?? 10,
-          },
-        };
-      } else {
-        clientConfig = defaultClientConfig();
-      }
-
-      // Schedules
-      if (r.schedules && r.schedules.length > 0) {
-        schedules = r.schedules.map((s) => ({
-          name: s.name ?? "Default Schedule",
-          isDefault: s.isDefault ?? false,
-          daysOfWeek: s.daysOfWeek ?? [],
-          startTime: s.startTime ?? "00:00",
-          endTime: s.endTime ?? "23:59",
-          timezone: s.timezone ?? "UTC",
-          escalationSteps: (s.escalationSteps ?? [])
-            .sort((a, b) => (a.stepOrder ?? 0) - (b.stepOrder ?? 0))
-            .map((step) => ({
-              stepOrder: step.stepOrder ?? 0,
-              delaySeconds: step.delaySeconds ?? 0,
-              channels: (step.channels ?? []).map((ch) => ({
-                channelType: ch.channelType ?? ChannelType.WebPush,
-                destination: ch.destination ?? "",
-                destinationLabel: ch.destinationLabel ?? "",
-              })),
-            })),
-          expanded: false,
-        }));
-      } else {
-        schedules = [defaultSchedule()];
-      }
-    } else {
-      // Create mode defaults
-      name = "";
-      description = "";
-      severity = AlertRuleSeverity.Normal;
-      conditionType = AlertConditionType.Threshold;
-      isComposite = false;
-      thresholdDirection = "below";
-      thresholdValue = 70;
-      rocDirection = "falling";
-      rocRate = 3.0;
-      signalLossTimeout = 15;
-      hysteresisMinutes = 5;
-      confirmationReadings = 1;
-      sortOrder = 0;
-      isEnabled = true;
-      clientConfig = defaultClientConfig();
-      schedules = [defaultSchedule()];
-    }
+  function applyState(r: AlertRuleResponse | null) {
+    const s = parseRule(r);
+    name = s.name;
+    description = s.description;
+    severity = s.severity;
+    conditionType = s.conditionType;
+    isComposite = s.isComposite;
+    thresholdDirection = s.thresholdDirection;
+    thresholdValue = s.thresholdValue;
+    rocDirection = s.rocDirection;
+    rocRate = s.rocRate;
+    signalLossTimeout = s.signalLossTimeout;
+    hysteresisMinutes = s.hysteresisMinutes;
+    confirmationReadings = s.confirmationReadings;
+    sortOrder = s.sortOrder;
+    isEnabled = s.isEnabled;
+    clientConfig = s.clientConfig;
+    schedules = s.schedules;
     activeTab = "general";
   }
 
   $effect(() => {
     if (open) {
-      initFromRule(rule);
+      applyState(rule);
     }
   });
 
