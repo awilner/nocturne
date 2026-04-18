@@ -105,6 +105,50 @@ ASPNETCORE_ENVIRONMENT=Production
 
 You generally shouldn't have to do this, **ever** during development- configuration lives in the appsettings, and is automagically passed through.
 
+### Multitenancy (Custom Local Domain)
+
+By default, Aspire serves the app at `https://localhost:1612`. This works for single-tenant development but **WebAuthn passkeys fail on tenant subdomains** because browsers reject `localhost` as a passkey Relying Party ID for subdomain origins.
+
+To test multitenancy with passkeys locally, configure a custom domain:
+
+**1. Install mkcert**
+
+```bash
+# Windows
+winget install FiloSottile.mkcert
+
+# macOS
+brew install mkcert
+
+# Linux — use your distro's package manager
+```
+
+**2. Set the custom domain**
+
+```bash
+cd src/Aspire/Nocturne.Aspire.Host
+dotnet user-secrets set "LocalDev:Domain" "nocturne.test"
+```
+
+**3. Add hosts file entries**
+
+Add lines to your hosts file (`C:\Windows\System32\drivers\etc\hosts` on Windows, `/etc/hosts` on macOS/Linux):
+
+```
+127.0.0.1  nocturne.test
+127.0.0.1  demo.nocturne.test
+```
+
+Add one line per tenant slug you want to use. Hosts files don't support wildcards.
+
+**4. Start Aspire**
+
+```bash
+aspire start
+```
+
+Aspire will automatically generate a wildcard TLS certificate for `*.nocturne.test`, install the mkcert CA into your system trust store, and configure the YARP gateway to use it. Access the app at `https://demo.nocturne.test:1612`.
+
 ## Data Connectors
 
 Nocturne includes native connectors for popular diabetes platforms:
