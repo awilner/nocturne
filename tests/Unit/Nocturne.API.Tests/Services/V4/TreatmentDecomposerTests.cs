@@ -1659,10 +1659,10 @@ public class TreatmentDecomposerTests : IDisposable
     }
 
     [Fact]
-    public async Task DecomposeAsync_MealBolus_SetsBolusIdOnCarbIntake()
+    public async Task DecomposeAsync_MealBolus_SharesCorrelationId()
     {
         // Arrange - Meal Bolus with insulin and carbs should produce a Bolus and a CarbIntake,
-        // and the CarbIntake should have its BolusId set to the Bolus's ID
+        // and both should share the same CorrelationId so the pair can be rejoined downstream.
         var treatment = new Treatment
         {
             Id = "meal-fk-link-1",
@@ -1681,8 +1681,9 @@ public class TreatmentDecomposerTests : IDisposable
         var bolus = result.CreatedRecords.OfType<V4Models.Bolus>().Single();
         var carbIntake = result.CreatedRecords.OfType<V4Models.CarbIntake>().Single();
 
-        carbIntake.BolusId.Should().Be(bolus.Id,
-            "the CarbIntake should be linked to the Bolus that covered it");
+        carbIntake.CorrelationId.Should().Be(bolus.CorrelationId,
+            "the CarbIntake and Bolus should share a CorrelationId so they can be paired downstream");
+        carbIntake.CorrelationId.Should().NotBe(Guid.Empty);
         bolus.Id.Should().NotBe(Guid.Empty);
     }
 
@@ -1711,29 +1712,9 @@ public class TreatmentDecomposerTests : IDisposable
 
         bolus.BolusCalculationId.Should().Be(bolusCalc.Id,
             "Bolus should link to its BolusCalculation");
-        carbIntake.BolusId.Should().Be(bolus.Id,
-            "CarbIntake should link to its Bolus");
-    }
-
-    [Fact]
-    public async Task DecomposeAsync_CarbCorrectionOnly_DoesNotSetBolusIdOnCarbIntake()
-    {
-        // Arrange - Carb Correction produces only a CarbIntake, no Bolus, so BolusId should be null
-        var treatment = new Treatment
-        {
-            Id = "carb-correction-no-fk",
-            EventType = "Carb Correction",
-            Mills = 1700000000000,
-            Carbs = 15
-        };
-
-        // Act
-        var result = await _decomposer.DecomposeAsync(treatment);
-
-        // Assert
-        var carbIntake = result.CreatedRecords.OfType<V4Models.CarbIntake>().Single();
-        carbIntake.BolusId.Should().BeNull(
-            "no Bolus was produced, so CarbIntake.BolusId should remain null");
+        carbIntake.CorrelationId.Should().Be(bolus.CorrelationId,
+            "CarbIntake should share a CorrelationId with its Bolus");
+        carbIntake.CorrelationId.Should().NotBe(Guid.Empty);
     }
 
     [Fact]

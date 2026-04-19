@@ -21,4 +21,5 @@ public class CreateBolusRequest
     public double? Unabsorbed { get; set; }
     public Guid? BolusCalculationId { get; set; }
     public Guid? ApsSnapshotId { get; set; }
+    public Guid? CorrelationId { get; set; }
 }

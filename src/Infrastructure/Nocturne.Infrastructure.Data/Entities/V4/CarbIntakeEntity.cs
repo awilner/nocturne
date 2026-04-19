@@ -108,12 +108,6 @@ public class CarbIntakeEntity : ITenantScoped
     public int? AbsorptionTime { get; set; }
 
     /// <summary>
-    /// Foreign key to the associated Bolus record.
-    /// </summary>
-    [Column("bolus_id")]
-    public Guid? BolusId { get; set; }
-
-    /// <summary>
     /// Catch-all JSONB column for fields not mapped to dedicated columns
     /// </summary>
     [Column("additional_properties", TypeName = "jsonb")]

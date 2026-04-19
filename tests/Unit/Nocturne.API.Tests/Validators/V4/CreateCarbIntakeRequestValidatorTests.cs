@@ -2,21 +2,17 @@ using FluentValidation.TestHelper;
 using Nocturne.API.Models.Requests.V4;
 using Nocturne.API.Validators.V4;
 using Xunit;
-using V4BolusType = Nocturne.Core.Models.V4.BolusType;
-using V4BolusKind = Nocturne.Core.Models.V4.BolusKind;
 
 namespace Nocturne.API.Tests.Validators.V4;
 
-public class CreateBolusRequestValidatorTests
+public class CreateCarbIntakeRequestValidatorTests
 {
-    private readonly CreateBolusRequestValidator _validator = new();
+    private readonly CreateCarbIntakeRequestValidator _validator = new();
 
-    private static CreateBolusRequest ValidRequest() => new()
+    private static CreateCarbIntakeRequest ValidRequest() => new()
     {
         Timestamp = DateTimeOffset.UtcNow,
-        Insulin = 2.5,
-        BolusType = V4BolusType.Normal,
-        Kind = V4BolusKind.Manual,
+        Carbs = 40,
     };
 
     [Fact]
@@ -36,39 +32,12 @@ public class CreateBolusRequestValidatorTests
     }
 
     [Fact]
-    public void Negative_insulin_fails()
+    public void Negative_carbs_fails()
     {
         var request = ValidRequest();
-        request.Insulin = -1;
+        request.Carbs = -1;
         var result = _validator.TestValidate(request);
-        result.ShouldHaveValidationErrorFor(x => x.Insulin);
-    }
-
-    [Fact]
-    public void Negative_duration_fails()
-    {
-        var request = ValidRequest();
-        request.Duration = -1;
-        var result = _validator.TestValidate(request);
-        result.ShouldHaveValidationErrorFor(x => x.Duration);
-    }
-
-    [Fact]
-    public void Zero_insulin_passes()
-    {
-        var request = ValidRequest();
-        request.Insulin = 0;
-        var result = _validator.TestValidate(request);
-        result.ShouldNotHaveValidationErrorFor(x => x.Insulin);
-    }
-
-    [Fact]
-    public void SyncIdentifier_exceeding_max_length_fails()
-    {
-        var request = ValidRequest();
-        request.SyncIdentifier = new string('a', 501);
-        var result = _validator.TestValidate(request);
-        result.ShouldHaveValidationErrorFor(x => x.SyncIdentifier);
+        result.ShouldHaveValidationErrorFor(x => x.Carbs);
     }
 
     [Fact]
@@ -116,5 +85,14 @@ public class CreateBolusRequestValidatorTests
         request.CorrelationId = Guid.NewGuid();
         var result = _validator.TestValidate(request);
         result.ShouldNotHaveValidationErrorFor(x => x.CorrelationId);
+    }
+
+    [Fact]
+    public void Negative_absorption_time_fails()
+    {
+        var request = ValidRequest();
+        request.AbsorptionTime = -1;
+        var result = _validator.TestValidate(request);
+        result.ShouldHaveValidationErrorFor(x => x.AbsorptionTime);
     }
 }

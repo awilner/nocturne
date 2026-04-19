@@ -82,11 +82,6 @@ public class CarbIntake : IV4Record
     public int? AbsorptionTime { get; set; }
 
     /// <summary>
-    /// FK to the Bolus that covered this carb intake (null for carb corrections without bolus)
-    /// </summary>
-    public Guid? BolusId { get; set; }
-
-    /// <summary>
     /// Catch-all for fields not mapped to dedicated columns
     /// </summary>
     public Dictionary<string, object?>? AdditionalProperties { get; set; }

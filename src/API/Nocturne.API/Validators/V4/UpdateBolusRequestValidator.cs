@@ -16,5 +16,13 @@ public class UpdateBolusRequestValidator : AbstractValidator<UpdateBolusRequest>
             .WithMessage("Duration must be >= 0");
         RuleFor(x => x.SyncIdentifier).MaximumLength(500).When(x => x.SyncIdentifier is not null);
         RuleFor(x => x.InsulinType).MaximumLength(200).When(x => x.InsulinType is not null);
+        RuleFor(x => x.DataSource)
+            .NotEmpty()
+            .When(x => !string.IsNullOrEmpty(x.SyncIdentifier))
+            .WithMessage("DataSource is required when SyncIdentifier is supplied.");
+        RuleFor(x => x.CorrelationId)
+            .Must(id => id != Guid.Empty)
+            .When(x => x.CorrelationId.HasValue)
+            .WithMessage("CorrelationId must be a non-empty GUID when supplied.");
     }
 }

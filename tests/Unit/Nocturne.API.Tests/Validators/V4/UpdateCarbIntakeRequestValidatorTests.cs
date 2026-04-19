@@ -5,14 +5,14 @@ using Xunit;
 
 namespace Nocturne.API.Tests.Validators.V4;
 
-public class UpdateBolusRequestValidatorTests
+public class UpdateCarbIntakeRequestValidatorTests
 {
-    private readonly UpdateBolusRequestValidator _validator = new();
+    private readonly UpdateCarbIntakeRequestValidator _validator = new();
 
-    private static UpdateBolusRequest ValidRequest() => new()
+    private static UpdateCarbIntakeRequest ValidRequest() => new()
     {
         Timestamp = DateTimeOffset.UtcNow,
-        Insulin = 2.5,
+        Carbs = 40,
     };
 
     [Fact]
@@ -32,21 +32,12 @@ public class UpdateBolusRequestValidatorTests
     }
 
     [Fact]
-    public void Negative_insulin_fails()
+    public void Negative_carbs_fails()
     {
         var request = ValidRequest();
-        request.Insulin = -1;
+        request.Carbs = -1;
         var result = _validator.TestValidate(request);
-        result.ShouldHaveValidationErrorFor(x => x.Insulin);
-    }
-
-    [Fact]
-    public void Negative_duration_fails()
-    {
-        var request = ValidRequest();
-        request.Duration = -1;
-        var result = _validator.TestValidate(request);
-        result.ShouldHaveValidationErrorFor(x => x.Duration);
+        result.ShouldHaveValidationErrorFor(x => x.Carbs);
     }
 
     [Fact]
@@ -57,16 +48,6 @@ public class UpdateBolusRequestValidatorTests
         request.DataSource = null;
         var result = _validator.TestValidate(request);
         result.ShouldHaveValidationErrorFor(x => x.DataSource);
-    }
-
-    [Fact]
-    public void SyncIdentifier_with_DataSource_passes()
-    {
-        var request = ValidRequest();
-        request.SyncIdentifier = "sync-1";
-        request.DataSource = "loop";
-        var result = _validator.TestValidate(request);
-        result.ShouldNotHaveValidationErrorFor(x => x.DataSource);
     }
 
     [Fact]

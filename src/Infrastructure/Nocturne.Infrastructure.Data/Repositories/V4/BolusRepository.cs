@@ -4,6 +4,7 @@ using Nocturne.Core.Contracts;
 using Nocturne.Core.Contracts.V4.Repositories;
 using Nocturne.Core.Models;
 using Nocturne.Core.Models.V4;
+using Nocturne.Infrastructure.Data.Entities.V4;
 using Nocturne.Infrastructure.Data.Mappers.V4;
 
 namespace Nocturne.Infrastructure.Data.Repositories.V4;
@@ -112,13 +113,30 @@ public class BolusRepository : IBolusRepository
     }
 
     /// <summary>
-    /// Creates a new bolus record.
+    /// Creates a new bolus record. When <c>DataSource</c> and <c>SyncIdentifier</c>
+    /// match an existing row for this tenant, the record is updated in place rather
+    /// than inserted — making the operation idempotent for connector replays.
+    /// Tenant scoping is implicit via the DbContext's RLS-equivalent query filter.
     /// </summary>
     /// <param name="model">The bolus to create.</param>
     /// <param name="ct">The cancellation token.</param>
-    /// <returns>The created bolus record.</returns>
+    /// <returns>The created or updated bolus record.</returns>
     public async Task<Bolus> CreateAsync(Bolus model, CancellationToken ct = default)
     {
+        if (!string.IsNullOrEmpty(model.DataSource) && !string.IsNullOrEmpty(model.SyncIdentifier))
+        {
+            var existing = await _context.Boluses
+                .FirstOrDefaultAsync(
+                    e => e.DataSource == model.DataSource && e.SyncIdentifier == model.SyncIdentifier,
+                    ct);
+            if (existing != null)
+            {
+                BolusMapper.UpdateEntity(existing, model);
+                await _context.SaveChangesAsync(ct);
+                return BolusMapper.ToDomainModel(existing);
+            }
+        }
+
         var entity = BolusMapper.ToEntity(model);
         _context.Boluses.Add(entity);
         await _context.SaveChangesAsync(ct);
@@ -217,6 +235,66 @@ public class BolusRepository : IBolusRepository
         if (entities.Count == 0)
             return [];
 
+        // Intra-batch SyncIdentifier dedup: keep last occurrence per
+        // (DataSource, SyncIdentifier). Records without both keys keep a
+        // unique grouping key so they're not collapsed.
+        entities = entities
+            .GroupBy(e => !string.IsNullOrEmpty(e.DataSource) && !string.IsNullOrEmpty(e.SyncIdentifier)
+                ? $"sync|{e.DataSource}|{e.SyncIdentifier}"
+                : $"id|{e.Id}")
+            .Select(g => g.Last())
+            .ToList();
+
+        // DB-level SyncIdentifier upsert: match any existing rows keyed by
+        // (DataSource, SyncIdentifier) and update them in place. Everything
+        // else falls through to the insert path below.
+        var syncKeyed = entities
+            .Where(e => !string.IsNullOrEmpty(e.DataSource) && !string.IsNullOrEmpty(e.SyncIdentifier))
+            .ToList();
+
+        var updatedEntities = new List<BolusEntity>();
+        if (syncKeyed.Count > 0)
+        {
+            var sources = syncKeyed.Select(e => e.DataSource!).Distinct().ToList();
+            var syncIds = syncKeyed.Select(e => e.SyncIdentifier!).Distinct().ToList();
+
+            // Over-fetches by a Cartesian amount; the partial unique index
+            // on (tenant_id, data_source, sync_identifier) keeps this cheap.
+            var existingRows = await _context.Boluses
+                .Where(e => sources.Contains(e.DataSource!) && syncIds.Contains(e.SyncIdentifier!))
+                .ToListAsync(ct);
+
+            var existingByKey = existingRows
+                .GroupBy(e => $"{e.DataSource}|{e.SyncIdentifier}")
+                .ToDictionary(g => g.Key, g => g.First());
+
+            var toInsert = new List<BolusEntity>();
+            foreach (var entity in entities)
+            {
+                var hasKey = !string.IsNullOrEmpty(entity.DataSource)
+                    && !string.IsNullOrEmpty(entity.SyncIdentifier);
+                if (hasKey && existingByKey.TryGetValue($"{entity.DataSource}|{entity.SyncIdentifier}", out var existing))
+                {
+                    // Update in place — mirror the single-record CreateAsync path via the mapper.
+                    var domain = BolusMapper.ToDomainModel(entity);
+                    BolusMapper.UpdateEntity(existing, domain);
+                    updatedEntities.Add(existing);
+                }
+                else
+                {
+                    toInsert.Add(entity);
+                }
+            }
+
+            if (updatedEntities.Count > 0)
+            {
+                // Persist updates before the insert-chunking loop clears the tracker.
+                await _context.SaveChangesAsync(ct);
+            }
+
+            entities = toInsert;
+        }
+
         // Batch-level dedup: keep first occurrence per LegacyId
         entities = entities
             .GroupBy(e => e.LegacyId ?? e.Id.ToString())
@@ -243,48 +321,50 @@ public class BolusRepository : IBolusRepository
                 .ToList();
         }
 
-        if (entities.Count == 0)
-            return [];
-
-        const int batchSize = 500;
-        foreach (var batch in entities.Chunk(batchSize))
+        if (entities.Count > 0)
         {
-            _context.Boluses.AddRange(batch);
-            await _context.SaveChangesAsync(ct);
-            _context.ChangeTracker.Clear();
-        }
-
-        // Insert-time deduplication: link saved records to canonical groups
-        foreach (var entity in entities)
-        {
-            try
+            const int batchSize = 500;
+            foreach (var batch in entities.Chunk(batchSize))
             {
-                var criteria = new MatchCriteria
+                _context.Boluses.AddRange(batch);
+                await _context.SaveChangesAsync(ct);
+                _context.ChangeTracker.Clear();
+            }
+
+            // Insert-time deduplication: link saved records to canonical groups.
+            // Only runs on newly inserted entities — updated-in-place rows were
+            // already linked when first inserted.
+            foreach (var entity in entities)
+            {
+                try
                 {
-                    Insulin = entity.Insulin,
-                    InsulinTolerance = 0.05
-                };
+                    var criteria = new MatchCriteria
+                    {
+                        Insulin = entity.Insulin,
+                        InsulinTolerance = 0.05
+                    };
 
-                var canonicalId = await _deduplicationService.GetOrCreateCanonicalIdAsync(
-                    RecordType.Bolus,
-                    new DateTimeOffset(entity.Timestamp, TimeSpan.Zero).ToUnixTimeMilliseconds(),
-                    criteria,
-                    ct);
+                    var canonicalId = await _deduplicationService.GetOrCreateCanonicalIdAsync(
+                        RecordType.Bolus,
+                        new DateTimeOffset(entity.Timestamp, TimeSpan.Zero).ToUnixTimeMilliseconds(),
+                        criteria,
+                        ct);
 
-                await _deduplicationService.LinkRecordAsync(
-                    canonicalId,
-                    RecordType.Bolus,
-                    entity.Id,
-                    new DateTimeOffset(entity.Timestamp, TimeSpan.Zero).ToUnixTimeMilliseconds(),
-                    entity.DataSource ?? "unknown",
-                    ct);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to deduplicate Bolus {Id}", entity.Id);
+                    await _deduplicationService.LinkRecordAsync(
+                        canonicalId,
+                        RecordType.Bolus,
+                        entity.Id,
+                        new DateTimeOffset(entity.Timestamp, TimeSpan.Zero).ToUnixTimeMilliseconds(),
+                        entity.DataSource ?? "unknown",
+                        ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to deduplicate Bolus {Id}", entity.Id);
+                }
             }
         }
 
-        return entities.Select(BolusMapper.ToDomainModel);
+        return updatedEntities.Concat(entities).Select(BolusMapper.ToDomainModel);
     }
 }

@@ -42,6 +42,7 @@ public class BolusController(IBolusRepository repo)
         Unabsorbed = request.Unabsorbed,
         BolusCalculationId = request.BolusCalculationId,
         ApsSnapshotId = request.ApsSnapshotId,
+        CorrelationId = request.CorrelationId ?? Guid.CreateVersion7(),
     };
 
     protected override Bolus MapUpdateToModel(Guid id, UpdateBolusRequest request, Bolus existing) => new()
@@ -64,7 +65,7 @@ public class BolusController(IBolusRepository repo)
         Unabsorbed = request.Unabsorbed,
         BolusCalculationId = request.BolusCalculationId,
         ApsSnapshotId = request.ApsSnapshotId,
-        CorrelationId = existing.CorrelationId,
+        CorrelationId = request.CorrelationId ?? existing.CorrelationId,
         LegacyId = existing.LegacyId,
         CreatedAt = existing.CreatedAt,
         PumpRecordId = existing.PumpRecordId,

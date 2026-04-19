@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpenApi.Remote.Attributes;
+using Nocturne.API.Models.Requests.V4;
 using Nocturne.API.Services;
 using Nocturne.Core.Constants;
 using Nocturne.Core.Contracts;
@@ -25,17 +26,20 @@ namespace Nocturne.API.Controllers.V4.Treatments;
 public class NutritionController : ControllerBase
 {
     private readonly ICarbIntakeRepository _carbIntakeRepo;
+    private readonly IBolusRepository _bolusRepo;
     private readonly ITreatmentFoodService _treatmentFoodService;
     private readonly IDemoModeService _demoModeService;
     private readonly NocturneDbContext _context;
 
     public NutritionController(
         ICarbIntakeRepository carbIntakeRepo,
+        IBolusRepository bolusRepo,
         ITreatmentFoodService treatmentFoodService,
         IDemoModeService demoModeService,
         NocturneDbContext context)
     {
         _carbIntakeRepo = carbIntakeRepo;
+        _bolusRepo = bolusRepo;
         _treatmentFoodService = treatmentFoodService;
         _demoModeService = demoModeService;
         _context = context;
@@ -85,10 +89,25 @@ public class NutritionController : ControllerBase
     [RemoteForm(Invalidates = ["GetCarbIntakes"])]
     [ProducesResponseType(typeof(CarbIntake), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<CarbIntake>> CreateCarbIntake([FromBody] CarbIntake model, CancellationToken ct = default)
+    public async Task<ActionResult<CarbIntake>> CreateCarbIntake([FromBody] CreateCarbIntakeRequest request, CancellationToken ct = default)
     {
-        if (model.Timestamp == default)
+        if (request.Timestamp == default)
             return Problem(detail: "Timestamp must be set", statusCode: 400, title: "Bad Request");
+
+        var model = new CarbIntake
+        {
+            Timestamp = request.Timestamp.UtcDateTime,
+            UtcOffset = request.UtcOffset,
+            Device = request.Device,
+            App = request.App,
+            DataSource = request.DataSource,
+            Carbs = request.Carbs,
+            SyncIdentifier = request.SyncIdentifier,
+            CarbTime = request.CarbTime,
+            AbsorptionTime = request.AbsorptionTime,
+            CorrelationId = request.CorrelationId ?? Guid.CreateVersion7(),
+        };
+
         var created = await _carbIntakeRepo.CreateAsync(model, ct);
         return CreatedAtAction(nameof(GetCarbIntakeById), new { id = created.Id }, created);
     }
@@ -101,10 +120,33 @@ public class NutritionController : ControllerBase
     [ProducesResponseType(typeof(CarbIntake), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<CarbIntake>> UpdateCarbIntake(Guid id, [FromBody] CarbIntake model, CancellationToken ct = default)
+    public async Task<ActionResult<CarbIntake>> UpdateCarbIntake(Guid id, [FromBody] UpdateCarbIntakeRequest request, CancellationToken ct = default)
     {
-        if (model.Timestamp == default)
+        if (request.Timestamp == default)
             return Problem(detail: "Timestamp must be set", statusCode: 400, title: "Bad Request");
+
+        var existing = await _carbIntakeRepo.GetByIdAsync(id, ct);
+        if (existing is null)
+            return NotFound();
+
+        var model = new CarbIntake
+        {
+            Id = id,
+            Timestamp = request.Timestamp.UtcDateTime,
+            UtcOffset = request.UtcOffset,
+            Device = request.Device,
+            App = request.App,
+            DataSource = request.DataSource,
+            Carbs = request.Carbs,
+            SyncIdentifier = request.SyncIdentifier,
+            CarbTime = request.CarbTime,
+            AbsorptionTime = request.AbsorptionTime,
+            CorrelationId = request.CorrelationId ?? existing.CorrelationId,
+            LegacyId = existing.LegacyId,
+            CreatedAt = existing.CreatedAt,
+            AdditionalProperties = existing.AdditionalProperties,
+        };
+
         try
         {
             var updated = await _carbIntakeRepo.UpdateAsync(id, model, ct);
@@ -246,12 +288,113 @@ public class NutritionController : ControllerBase
     #region Meals
 
     /// <summary>
-    /// Get carb intake records with food attribution status for the meals view.
+    /// Atomically create a correlated Bolus + CarbIntake for a meal event.
+    /// Both records share a single CorrelationId and are persisted within a
+    /// single transaction. When an existing row matches on
+    /// (DataSource, SyncIdentifier), the idempotent upsert applies and the
+    /// response returns 200 instead of 201.
+    /// </summary>
+    [HttpPost("meals")]
+    [RemoteForm(Invalidates = ["GetCarbIntakes", "GetMeals"])]
+    [ProducesResponseType(typeof(CreateMealResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(CreateMealResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<CreateMealResponse>> CreateMeal(
+        [FromBody] CreateMealRequest request,
+        CancellationToken ct = default)
+    {
+        if (request.Timestamp == default)
+            return Problem(detail: "Timestamp must be set", statusCode: 400, title: "Bad Request");
+
+        var correlationId = request.CorrelationId ?? Guid.CreateVersion7();
+        var timestamp = request.Timestamp.UtcDateTime;
+
+        var bolusModel = new Bolus
+        {
+            Timestamp = timestamp,
+            UtcOffset = request.UtcOffset,
+            Device = request.Device,
+            App = request.App,
+            DataSource = request.DataSource,
+            Insulin = request.Insulin,
+            BolusType = request.BolusType,
+            Kind = BolusKind.Manual,
+            Duration = request.Duration,
+            SyncIdentifier = request.SyncIdentifier,
+            InsulinType = request.InsulinType,
+            BolusCalculationId = request.BolusCalculationId,
+            CorrelationId = correlationId,
+        };
+
+        var carbModel = new CarbIntake
+        {
+            Timestamp = timestamp,
+            UtcOffset = request.UtcOffset,
+            Device = request.Device,
+            App = request.App,
+            DataSource = request.DataSource,
+            Carbs = request.Carbs,
+            SyncIdentifier = request.SyncIdentifier,
+            CarbTime = request.CarbTime,
+            AbsorptionTime = request.AbsorptionTime,
+            CorrelationId = correlationId,
+        };
+
+        await using var tx = await _context.Database.BeginTransactionAsync(ct);
+
+        // Peek at an existing bolus with the same (DataSource, SyncIdentifier) BEFORE
+        // the upsert. If one exists, its CorrelationId is authoritative and must be
+        // propagated to both records (the upsert itself will overwrite it in-place).
+        Guid? existingBolusCorrelationId = null;
+        if (!string.IsNullOrEmpty(bolusModel.DataSource) && !string.IsNullOrEmpty(bolusModel.SyncIdentifier))
+        {
+            var existingEntity = await _context.Boluses
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    e => e.DataSource == bolusModel.DataSource
+                      && e.SyncIdentifier == bolusModel.SyncIdentifier,
+                    ct);
+            existingBolusCorrelationId = existingEntity?.CorrelationId;
+        }
+
+        if (existingBolusCorrelationId.HasValue)
+        {
+            bolusModel.CorrelationId = existingBolusCorrelationId;
+            carbModel.CorrelationId = existingBolusCorrelationId;
+        }
+
+        var bolusBefore = await _context.Boluses.CountAsync(ct);
+        var createdBolus = await _bolusRepo.CreateAsync(bolusModel, ct);
+        var bolusWasNew = (await _context.Boluses.CountAsync(ct)) > bolusBefore;
+
+        var carbBefore = await _context.CarbIntakes.CountAsync(ct);
+        var createdCarb = await _carbIntakeRepo.CreateAsync(carbModel, ct);
+        var carbWasNew = (await _context.CarbIntakes.CountAsync(ct)) > carbBefore;
+
+        await tx.CommitAsync(ct);
+
+        var response = new CreateMealResponse
+        {
+            CorrelationId = createdBolus.CorrelationId ?? createdCarb.CorrelationId ?? correlationId,
+            Bolus = createdBolus,
+            CarbIntake = createdCarb,
+        };
+
+        return (bolusWasNew || carbWasNew)
+            ? StatusCode(StatusCodes.Status201Created, response)
+            : Ok(response);
+    }
+
+    /// <summary>
+    /// Get meal events grouped by <c>CorrelationId</c>. Each event carries its
+    /// own carb intakes, correlated boluses, food attribution rows, and
+    /// aggregated totals. Carb intakes with a null <c>CorrelationId</c> become
+    /// single-member events on their own (they are NOT collapsed together).
     /// </summary>
     [HttpGet("meals")]
     [RemoteQuery]
-    [ProducesResponseType(typeof(MealCarbIntake[]), StatusCodes.Status200OK)]
-    public async Task<ActionResult<MealCarbIntake[]>> GetMeals(
+    [ProducesResponseType(typeof(MealEvent[]), StatusCodes.Status200OK)]
+    public async Task<ActionResult<MealEvent[]>> GetMeals(
         [FromQuery] DateTime? from = null,
         [FromQuery] DateTime? to = null,
         [FromQuery] bool? attributed = null,
@@ -274,7 +417,7 @@ public class NutritionController : ControllerBase
             .ToListAsync(ct);
 
         if (carbIntakeEntities.Count == 0)
-            return Ok(Array.Empty<MealCarbIntake>());
+            return Ok(Array.Empty<MealEvent>());
 
         var carbIntakeIds = carbIntakeEntities.Select(c => c.Id).ToList();
         var foodEntries = await _treatmentFoodService.GetByCarbIntakeIdsAsync(carbIntakeIds, ct);
@@ -282,59 +425,94 @@ public class NutritionController : ControllerBase
             .GroupBy(f => f.CarbIntakeId)
             .ToDictionary(g => g.Key, g => g.ToList());
 
-        // Look up correlated boluses
         var correlationIds = carbIntakeEntities
             .Where(c => c.CorrelationId.HasValue)
             .Select(c => c.CorrelationId!.Value)
             .Distinct()
             .ToList();
 
-        var correlatedBoluses = correlationIds.Count > 0
+        var correlatedBolusEntities = correlationIds.Count > 0
             ? await _context.Set<BolusEntity>()
                 .AsNoTracking()
-                .Where(b => b.CorrelationId.HasValue && correlationIds.Contains(b.CorrelationId.Value))
+                .Where(b => b.CorrelationId.HasValue && correlationIds.Contains(b.CorrelationId!.Value))
                 .ToListAsync(ct)
             : [];
 
-        var bolusByCorrelationId = correlatedBoluses
-            .Where(b => b.CorrelationId.HasValue)
+        var bolusesByCorrelation = correlatedBolusEntities
             .GroupBy(b => b.CorrelationId!.Value)
-            .ToDictionary(g => g.Key, g => g.First());
+            .ToDictionary(g => g.Key, g => g.Select(BolusMapper.ToDomainModel).ToArray());
 
-        var results = new List<MealCarbIntake>();
+        var events = new List<MealEvent>();
 
-        foreach (var entity in carbIntakeEntities)
+        // Pass 1: carb intakes WITH a CorrelationId — group by that key so an
+        // event with multiple carb intakes (or multiple boluses) emits ONE event.
+        var correlatedGroups = carbIntakeEntities
+            .Where(c => c.CorrelationId.HasValue)
+            .GroupBy(c => c.CorrelationId!.Value);
+
+        foreach (var group in correlatedGroups)
         {
-            var foods = foodsByCarbIntake.TryGetValue(entity.Id, out var list)
-                ? list
-                : [];
-            var attributedCarbs = foods.Sum(f => f.Carbs);
-            var totalCarbs = (decimal)entity.Carbs;
-
-            Bolus? correlatedBolus = null;
-            if (entity.CorrelationId.HasValue &&
-                bolusByCorrelationId.TryGetValue(entity.CorrelationId.Value, out var bolusEntity))
-            {
-                correlatedBolus = BolusMapper.ToDomainModel(bolusEntity);
-            }
-
-            var meal = new MealCarbIntake
-            {
-                CarbIntake = CarbIntakeMapper.ToDomainModel(entity),
-                CorrelatedBolus = correlatedBolus,
-                Foods = foods,
-                IsAttributed = foods.Count > 0,
-                AttributedCarbs = attributedCarbs,
-                UnspecifiedCarbs = totalCarbs - attributedCarbs,
-            };
-
-            if (attributed.HasValue && meal.IsAttributed != attributed.Value)
-                continue;
-
-            results.Add(meal);
+            var members = group.ToList();
+            events.Add(BuildEvent(
+                correlationId: group.Key,
+                carbEntities: members,
+                boluses: bolusesByCorrelation.TryGetValue(group.Key, out var bs) ? bs : [],
+                foodsByCarbIntake: foodsByCarbIntake));
         }
 
-        return Ok(results.ToArray());
+        // Pass 2: orphan carb intakes (null CorrelationId) — each becomes its
+        // own event with empty Boluses. Do NOT collapse them together.
+        foreach (var orphan in carbIntakeEntities.Where(c => !c.CorrelationId.HasValue))
+        {
+            events.Add(BuildEvent(
+                correlationId: Guid.Empty,
+                carbEntities: [orphan],
+                boluses: [],
+                foodsByCarbIntake: foodsByCarbIntake));
+        }
+
+        var filtered = attributed.HasValue
+            ? events.Where(e => e.IsAttributed == attributed.Value)
+            : events;
+
+        return Ok(filtered.OrderByDescending(e => e.Timestamp).ToArray());
+    }
+
+    private static MealEvent BuildEvent(
+        Guid correlationId,
+        IReadOnlyList<CarbIntakeEntity> carbEntities,
+        Bolus[] boluses,
+        IReadOnlyDictionary<Guid, List<TreatmentFood>> foodsByCarbIntake)
+    {
+        var carbModels = carbEntities.Select(CarbIntakeMapper.ToDomainModel).ToArray();
+        var foods = carbEntities
+            .SelectMany(c => foodsByCarbIntake.TryGetValue(c.Id, out var list) ? list : [])
+            .ToArray();
+
+        var totalCarbs = carbEntities.Sum(c => c.Carbs);
+        var attributedCarbs = (double)foods.Sum(f => f.Carbs);
+        var totalInsulin = boluses.Sum(b => b.Insulin);
+
+        // The event timestamp is the earliest point across carb intakes and
+        // boluses in the group — easy to reason about for chronological rendering.
+        var earliestCarb = carbEntities.Min(c => c.Timestamp);
+        var timestamp = boluses.Length > 0
+            ? (boluses.Min(b => b.Timestamp) < earliestCarb ? boluses.Min(b => b.Timestamp) : earliestCarb)
+            : earliestCarb;
+
+        return new MealEvent
+        {
+            CorrelationId = correlationId,
+            Timestamp = timestamp,
+            CarbIntakes = carbModels,
+            Boluses = boluses,
+            Foods = foods,
+            TotalCarbs = totalCarbs,
+            AttributedCarbs = attributedCarbs,
+            UnspecifiedCarbs = totalCarbs - attributedCarbs,
+            TotalInsulin = totalInsulin,
+            IsAttributed = foods.Length > 0,
+        };
     }
 
     #endregion
@@ -458,4 +636,15 @@ public enum CarbIntakeFoodInputMode
 {
     Portions,
     Carbs,
+}
+
+/// <summary>
+/// Response for <c>POST /api/v4/nutrition/meals</c>. Carries the shared
+/// correlation id along with both halves of the persisted meal event.
+/// </summary>
+public class CreateMealResponse
+{
+    public Guid CorrelationId { get; set; }
+    public Bolus Bolus { get; set; } = null!;
+    public CarbIntake CarbIntake { get; set; } = null!;
 }

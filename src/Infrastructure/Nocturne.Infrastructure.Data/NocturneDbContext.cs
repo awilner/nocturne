@@ -1438,6 +1438,12 @@ public class NocturneDbContext : DbContext
             .HasIndex(e => e.CorrelationId)
             .HasDatabaseName("ix_boluses_correlation_id");
 
+        modelBuilder.Entity<BolusEntity>()
+            .HasIndex(e => new { e.TenantId, e.DataSource, e.SyncIdentifier })
+            .HasDatabaseName("ix_boluses_tenant_source_sync_id")
+            .IsUnique()
+            .HasFilter("sync_identifier IS NOT NULL");
+
         // CarbIntakes indexes
         modelBuilder
             .Entity<CarbIntakeEntity>()
@@ -1456,6 +1462,12 @@ public class NocturneDbContext : DbContext
             .Entity<CarbIntakeEntity>()
             .HasIndex(e => e.CorrelationId)
             .HasDatabaseName("ix_carb_intakes_correlation_id");
+
+        modelBuilder.Entity<CarbIntakeEntity>()
+            .HasIndex(e => new { e.TenantId, e.DataSource, e.SyncIdentifier })
+            .HasDatabaseName("ix_carb_intakes_tenant_source_sync_id")
+            .IsUnique()
+            .HasFilter("sync_identifier IS NOT NULL");
 
         // BGChecks indexes
         modelBuilder

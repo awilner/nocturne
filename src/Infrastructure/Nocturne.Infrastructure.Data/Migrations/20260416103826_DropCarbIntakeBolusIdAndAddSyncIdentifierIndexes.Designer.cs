@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Nocturne.Infrastructure.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Nocturne.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(NocturneDbContext))]
-    partial class NocturneDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260416103826_DropCarbIntakeBolusIdAndAddSyncIdentifierIndexes")]
+    partial class DropCarbIntakeBolusIdAndAddSyncIdentifierIndexes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -534,8 +537,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
 
                     b.Property<string>("Severity")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(16)
                         .HasColumnType("character varying(16)")
+                        .HasDefaultValue("normal")
                         .HasColumnName("severity");
 
                     b.Property<int>("SortOrder")
@@ -2166,22 +2171,11 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("archived_at");
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("category");
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<string>("Icon")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("icon");
 
                     b.Property<bool>("IsArchived")
                         .ValueGeneratedOnAdd()
@@ -2196,11 +2190,6 @@ namespace Nocturne.Infrastructure.Data.Migrations
                     b.Property<string>("ResolutionConditionsJson")
                         .HasColumnType("jsonb")
                         .HasColumnName("resolution_conditions_json");
-
-                    b.Property<string>("Source")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("source");
 
                     b.Property<string>("SourceId")
                         .HasMaxLength(255)
@@ -2224,8 +2213,8 @@ namespace Nocturne.Infrastructure.Data.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("type");
 
                     b.Property<string>("Urgency")
@@ -2264,8 +2253,8 @@ namespace Nocturne.Infrastructure.Data.Migrations
                     b.HasIndex("UserId", "IsArchived")
                         .HasDatabaseName("ix_in_app_notifications_user_archived");
 
-                    b.HasIndex("UserId", "Type", "SourceId", "IsArchived")
-                        .HasDatabaseName("ix_in_app_notifications_user_type_source_archived");
+                    b.HasIndex("UserId", "Type", "IsArchived")
+                        .HasDatabaseName("ix_in_app_notifications_user_type_archived");
 
                     b.ToTable("in_app_notifications");
                 });

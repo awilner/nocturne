@@ -220,34 +220,22 @@ public class V4ToLegacyProjectionService : IV4ToLegacyProjectionService
         var treatments = new List<Treatment>();
 
         // --- Bolus + CarbIntake pairing ---
-        // Phase 1: FK-based pairing (preferred for native V4 records)
-        var bolusLookup = boluses.ToDictionary(b => b.Id);
+        // Pair by CorrelationId only. Under N:M a single correlation may have
+        // multiple boluses and/or multiple carb intakes: the first bolus + first
+        // carb in a correlation become the Meal Bolus projection, and any extras
+        // flow through as separate Correction Bolus / Carb Correction treatments.
         var pairedCarbIds = new HashSet<Guid>();
         var pairedBolusIds = new HashSet<Guid>();
 
-        foreach (var carb in carbs.Where(c => c.BolusId.HasValue))
-        {
-            if (bolusLookup.TryGetValue(carb.BolusId!.Value, out var bolus))
-            {
-                pairedCarbIds.Add(carb.Id);
-                pairedBolusIds.Add(bolus.Id);
-                treatments.Add(ProjectMealBolus(bolus, carb, foodsByCarbId.GetValueOrDefault(carb.Id, [])));
-            }
-        }
-
-        // Phase 2: CorrelationId-based pairing (fallback for legacy data)
-        var remainingBoluses = boluses.Where(b => !pairedBolusIds.Contains(b.Id)).ToList();
-        var remainingCarbs = carbs.Where(c => !pairedCarbIds.Contains(c.Id)).ToList();
-
-        var bolusesWithCorrelation = remainingBoluses
+        var bolusesWithCorrelation = boluses
             .Where(b => b.CorrelationId.HasValue)
             .ToLookup(b => b.CorrelationId!.Value);
-        var bolusesWithoutCorrelation = remainingBoluses.Where(b => !b.CorrelationId.HasValue).ToList();
+        var bolusesWithoutCorrelation = boluses.Where(b => !b.CorrelationId.HasValue).ToList();
 
-        var carbsWithCorrelation = remainingCarbs
+        var carbsWithCorrelation = carbs
             .Where(c => c.CorrelationId.HasValue)
             .ToLookup(c => c.CorrelationId!.Value);
-        var carbsWithoutCorrelation = remainingCarbs.Where(c => !c.CorrelationId.HasValue).ToList();
+        var carbsWithoutCorrelation = carbs.Where(c => !c.CorrelationId.HasValue).ToList();
 
         var allCorrelationIds = bolusesWithCorrelation
             .Select(g => g.Key)
@@ -256,41 +244,52 @@ public class V4ToLegacyProjectionService : IV4ToLegacyProjectionService
 
         foreach (var correlationId in allCorrelationIds)
         {
-            var pairedBoluses = bolusesWithCorrelation[correlationId].ToList();
-            var pairedCarbs = carbsWithCorrelation[correlationId].ToList();
+            var correlatedBoluses = bolusesWithCorrelation[correlationId].ToList();
+            var correlatedCarbs = carbsWithCorrelation[correlationId].ToList();
 
-            if (pairedBoluses.Count > 0 && pairedCarbs.Count > 0)
+            if (correlatedBoluses.Count > 0 && correlatedCarbs.Count > 0)
             {
-                var b = pairedBoluses.First();
-                var c = pairedCarbs.First();
-                pairedCarbIds.Add(c.Id);
-                pairedBolusIds.Add(b.Id);
-                treatments.Add(ProjectMealBolus(b, c, foodsByCarbId.GetValueOrDefault(c.Id, [])));
-            }
-            else if (pairedBoluses.Count > 0)
-            {
-                foreach (var b in pairedBoluses)
-                {
-                    pairedBolusIds.Add(b.Id);
-                    treatments.Add(ProjectCorrectionBolus(b));
-                }
-            }
-            else
-            {
-                foreach (var c in pairedCarbs)
-                {
-                    pairedCarbIds.Add(c.Id);
-                    treatments.Add(ProjectCarbCorrection(c, foodsByCarbId.GetValueOrDefault(c.Id, [])));
-                }
+                // Under N:M a correlation may have multiple boluses and/or carbs.
+                // The dominant-dose bolus + carb are projected as the primary Meal
+                // Bolus; any extras fall through to the per-record handlers below
+                // as separate Correction Bolus / Carb Correction treatments.
+                // Ordering by descending Insulin/Carbs picks the "main" record a
+                // human would recognise; ThenBy(Id) is a deterministic tiebreaker
+                // so multiple same-timestamp, same-dose records don't produce
+                // non-deterministic output across requests.
+                var primaryBolus = correlatedBoluses
+                    .OrderByDescending(b => b.Insulin)
+                    .ThenBy(b => b.Id)
+                    .First();
+                var primaryCarb = correlatedCarbs
+                    .OrderByDescending(c => c.Carbs)
+                    .ThenBy(c => c.Id)
+                    .First();
+                pairedBolusIds.Add(primaryBolus.Id);
+                pairedCarbIds.Add(primaryCarb.Id);
+                treatments.Add(ProjectMealBolus(primaryBolus, primaryCarb, foodsByCarbId.GetValueOrDefault(primaryCarb.Id, [])));
             }
         }
 
-        // Remaining unpaired records
-        foreach (var bolus in bolusesWithoutCorrelation.Where(b => !pairedBolusIds.Contains(b.Id)))
+        // Remaining unpaired records: any bolus or carb that either has no
+        // correlation, or shares a correlation but wasn't the primary pair member.
+        foreach (var bolus in bolusesWithoutCorrelation)
             treatments.Add(ProjectCorrectionBolus(bolus));
 
-        foreach (var carb in carbsWithoutCorrelation.Where(c => !pairedCarbIds.Contains(c.Id)))
+        foreach (var group in bolusesWithCorrelation)
+        {
+            foreach (var bolus in group.Where(b => !pairedBolusIds.Contains(b.Id)))
+                treatments.Add(ProjectCorrectionBolus(bolus));
+        }
+
+        foreach (var carb in carbsWithoutCorrelation)
             treatments.Add(ProjectCarbCorrection(carb, foodsByCarbId.GetValueOrDefault(carb.Id, [])));
+
+        foreach (var group in carbsWithCorrelation)
+        {
+            foreach (var carb in group.Where(c => !pairedCarbIds.Contains(c.Id)))
+                treatments.Add(ProjectCarbCorrection(carb, foodsByCarbId.GetValueOrDefault(carb.Id, [])));
+        }
 
         // --- BGCheck → Treatment ---
         foreach (var bgCheck in bgChecks)

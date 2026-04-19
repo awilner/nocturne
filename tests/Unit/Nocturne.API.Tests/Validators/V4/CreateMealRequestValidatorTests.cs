@@ -2,21 +2,18 @@ using FluentValidation.TestHelper;
 using Nocturne.API.Models.Requests.V4;
 using Nocturne.API.Validators.V4;
 using Xunit;
-using V4BolusType = Nocturne.Core.Models.V4.BolusType;
-using V4BolusKind = Nocturne.Core.Models.V4.BolusKind;
 
 namespace Nocturne.API.Tests.Validators.V4;
 
-public class CreateBolusRequestValidatorTests
+public class CreateMealRequestValidatorTests
 {
-    private readonly CreateBolusRequestValidator _validator = new();
+    private readonly CreateMealRequestValidator _validator = new();
 
-    private static CreateBolusRequest ValidRequest() => new()
+    private static CreateMealRequest ValidRequest() => new()
     {
         Timestamp = DateTimeOffset.UtcNow,
-        Insulin = 2.5,
-        BolusType = V4BolusType.Normal,
-        Kind = V4BolusKind.Manual,
+        Insulin = 5.5,
+        Carbs = 45.0,
     };
 
     [Fact]
@@ -45,30 +42,12 @@ public class CreateBolusRequestValidatorTests
     }
 
     [Fact]
-    public void Negative_duration_fails()
+    public void Negative_carbs_fails()
     {
         var request = ValidRequest();
-        request.Duration = -1;
+        request.Carbs = -1;
         var result = _validator.TestValidate(request);
-        result.ShouldHaveValidationErrorFor(x => x.Duration);
-    }
-
-    [Fact]
-    public void Zero_insulin_passes()
-    {
-        var request = ValidRequest();
-        request.Insulin = 0;
-        var result = _validator.TestValidate(request);
-        result.ShouldNotHaveValidationErrorFor(x => x.Insulin);
-    }
-
-    [Fact]
-    public void SyncIdentifier_exceeding_max_length_fails()
-    {
-        var request = ValidRequest();
-        request.SyncIdentifier = new string('a', 501);
-        var result = _validator.TestValidate(request);
-        result.ShouldHaveValidationErrorFor(x => x.SyncIdentifier);
+        result.ShouldHaveValidationErrorFor(x => x.Carbs);
     }
 
     [Fact]
@@ -110,11 +89,20 @@ public class CreateBolusRequestValidatorTests
     }
 
     [Fact]
-    public void Non_empty_CorrelationId_passes()
+    public void Negative_absorption_time_fails()
     {
         var request = ValidRequest();
-        request.CorrelationId = Guid.NewGuid();
+        request.AbsorptionTime = -1;
         var result = _validator.TestValidate(request);
-        result.ShouldNotHaveValidationErrorFor(x => x.CorrelationId);
+        result.ShouldHaveValidationErrorFor(x => x.AbsorptionTime);
+    }
+
+    [Fact]
+    public void Negative_duration_fails()
+    {
+        var request = ValidRequest();
+        request.Duration = -1;
+        var result = _validator.TestValidate(request);
+        result.ShouldHaveValidationErrorFor(x => x.Duration);
     }
 }
