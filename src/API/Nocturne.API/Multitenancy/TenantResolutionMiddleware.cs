@@ -7,7 +7,9 @@ using Nocturne.Infrastructure.Data;
 namespace Nocturne.API.Multitenancy;
 
 /// <summary>
-/// Middleware that resolves the current tenant from the request subdomain.
+/// Middleware that resolves the current tenant from the request.
+/// In single-tenant mode (no BaseDomain), resolves the sole active tenant automatically.
+/// In multi-tenant mode (BaseDomain set), resolves from subdomain.
 /// Must run before AuthenticationMiddleware in the pipeline.
 /// </summary>
 public class TenantResolutionMiddleware
@@ -17,6 +19,11 @@ public class TenantResolutionMiddleware
     private readonly MultitenancyConfiguration _config;
     private readonly IMemoryCache _cache;
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// Cache key used for the sole tenant in single-tenant mode (no BaseDomain).
+    /// </summary>
+    private const string SingleTenantCacheKey = "tenant:__single__";
 
     public TenantResolutionMiddleware(
         RequestDelegate next,
@@ -54,6 +61,8 @@ public class TenantResolutionMiddleware
     [
         "/api/admin/tenants",
         "/api/v4/admin/tenants",
+        "/api/v4/platform/",
+        "/api/v4/setup/",
     ];
 
     public async Task InvokeAsync(HttpContext context)
@@ -68,40 +77,91 @@ public class TenantResolutionMiddleware
             TenantlessAllowedPaths.Any(p => path.Equals(p, StringComparison.OrdinalIgnoreCase)) ||
             TenantlessAllowedPrefixes.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase));
 
-        // Tenantless-allowed paths on the apex (no slug) operate across tenants.
-        if (slug == null && isTenantlessAllowedPath)
-        {
-            await _next(context);
-            return;
-        }
+        var isSingleTenantMode = string.IsNullOrEmpty(_config.BaseDomain);
 
-        var tenantContext = await ResolveTenantAsync(context.RequestServices, slug);
-
-        if (tenantContext == null)
+        if (!isSingleTenantMode)
         {
-            // Allow tenantless paths through without a resolved tenant
-            if (isTenantlessAllowedPath)
+            // Multi-tenant mode: BaseDomain is set
+
+            // Tenantless-allowed paths on the apex (no slug) operate across tenants.
+            if (slug == null && isTenantlessAllowedPath)
             {
                 await _next(context);
                 return;
             }
 
-            _logger.LogWarning("Tenant not found for slug '{Slug}'", slug);
-            context.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
+            // Apex domain (no subdomain) with a non-tenantless path: 404
+            if (slug == null)
+            {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                return;
+            }
 
-        if (!tenantContext.IsActive)
+            // Subdomain present: resolve tenant by slug
+            var tenantContext = await ResolveTenantBySlugAsync(context.RequestServices, slug);
+
+            if (tenantContext == null)
+            {
+                if (isTenantlessAllowedPath)
+                {
+                    await _next(context);
+                    return;
+                }
+
+                _logger.LogWarning("Tenant not found for slug '{Slug}'", slug);
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                return;
+            }
+
+            if (!tenantContext.IsActive)
+            {
+                _logger.LogWarning("Tenant '{Slug}' is inactive", slug);
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return;
+            }
+
+            tenantAccessor.SetTenant(tenantContext);
+            context.Items["TenantContext"] = tenantContext;
+
+            await _next(context);
+        }
+        else
         {
-            _logger.LogWarning("Tenant '{Slug}' is inactive", slug);
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            return;
+            // Single-tenant mode: no BaseDomain configured
+            var tenantContext = await ResolveSingleTenantAsync(context.RequestServices);
+
+            if (tenantContext == null)
+            {
+                // No tenant found (zero tenants exist) — allow tenantless paths, 503 others
+                if (isTenantlessAllowedPath)
+                {
+                    await _next(context);
+                    return;
+                }
+
+                _logger.LogInformation("No tenants exist — returning 503 setup_required");
+                context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    error = "setup_required",
+                    setupRequired = true,
+                });
+                return;
+            }
+
+            if (!tenantContext.IsActive)
+            {
+                _logger.LogWarning("Single tenant '{Slug}' is inactive", tenantContext.Slug);
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return;
+            }
+
+            tenantAccessor.SetTenant(tenantContext);
+            context.Items["TenantContext"] = tenantContext;
+
+            await _next(context);
         }
-
-        tenantAccessor.SetTenant(tenantContext);
-        context.Items["TenantContext"] = tenantContext;
-
-        await _next(context);
     }
 
     private string? ExtractSubdomain(string hostname)
@@ -120,11 +180,11 @@ public class TenantResolutionMiddleware
         return string.IsNullOrEmpty(subdomain) ? null : subdomain;
     }
 
-    private async Task<TenantContext?> ResolveTenantAsync(IServiceProvider services, string? slug)
+    /// <summary>
+    /// Resolves a tenant by subdomain slug (multi-tenant mode).
+    /// </summary>
+    private async Task<TenantContext?> ResolveTenantBySlugAsync(IServiceProvider services, string slug)
     {
-        if (slug == null)
-            return null;
-
         var cacheKey = $"tenant:{slug}";
 
         if (_cache.TryGetValue(cacheKey, out TenantContext? cached))
@@ -141,6 +201,32 @@ public class TenantResolutionMiddleware
 
         var tenantContext = new TenantContext(tenant.Id, tenant.Slug, tenant.DisplayName, tenant.IsActive);
         _cache.Set(cacheKey, tenantContext, CacheDuration);
+        return tenantContext;
+    }
+
+    /// <summary>
+    /// Resolves the single active tenant in single-tenant mode (no BaseDomain).
+    /// Returns null if zero or more than one active tenant exists.
+    /// </summary>
+    private async Task<TenantContext?> ResolveSingleTenantAsync(IServiceProvider services)
+    {
+        if (_cache.TryGetValue(SingleTenantCacheKey, out TenantContext? cached))
+            return cached;
+
+        var factory = services.GetRequiredService<IDbContextFactory<NocturneDbContext>>();
+        await using var context = await factory.CreateDbContextAsync();
+
+        var tenants = await context.Tenants.AsNoTracking()
+            .Where(t => t.IsActive)
+            .Take(2)
+            .ToListAsync();
+
+        if (tenants.Count != 1)
+            return null;
+
+        var tenant = tenants[0];
+        var tenantContext = new TenantContext(tenant.Id, tenant.Slug, tenant.DisplayName, tenant.IsActive);
+        _cache.Set(SingleTenantCacheKey, tenantContext, CacheDuration);
         return tenantContext;
     }
 }

@@ -518,7 +518,7 @@ public class TenantIsolationTests
     public async Task TenantResolutionMiddleware_InactiveTenant_Returns403()
     {
         var middleware = CreateMiddleware(
-            tenants: new[] { ("inactive", TenantAId, false, false) });
+            tenants: new[] { ("inactive", TenantAId, false) });
         var context = CreateMiddlewareHttpContext("inactive.nocturnecgm.com");
 
         await middleware.InvokeAsync(context);
@@ -536,7 +536,7 @@ public class TenantIsolationTests
                 nextCalled = true;
                 return Task.CompletedTask;
             },
-            tenants: new[] { ("alice", TenantAId, true, false) });
+            tenants: new[] { ("alice", TenantAId, true) });
         var context = CreateMiddlewareHttpContext("alice.nocturnecgm.com");
 
         await middleware.InvokeAsync(context);
@@ -553,7 +553,7 @@ public class TenantIsolationTests
     {
         var middleware = CreateMiddlewareWithNext(
             _ => Task.CompletedTask,
-            tenants: new[] { ("alice", TenantAId, true, false), ("bob", TenantBId, true, false) });
+            tenants: new[] { ("alice", TenantAId, true), ("bob", TenantBId, true) });
 
         var aliceContext = CreateMiddlewareHttpContext("alice.nocturnecgm.com");
         await middleware.InvokeAsync(aliceContext);
@@ -570,19 +570,16 @@ public class TenantIsolationTests
     }
 
     [Fact]
-    public async Task TenantResolutionMiddleware_NoSubdomain_ResolvesDefaultTenant()
+    public async Task TenantResolutionMiddleware_ApexDomain_NonTenantlessPath_Returns404()
     {
-        var defaultTenantId = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd");
-        var middleware = CreateMiddlewareWithNext(
-            _ => Task.CompletedTask,
-            tenants: new[] { ("default", defaultTenantId, true, true) });
-
+        // Multi-tenant mode: apex domain with a non-tenantless path should 404
+        var middleware = CreateMiddleware();
         var context = CreateMiddlewareHttpContext("nocturnecgm.com");
+        context.Request.Path = "/api/v1/entries";
+
         await middleware.InvokeAsync(context);
 
-        var tenant = context.Items["TenantContext"] as TenantContext;
-        tenant.Should().NotBeNull();
-        tenant!.TenantId.Should().Be(defaultTenantId);
+        context.Response.StatusCode.Should().Be(404);
     }
 
     [Fact]
@@ -590,7 +587,7 @@ public class TenantIsolationTests
     {
         var middleware = CreateMiddlewareWithNext(
             _ => Task.CompletedTask,
-            tenants: new[] { ("alice", TenantAId, true, false) },
+            tenants: new[] { ("alice", TenantAId, true) },
             baseDomain: "localhost:1612");
 
         // Host.Host strips port, so "alice.localhost" not "alice.localhost:1612"
@@ -604,17 +601,13 @@ public class TenantIsolationTests
     }
 
     [Fact]
-    public async Task TenantResolutionMiddleware_TenantlessAllowedPath_NoSubdomain_SkipsDefaultTenantFallback()
+    public async Task TenantResolutionMiddleware_TenantlessAllowedPath_ApexDomain_PassesThrough()
     {
-        // Regression: cross-tenant endpoints (e.g. bot pending-link creation)
-        // hit the apex with no slug. They must NOT resolve to the IsDefault
-        // tenant — otherwise TenantSetupMiddleware blocks them with 503
-        // setup_required when the default tenant has no passkey credentials.
-        var defaultId = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd");
+        // Cross-tenant endpoints on the apex (no slug) must pass through without tenant context.
         var nextCalled = false;
         var middleware = CreateMiddlewareWithNext(
             _ => { nextCalled = true; return Task.CompletedTask; },
-            tenants: new[] { ("default", defaultId, true, true) });
+            tenants: new[] { ("alice", TenantAId, true) });
 
         var context = CreateMiddlewareHttpContext("nocturnecgm.com");
         context.Request.Path = "/api/v4/chat-identity/directory/pending-links";
@@ -625,24 +618,102 @@ public class TenantIsolationTests
     }
 
     [Fact]
-    public async Task TenantResolutionMiddleware_BaseDomainWithPort_NoSubdomain_ResolvesDefault()
+    public async Task TenantResolutionMiddleware_ApexDomain_WithBaseDomainPort_Returns404()
     {
-        var defaultId = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd");
+        // Apex domain (no subdomain) with BaseDomain set should 404 for non-tenantless paths
+        var middleware = CreateMiddleware(baseDomain: "localhost:1612");
+        var context = CreateMiddlewareHttpContext("localhost");
+        context.Request.Path = "/api/v1/entries";
+
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(404);
+    }
+
+    [Fact]
+    public async Task TenantResolutionMiddleware_SingleTenantMode_ZeroTenants_Returns503()
+    {
+        // Single-tenant mode (no BaseDomain), no tenants exist: return 503 setup_required
+        var middleware = CreateMiddleware(baseDomain: "");
+        var context = CreateMiddlewareHttpContext("localhost", registerDbFactory: true);
+        context.Request.Path = "/api/v1/entries";
+        context.Response.Body = new MemoryStream();
+
+        await middleware.InvokeAsync(context);
+
+        context.Response.StatusCode.Should().Be(503);
+        context.Response.Body.Seek(0, SeekOrigin.Begin);
+        var body = await new StreamReader(context.Response.Body).ReadToEndAsync();
+        body.Should().Contain("setup_required");
+    }
+
+    [Fact]
+    public async Task TenantResolutionMiddleware_SingleTenantMode_ZeroTenants_TenantlessPath_PassesThrough()
+    {
+        // Single-tenant mode with no tenants: tenantless paths should still pass through
+        var nextCalled = false;
+        var middleware = CreateMiddlewareWithNext(
+            _ => { nextCalled = true; return Task.CompletedTask; },
+            baseDomain: "");
+        var context = CreateMiddlewareHttpContext("localhost", registerDbFactory: true);
+        context.Request.Path = "/api/v4/setup/something";
+
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task TenantResolutionMiddleware_SingleTenantMode_OneTenant_ResolvesAutomatically()
+    {
+        // Single-tenant mode: sole active tenant resolves automatically
         var middleware = CreateMiddlewareWithNext(
             _ => Task.CompletedTask,
-            tenants: new[] { ("default", defaultId, true, true) },
-            baseDomain: "localhost:1612");
-
+            tenants: new[] { ("alice", TenantAId, true) },
+            baseDomain: "");
         var context = CreateMiddlewareHttpContext("localhost");
+
         await middleware.InvokeAsync(context);
 
         var tenant = context.Items["TenantContext"] as TenantContext;
         tenant.Should().NotBeNull();
-        tenant!.TenantId.Should().Be(defaultId);
+        tenant!.TenantId.Should().Be(TenantAId);
+    }
+
+    [Fact]
+    public async Task TenantResolutionMiddleware_PlatformPrefix_ApexDomain_PassesThrough()
+    {
+        // /api/v4/platform/ prefix is tenantless-allowed
+        var nextCalled = false;
+        var middleware = CreateMiddlewareWithNext(
+            _ => { nextCalled = true; return Task.CompletedTask; });
+
+        var context = CreateMiddlewareHttpContext("nocturnecgm.com");
+        context.Request.Path = "/api/v4/platform/info";
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+        context.Items.ContainsKey("TenantContext").Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task TenantResolutionMiddleware_SetupPrefix_ApexDomain_PassesThrough()
+    {
+        // /api/v4/setup/ prefix is tenantless-allowed
+        var nextCalled = false;
+        var middleware = CreateMiddlewareWithNext(
+            _ => { nextCalled = true; return Task.CompletedTask; });
+
+        var context = CreateMiddlewareHttpContext("nocturnecgm.com");
+        context.Request.Path = "/api/v4/setup/init";
+        await middleware.InvokeAsync(context);
+
+        nextCalled.Should().BeTrue();
+        context.Items.ContainsKey("TenantContext").Should().BeFalse();
     }
 
     private static TenantResolutionMiddleware CreateMiddleware(
-        (string slug, Guid id, bool active, bool isDefault)[]? tenants = null,
+        (string slug, Guid id, bool active)[]? tenants = null,
         string baseDomain = "nocturnecgm.com")
     {
         return CreateMiddlewareWithNext(_ => Task.CompletedTask, tenants, baseDomain);
@@ -650,7 +721,7 @@ public class TenantIsolationTests
 
     private static TenantResolutionMiddleware CreateMiddlewareWithNext(
         RequestDelegate next,
-        (string slug, Guid id, bool active, bool isDefault)[]? tenants = null,
+        (string slug, Guid id, bool active)[]? tenants = null,
         string baseDomain = "nocturnecgm.com")
     {
         var config = Options.Create(new MultitenancyConfiguration
@@ -663,12 +734,19 @@ public class TenantIsolationTests
         // Pre-populate cache to avoid needing a real DbContext
         if (tenants != null)
         {
-            foreach (var (slug, id, active, isDefault) in tenants)
+            foreach (var (slug, id, active) in tenants)
             {
                 var ctx = new TenantContext(id, slug, slug, active);
                 cache.Set($"tenant:{slug}", ctx, TimeSpan.FromMinutes(5));
-                if (isDefault)
-                    cache.Set("tenant:__default__", ctx, TimeSpan.FromMinutes(5));
+            }
+
+            // For single-tenant mode tests, if exactly one active tenant, pre-populate __single__ cache
+            var activeTenants = tenants.Where(t => t.active).ToArray();
+            if (string.IsNullOrEmpty(baseDomain) && activeTenants.Length == 1)
+            {
+                var (slug, id, _) = activeTenants[0];
+                var singleCtx = new TenantContext(id, slug, slug, true);
+                cache.Set("tenant:__single__", singleCtx, TimeSpan.FromMinutes(5));
             }
         }
 
