@@ -460,6 +460,9 @@ if (!isNSwagGeneration && !app.Environment.IsEnvironment("Testing"))
     // Validate RLS, ownership, default privileges, and NoResetOnClose under the app role.
     await app.Services.ValidateDatabaseConfigurationAsync();
 
+    // Revoke refresh tokens if BaseDomain was newly configured (single→multi-tenant transition)
+    await BaseDomainTransitionService.CheckAndRevokeAsync(app.Services);
+
     // Sync config-managed OIDC providers to the database (satisfies FK constraints)
     await OidcProviderService.SyncConfigProvidersAsync(app.Services);
 }
