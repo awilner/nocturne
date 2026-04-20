@@ -120,7 +120,6 @@ public class DevAdminController : ControllerBase
                     DisplayName = tenant.DisplayName,
                     ApiSecretHash = tenant.ApiSecretHash,
                     IsActive = tenant.IsActive,
-                    IsDefault = tenant.IsDefault,
                     LastReadingAt = tenant.LastReadingAt,
                     Timezone = tenant.Timezone,
                     SubjectName = tenant.SubjectName,
@@ -354,7 +353,6 @@ public class DevAdminController : ControllerBase
                     existingTenant.DisplayName = td.DisplayName;
                     existingTenant.ApiSecretHash = td.ApiSecretHash;
                     existingTenant.IsActive = td.IsActive;
-                    existingTenant.IsDefault = td.IsDefault;
                     existingTenant.LastReadingAt = td.LastReadingAt;
                     existingTenant.Timezone = td.Timezone;
                     existingTenant.SubjectName = td.SubjectName;
@@ -374,7 +372,6 @@ public class DevAdminController : ControllerBase
                         DisplayName = td.DisplayName,
                         ApiSecretHash = td.ApiSecretHash,
                         IsActive = td.IsActive,
-                        IsDefault = td.IsDefault,
                         LastReadingAt = td.LastReadingAt,
                         Timezone = td.Timezone,
                         SubjectName = td.SubjectName,
@@ -681,7 +678,6 @@ public class DevAdminController : ControllerBase
                 tenant.Slug,
                 tenant.DisplayName,
                 tenant.IsActive,
-                tenant.IsDefault,
                 tenant.Timezone,
                 tenant.SysCreatedAt,
                 entryCount,
@@ -718,87 +714,14 @@ public class DevAdminController : ControllerBase
         var result = await _tenantService.CreateWithoutOwnerAsync(
             request.Slug, request.DisplayName, ct: ct);
 
-        // Copy memberships from the default tenant so existing passkeys work
-        await CopyMembershipsFromDefaultTenantAsync(result.Id, ct);
-
         _logger.LogInformation("Dev tenant created: {TenantId} ({Slug})", result.Id, result.Slug);
         return Created($"/api/v4/admin/tenants/{result.Id}", result);
-    }
-
-    /// <summary>
-    /// Finds the default tenant, reads its non-system members with their role
-    /// slugs, and replicates those memberships onto the target tenant using
-    /// the matching seeded roles. This means the same passkey-authenticated
-    /// subjects can access the new tenant immediately.
-    /// </summary>
-    private async Task CopyMembershipsFromDefaultTenantAsync(Guid targetTenantId, CancellationToken ct)
-    {
-        var defaultTenant = await _db.Tenants.AsNoTracking()
-            .FirstOrDefaultAsync(t => t.IsDefault, ct);
-
-        if (defaultTenant is null)
-        {
-            _logger.LogWarning("No default tenant found — skipping membership copy");
-            return;
-        }
-
-        // Read members from the default tenant (need RLS context)
-        await SetTenantGuc(defaultTenant.Id, ct);
-
-        var sourceMembers = await _db.TenantMembers
-            .AsNoTracking()
-            .Include(m => m.Subject)
-            .Include(m => m.MemberRoles)
-                .ThenInclude(mr => mr.TenantRole)
-            .Where(m => m.TenantId == defaultTenant.Id
-                     && m.RevokedAt == null
-                     && !m.Subject.IsSystemSubject)
-            .ToListAsync(ct);
-
-        if (sourceMembers.Count == 0)
-        {
-            _logger.LogInformation("No non-system members on default tenant to copy");
-            return;
-        }
-
-        // Get the target tenant's seeded roles (keyed by slug)
-        await SetTenantGuc(targetTenantId, ct);
-
-        var targetRoles = await _db.TenantRoles
-            .AsNoTracking()
-            .Where(r => r.TenantId == targetTenantId)
-            .ToDictionaryAsync(r => r.Slug, r => r.Id, ct);
-
-        foreach (var member in sourceMembers)
-        {
-            // Map source role slugs to target role IDs
-            var roleIds = member.MemberRoles
-                .Select(mr => mr.TenantRole.Slug)
-                .Where(slug => targetRoles.ContainsKey(slug))
-                .Select(slug => targetRoles[slug])
-                .ToList();
-
-            await _tenantService.AddMemberAsync(
-                targetTenantId, member.SubjectId, roleIds,
-                directPermissions: member.DirectPermissions,
-                label: member.Label,
-                limitTo24Hours: member.LimitTo24Hours,
-                ct: ct);
-
-            _logger.LogInformation(
-                "Copied member {SubjectName} ({SubjectId}) with roles [{Roles}] to tenant {TenantId}",
-                member.Subject.Name, member.SubjectId,
-                string.Join(", ", member.MemberRoles.Select(mr => mr.TenantRole.Slug)),
-                targetTenantId);
-        }
     }
 
     // ── Tenant deletion / reset ──────────────────────────────────────────────
 
     /// <summary>
     /// Delete a tenant and all associated data without authentication (dev-only).
-    /// For the default tenant, this performs a reset: deletes and recreates it
-    /// with the same slug, display name, and default flag, then copies memberships.
     /// </summary>
     [HttpDelete("tenants/{id:guid}")]
     public async Task<ActionResult> DeleteTenant(Guid id, CancellationToken ct)
@@ -807,75 +730,10 @@ public class DevAdminController : ControllerBase
         if (tenant is null)
             return NotFound(new { error = $"Tenant {id} not found" });
 
-        if (tenant.IsDefault)
-        {
-            _logger.LogInformation("Dev tenant reset (default): {TenantId}", id);
-            await ResetDefaultTenantAsync(tenant, ct);
-            _logger.LogInformation("Dev tenant reset complete: {TenantId}", id);
-            return NoContent();
-        }
-
         _logger.LogInformation("Dev tenant deletion: {TenantId}", id);
         await _tenantService.DeleteAsync(id, ct);
         _logger.LogInformation("Dev tenant deleted: {TenantId}", id);
         return NoContent();
-    }
-
-    /// <summary>
-    /// Deletes and immediately re-inserts the tenant row with the same ID,
-    /// letting CASCADE wipe all tenant-scoped data while preserving the ID
-    /// so background services don't break. Then re-seeds and restores memberships.
-    /// </summary>
-    private async Task ResetDefaultTenantAsync(
-        Infrastructure.Data.Entities.TenantEntity tenant, CancellationToken ct)
-    {
-        var tenantId = tenant.Id;
-        var slug = tenant.Slug;
-        var displayName = tenant.DisplayName;
-
-        await SetTenantGuc(tenantId, ct);
-
-        // Collect non-system members before reset (subjects are global, survive cascade)
-        var memberInfo = await _db.TenantMembers
-            .AsNoTracking()
-            .Include(m => m.Subject)
-            .Include(m => m.MemberRoles).ThenInclude(mr => mr.TenantRole)
-            .Where(m => m.TenantId == tenantId && m.RevokedAt == null && !m.Subject.IsSystemSubject)
-            .Select(m => new { m.SubjectId, RoleSlugs = m.MemberRoles.Select(mr => mr.TenantRole.Slug).ToList() })
-            .ToListAsync(ct);
-
-        // Delete + re-insert the tenant row in a single statement so the ID
-        // is reclaimed immediately. CASCADE wipes all tenant-scoped data.
-        // Detach the tracked entity first so EF doesn't conflict.
-        _db.Entry(tenant).State = EntityState.Detached;
-
-        await _db.Database.ExecuteSqlInterpolatedAsync(
-            $"""
-            DELETE FROM tenants WHERE id = {tenantId};
-            INSERT INTO tenants (id, slug, display_name, is_active, is_default, timezone,
-                                 allow_access_requests, quiet_hours_override_critical,
-                                 sys_created_at, sys_updated_at)
-            VALUES ({tenantId}, {slug}, {displayName}, true, true, 'UTC',
-                    true, true, now(), now());
-            """);
-
-        // Re-seed roles, public membership, and OAuth clients
-        await _tenantService.SeedAfterResetAsync(tenantId, ct);
-
-        // Restore non-system memberships with matching role slugs
-        var newRoles = await _db.TenantRoles.AsNoTracking()
-            .Where(r => r.TenantId == tenantId)
-            .ToDictionaryAsync(r => r.Slug, r => r.Id, ct);
-
-        foreach (var member in memberInfo)
-        {
-            var roleIds = member.RoleSlugs
-                .Where(s => newRoles.ContainsKey(s))
-                .Select(s => newRoles[s])
-                .ToList();
-
-            await _tenantService.AddMemberAsync(tenantId, member.SubjectId, roleIds, ct: ct);
-        }
     }
 
     // ── Scoped snapshot import ────────────────────────────────────────────────
@@ -1083,7 +941,6 @@ public record DevTenantSummaryDto(
     string Slug,
     string DisplayName,
     bool IsActive,
-    bool IsDefault,
     string Timezone,
     DateTime CreatedAt,
     long Entries,

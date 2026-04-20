@@ -31,7 +31,6 @@ public class TenantEntityDto
     public string DisplayName { get; set; } = string.Empty;
     public string? ApiSecretHash { get; set; }
     public bool IsActive { get; set; }
-    public bool IsDefault { get; set; }
     public DateTime? LastReadingAt { get; set; }
     public string Timezone { get; set; } = "UTC";
     public string? SubjectName { get; set; }

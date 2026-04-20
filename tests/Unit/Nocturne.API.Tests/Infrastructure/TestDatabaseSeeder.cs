@@ -35,7 +35,6 @@ public static class TestDatabaseSeeder
             Slug = "default",
             DisplayName = "Default",
             IsActive = true,
-            IsDefault = true,
             ApiSecretHash = apiSecretHash,
         });
 

@@ -45,7 +45,6 @@ public class DirectGrantControllerTests : IDisposable
             Slug = "default",
             DisplayName = "Default",
             IsActive = true,
-            IsDefault = true,
         });
         _dbContext.Subjects.Add(new SubjectEntity
         {

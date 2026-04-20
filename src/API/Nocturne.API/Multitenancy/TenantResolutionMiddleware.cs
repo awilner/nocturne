@@ -68,10 +68,7 @@ public class TenantResolutionMiddleware
             TenantlessAllowedPaths.Any(p => path.Equals(p, StringComparison.OrdinalIgnoreCase)) ||
             TenantlessAllowedPrefixes.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase));
 
-        // Tenantless-allowed paths on the apex (no slug) operate across tenants
-        // and must not fall through to the IsDefault tenant — otherwise any
-        // deployment with a default tenant blocks cross-tenant endpoints like
-        // /api/v4/chat-identity/directory/pending-links behind TenantSetupMiddleware.
+        // Tenantless-allowed paths on the apex (no slug) operate across tenants.
         if (slug == null && isTenantlessAllowedPath)
         {
             await _next(context);
@@ -125,7 +122,10 @@ public class TenantResolutionMiddleware
 
     private async Task<TenantContext?> ResolveTenantAsync(IServiceProvider services, string? slug)
     {
-        var cacheKey = $"tenant:{slug ?? "__default__"}";
+        if (slug == null)
+            return null;
+
+        var cacheKey = $"tenant:{slug}";
 
         if (_cache.TryGetValue(cacheKey, out TenantContext? cached))
             return cached;
@@ -133,11 +133,8 @@ public class TenantResolutionMiddleware
         var factory = services.GetRequiredService<IDbContextFactory<NocturneDbContext>>();
         await using var context = await factory.CreateDbContextAsync();
 
-        var tenant = slug != null
-            ? await context.Tenants.AsNoTracking()
-                .FirstOrDefaultAsync(t => t.Slug == slug)
-            : await context.Tenants.AsNoTracking()
-                .FirstOrDefaultAsync(t => t.IsDefault);
+        var tenant = await context.Tenants.AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Slug == slug);
 
         if (tenant == null)
             return null;

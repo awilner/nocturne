@@ -51,11 +51,11 @@ public interface ITenantService
         CancellationToken ct = default);
 }
 
-public record TenantDto(Guid Id, string Slug, string DisplayName, bool IsActive, bool IsDefault, DateTime SysCreatedAt);
+public record TenantDto(Guid Id, string Slug, string DisplayName, bool IsActive, DateTime SysCreatedAt);
 
-public record TenantCreatedDto(Guid Id, string Slug, string DisplayName, bool IsActive, bool IsDefault, DateTime SysCreatedAt, string ApiSecret);
+public record TenantCreatedDto(Guid Id, string Slug, string DisplayName, bool IsActive, DateTime SysCreatedAt, string ApiSecret);
 
-public record TenantDetailDto(Guid Id, string Slug, string DisplayName, bool IsActive, bool IsDefault, DateTime SysCreatedAt, List<TenantMemberDto> Members);
+public record TenantDetailDto(Guid Id, string Slug, string DisplayName, bool IsActive, DateTime SysCreatedAt, List<TenantMemberDto> Members);
 
 public record TenantMemberDto(
     Guid Id,

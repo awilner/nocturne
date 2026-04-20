@@ -158,7 +158,7 @@ public partial class TenantService : ITenantService
     {
         await using var context = await _factory.CreateDbContextAsync(ct);
         return await context.Tenants.AsNoTracking()
-            .Select(t => new TenantDto(t.Id, t.Slug, t.DisplayName, t.IsActive, t.IsDefault, t.SysCreatedAt))
+            .Select(t => new TenantDto(t.Id, t.Slug, t.DisplayName, t.IsActive, t.SysCreatedAt))
             .ToListAsync(ct);
     }
 
@@ -176,7 +176,7 @@ public partial class TenantService : ITenantService
         if (tenant == null) return null;
 
         return new TenantDetailDto(
-            tenant.Id, tenant.Slug, tenant.DisplayName, tenant.IsActive, tenant.IsDefault, tenant.SysCreatedAt,
+            tenant.Id, tenant.Slug, tenant.DisplayName, tenant.IsActive, tenant.SysCreatedAt,
             tenant.Members
                 .Where(m => m.RevokedAt == null)
                 .Select(m => new TenantMemberDto(
@@ -208,8 +208,6 @@ public partial class TenantService : ITenantService
 
         // Invalidate cached tenant context
         _cache.Remove($"tenant:{tenant.Slug}");
-        if (tenant.IsDefault)
-            _cache.Remove("tenant:__default__");
 
         return ToDto(tenant);
     }
@@ -219,9 +217,6 @@ public partial class TenantService : ITenantService
         await using var context = await _factory.CreateDbContextAsync(ct);
         var tenant = await context.Tenants.FindAsync([id], ct)
             ?? throw new KeyNotFoundException($"Tenant {id} not found");
-
-        if (tenant.IsDefault)
-            throw new InvalidOperationException("Cannot delete the default tenant");
 
         context.Tenants.Remove(tenant);
         await context.SaveChangesAsync(ct);
@@ -303,7 +298,7 @@ public partial class TenantService : ITenantService
             .Include(tm => tm.Tenant)
             .Select(tm => new TenantDto(
                 tm.Tenant!.Id, tm.Tenant.Slug, tm.Tenant.DisplayName,
-                tm.Tenant.IsActive, tm.Tenant.IsDefault, tm.Tenant.SysCreatedAt))
+                tm.Tenant.IsActive, tm.Tenant.SysCreatedAt))
             .ToListAsync(ct);
     }
 
@@ -360,8 +355,6 @@ public partial class TenantService : ITenantService
         await context.SaveChangesAsync(ct);
 
         _cache.Remove($"tenant:{tenant.Slug}");
-        if (tenant.IsDefault)
-            _cache.Remove("tenant:__default__");
 
         return newApiSecret;
     }
@@ -613,10 +606,10 @@ public partial class TenantService : ITenantService
     }
 
     private static TenantDto ToDto(TenantEntity t) =>
-        new(t.Id, t.Slug, t.DisplayName, t.IsActive, t.IsDefault, t.SysCreatedAt);
+        new(t.Id, t.Slug, t.DisplayName, t.IsActive, t.SysCreatedAt);
 
     private static TenantCreatedDto ToCreatedDto(TenantEntity t, string plaintextSecret) =>
-        new(t.Id, t.Slug, t.DisplayName, t.IsActive, t.IsDefault, t.SysCreatedAt, plaintextSecret);
+        new(t.Id, t.Slug, t.DisplayName, t.IsActive, t.SysCreatedAt, plaintextSecret);
 
     /// <summary>
     /// Seed the bundled known-app directory into a tenant's oauth_clients.
