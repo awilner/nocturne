@@ -291,7 +291,7 @@ WS     /hubs/data               # Real-time SignalR hub
 
 ## License
 
-This project is licensed under the MIT License.
+Nocturne is licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0)](LICENSE). Commercial licensing is available for organizations that need to use Nocturne without AGPL obligations — contact the maintainers for details.
 
 ## Disclaimer
 

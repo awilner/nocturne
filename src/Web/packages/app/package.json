@@ -18,7 +18,7 @@
     "lib": "lib"
   },
   "author": "",
-  "license": "ISC",
+  "license": "AGPL-3.0-only",
   "description": "Nocturne SvelteKit frontend application",
   "scripts": {
     "start": "node server.js",

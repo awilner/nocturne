@@ -19,7 +19,7 @@
     "bridge"
   ],
   "author": "Nocturne Project",
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "dependencies": {
     "@microsoft/signalr": "^8.0.0",
     "socket.io": "^4.7.5",
