@@ -44,12 +44,6 @@ public class TenantEntity
     public bool IsActive { get; set; } = true;
 
     /// <summary>
-    /// Whether this is the auto-created default tenant for self-hosted deployments
-    /// </summary>
-    [Column("is_default")]
-    public bool IsDefault { get; set; }
-
-    /// <summary>
     /// Timestamp of the most recent glucose reading for this tenant.
     /// Updated on every glucose ingest. Used by signal loss detection.
     /// </summary>
