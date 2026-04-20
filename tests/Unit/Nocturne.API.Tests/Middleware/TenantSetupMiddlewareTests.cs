@@ -364,4 +364,66 @@ public class TenantSetupMiddlewareTests : IDisposable
         // Assert
         nextCalled.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task WhenTenantResolved_InSingleTenantMode_NoCredentials_Returns503()
+    {
+        // Arrange — simulates single-tenant mode where TenantResolutionMiddleware
+        // has resolved the sole tenant. The middleware should still check setup state.
+        var mw = new TenantSetupMiddleware(
+            _ => Task.CompletedTask,
+            NullLogger<TenantSetupMiddleware>.Instance);
+
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Path = "/api/status";
+        ctx.Response.Body = new MemoryStream();
+
+        // Act — tenant is resolved (simulating single-tenant auto-resolution)
+        await mw.InvokeAsync(ctx, _tenantAccessor.Object, _dbContext);
+
+        // Assert
+        ctx.Response.StatusCode.Should().Be(503);
+        ctx.Response.Body.Seek(0, SeekOrigin.Begin);
+        var body = await new StreamReader(ctx.Response.Body).ReadToEndAsync();
+        body.Should().Contain("setup_required");
+    }
+
+    [Fact]
+    public async Task WhenTenantResolved_InSingleTenantMode_WithCredentials_CallsNext()
+    {
+        // Arrange — single-tenant mode with a fully set up tenant
+        var subjectId = Guid.CreateVersion7();
+        _dbContext.Subjects.Add(new SubjectEntity
+        {
+            Id = subjectId,
+            Name = "Single Tenant User",
+            IsActive = true,
+            IsSystemSubject = false,
+        });
+        _dbContext.PasskeyCredentials.Add(new PasskeyCredentialEntity
+        {
+            Id = Guid.CreateVersion7(),
+            SubjectId = subjectId,
+            CredentialId = System.Text.Encoding.UTF8.GetBytes("cred-single"),
+            PublicKey = [],
+            SignCount = 0,
+        });
+        _dbContext.TenantMembers.Add(new TenantMemberEntity
+        {
+            Id = Guid.CreateVersion7(),
+            TenantId = _tenantId,
+            SubjectId = subjectId,
+        });
+        await _dbContext.SaveChangesAsync();
+
+        var nextCalled = false;
+        var (mw, ctx) = Build(onNext: () => nextCalled = true);
+
+        // Act
+        await mw.InvokeAsync(ctx, _tenantAccessor.Object, _dbContext);
+
+        // Assert
+        nextCalled.Should().BeTrue();
+        ctx.Response.StatusCode.Should().NotBe(503);
+    }
 }
