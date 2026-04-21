@@ -51,6 +51,14 @@ echo "    Building bridge package"
 (cd src/Web/packages/bridge && pnpm run build)
 
 # ---------------------------------------------------------------------------
+# Step 1b: Generate architectural diagrams
+# ---------------------------------------------------------------------------
+echo "==> Generating architectural diagrams"
+dotnet tool restore --verbosity quiet
+dotnet build tools/Nocturne.Tools.DiagramGen/Nocturne.Tools.DiagramGen.csproj -c Release --verbosity quiet
+bash scripts/diagrams/generate-diagrams.sh
+
+# ---------------------------------------------------------------------------
 # Step 2: Generate API client (NSwag + Zod + remote codegen)
 # ---------------------------------------------------------------------------
 # IMPORTANT: This must run BEFORE dotnet publish, because publish marks the
