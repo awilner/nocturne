@@ -1,0 +1,16 @@
+# Diagrams rendered into OpenAPI info.description for Scalar docs.
+# Order here = display order in the docs.
+diagrams:
+  - source: project-dependencies.mmd
+    title: Project Dependencies
+    description: Clean architecture layer boundaries between Nocturne projects.
+    auto: dependify
+
+  - source: er-diagram.mmd
+    title: Entity Relationships
+    description: Core database entities and their relationships.
+    auto: efcore
+
+  - source: request-flow.mmd
+    title: Request Flow
+    description: HTTP request path from client through YARP to the database.
