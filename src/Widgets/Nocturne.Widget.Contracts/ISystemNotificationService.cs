@@ -1,30 +1,6 @@
+using NightscoutFoundation.Nocturne.Model;
+
 namespace Nocturne.Widget.Contracts;
-
-/// <summary>
-/// Urgency level for system notifications
-/// </summary>
-public enum NotificationUrgency
-{
-    /// <summary>
-    /// Informational notification
-    /// </summary>
-    Info,
-
-    /// <summary>
-    /// Warning level notification
-    /// </summary>
-    Warn,
-
-    /// <summary>
-    /// Hazard level notification (more urgent than warning)
-    /// </summary>
-    Hazard,
-
-    /// <summary>
-    /// Urgent notification (highest priority)
-    /// </summary>
-    Urgent
-}
 
 /// <summary>
 /// Interface for displaying system-level notifications (toast notifications)

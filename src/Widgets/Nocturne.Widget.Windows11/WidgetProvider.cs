@@ -675,9 +675,9 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
         {
             var urgencyColor = tracker.Urgency switch
             {
-                NightscoutFoundation.Nocturne.Model.NotificationUrgency.Urgent => "Attention",
-                NightscoutFoundation.Nocturne.Model.NotificationUrgency.Hazard
-                    or NightscoutFoundation.Nocturne.Model.NotificationUrgency.Warn => "Warning",
+                NotificationUrgency.Urgent => "Attention",
+                NotificationUrgency.Hazard
+                    or NotificationUrgency.Warn => "Warning",
                 _ => "Default",
             };
 
