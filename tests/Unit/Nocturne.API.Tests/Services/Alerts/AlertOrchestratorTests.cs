@@ -9,6 +9,7 @@ using Nocturne.API.Services.Alerts.Evaluators;
 using Nocturne.Core.Contracts.Alerts;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models;
+using Nocturne.Core.Models.Alerts;
 using Xunit;
 
 namespace Nocturne.API.Tests.Services.Alerts;
@@ -36,7 +37,7 @@ public class AlertOrchestratorTests
     public AlertOrchestratorTests()
     {
         _mockEvaluator = new Mock<IConditionEvaluator>();
-        _mockEvaluator.Setup(e => e.ConditionType).Returns("threshold");
+        _mockEvaluator.Setup(e => e.ConditionType).Returns(AlertConditionType.Threshold);
         _registry = new ConditionEvaluatorRegistry(new[] { _mockEvaluator.Object });
 
         _excursionTracker = new Mock<IExcursionTracker>();
@@ -71,9 +72,9 @@ public class AlertOrchestratorTests
             LastReadingAt = DateTime.UtcNow,
         };
 
-    private AlertRuleSnapshot MakeRule(string conditionType = "threshold") =>
+    private AlertRuleSnapshot MakeRule(AlertConditionType conditionType = AlertConditionType.Threshold) =>
         new(_ruleId, _tenantId, "Test Rule", conditionType,
-            """{"direction":"below","value":70}""", 5, 3, "urgent", "{}", 0);
+            """{"direction":"below","value":70}""", 5, 3, AlertRuleSeverity.Critical, "{}", 0);
 
     private AlertScheduleSnapshot MakeSchedule() =>
         new(_scheduleId, _ruleId, "Default", true, null, null, null, "UTC");

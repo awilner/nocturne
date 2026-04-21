@@ -17,7 +17,7 @@ public class ChatBotProviderTests
 {
     private static AlertPayload CreateTestPayload() => new()
     {
-        AlertType = "threshold",
+        AlertType = AlertConditionType.Threshold,
         RuleName = "Low glucose",
         GlucoseValue = 55m,
         Trend = "Flat",

@@ -1,6 +1,7 @@
 using FluentValidation.TestHelper;
 using Nocturne.API.Controllers.V4.Monitoring;
 using Nocturne.API.Validators.Alerts;
+using Nocturne.Core.Models.Alerts;
 using Xunit;
 
 namespace Nocturne.API.Tests.Validators.Alerts;
@@ -12,7 +13,7 @@ public class CreateAlertRuleRequestValidatorTests
     private static CreateAlertRuleRequest ValidRequest() => new()
     {
         Name = "High glucose",
-        ConditionType = "glucose_high",
+        ConditionType = AlertConditionType.Threshold,
         HysteresisMinutes = 5,
         ConfirmationReadings = 2,
         Schedules =
@@ -56,15 +57,6 @@ public class CreateAlertRuleRequestValidatorTests
     }
 
     [Fact]
-    public void Empty_condition_type_fails()
-    {
-        var request = ValidRequest();
-        request.ConditionType = string.Empty;
-        var result = _validator.TestValidate(request);
-        result.ShouldHaveValidationErrorFor(x => x.ConditionType);
-    }
-
-    [Fact]
     public void Negative_hysteresis_fails()
     {
         var request = ValidRequest();
@@ -95,7 +87,7 @@ public class CreateAlertRuleRequestValidatorTests
     public void Severity_exceeding_max_length_fails()
     {
         var request = ValidRequest();
-        request.Severity = new string('a', 51);
+        request.Severity = (AlertRuleSeverity)999;
         var result = _validator.TestValidate(request);
         result.ShouldHaveValidationErrorFor(x => x.Severity);
     }
@@ -117,7 +109,7 @@ public class UpdateAlertRuleRequestValidatorTests
     private static UpdateAlertRuleRequest ValidRequest() => new()
     {
         Name = "High glucose",
-        ConditionType = "glucose_high",
+        ConditionType = AlertConditionType.Threshold,
         HysteresisMinutes = 5,
         ConfirmationReadings = 2,
         Schedules =

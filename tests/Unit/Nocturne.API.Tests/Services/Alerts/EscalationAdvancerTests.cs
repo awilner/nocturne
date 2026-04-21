@@ -5,6 +5,7 @@ using Moq;
 using Nocturne.API.Services.Alerts;
 using Nocturne.Core.Contracts.Alerts;
 using Nocturne.Core.Models;
+using Nocturne.Core.Models.Alerts;
 using Xunit;
 
 namespace Nocturne.API.Tests.Services.Alerts;
@@ -146,6 +147,6 @@ public class EscalationAdvancerTests
         capturedPayload.ExcursionId.Should().Be(_excursionId);
         capturedPayload.InstanceId.Should().Be(instance.Id);
         capturedPayload.ActiveExcursionCount.Should().Be(3);
-        capturedPayload.AlertType.Should().Be("escalation");
+        capturedPayload.AlertType.Should().Be(AlertConditionType.Threshold);
     }
 }

@@ -5,6 +5,7 @@ using Moq;
 using Nocturne.API.Services.Alerts.Evaluators;
 using Nocturne.Core.Contracts.Alerts;
 using Nocturne.Core.Models;
+using Nocturne.Core.Models.Alerts;
 using Xunit;
 
 namespace Nocturne.API.Tests.Services.Alerts;
@@ -19,7 +20,7 @@ public class ThresholdEvaluatorTests
     [Fact]
     public void ConditionType_ShouldBeThreshold()
     {
-        _sut.ConditionType.Should().Be("threshold");
+        _sut.ConditionType.Should().Be(AlertConditionType.Threshold);
     }
 
     [Fact]
@@ -115,7 +116,7 @@ public class RateOfChangeEvaluatorTests
     [Fact]
     public void ConditionType_ShouldBeRateOfChange()
     {
-        _sut.ConditionType.Should().Be("rate_of_change");
+        _sut.ConditionType.Should().Be(AlertConditionType.RateOfChange);
     }
 
     [Fact]
@@ -221,7 +222,7 @@ public class SignalLossEvaluatorTests
     [Fact]
     public void ConditionType_ShouldBeSignalLoss()
     {
-        _sut.ConditionType.Should().Be("signal_loss");
+        _sut.ConditionType.Should().Be(AlertConditionType.SignalLoss);
     }
 
     [Fact]
@@ -309,7 +310,7 @@ public class CompositeEvaluatorTests
     [Fact]
     public void ConditionType_ShouldBeComposite()
     {
-        _sut.ConditionType.Should().Be("composite");
+        _sut.ConditionType.Should().Be(AlertConditionType.Composite);
     }
 
     [Fact]
@@ -492,8 +493,8 @@ public class ConditionEvaluatorRegistryTests
         var roc = new RateOfChangeEvaluator();
         var registry = new ConditionEvaluatorRegistry(new IConditionEvaluator[] { threshold, roc });
 
-        registry.GetEvaluator("threshold").Should().BeSameAs(threshold);
-        registry.GetEvaluator("rate_of_change").Should().BeSameAs(roc);
+        registry.GetEvaluator(AlertConditionType.Threshold).Should().BeSameAs(threshold);
+        registry.GetEvaluator(AlertConditionType.RateOfChange).Should().BeSameAs(roc);
     }
 
     [Fact]
@@ -501,7 +502,7 @@ public class ConditionEvaluatorRegistryTests
     {
         var registry = new ConditionEvaluatorRegistry(new IConditionEvaluator[] { new ThresholdEvaluator() });
 
-        registry.GetEvaluator("nonexistent").Should().BeNull();
+        registry.GetEvaluator((AlertConditionType)999).Should().BeNull();
     }
 }
 
