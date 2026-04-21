@@ -25,9 +25,9 @@ public static class ModuleMap
             "CalibrationEntity", "DeviceStatusEntity",
         ],
         ["treatments-events"] = [
-            "TreatmentEntity", "TreatmentFoodEntity", "BolusEntity", "TempBasalEntity",
-            "CarbIntakeEntity", "BGCheckEntity", "BolusCalculationEntity", "NoteEntity",
-            "DeviceEventEntity",
+            "TreatmentEntity", "TreatmentFoodEntity", "DecompositionBatchEntity",
+            "BolusEntity", "TempBasalEntity", "CarbIntakeEntity", "BGCheckEntity",
+            "BolusCalculationEntity", "NoteEntity", "DeviceEventEntity",
         ],
         ["therapy-profiles"] = [
             "ProfileEntity", "TherapySettingsEntity", "BasalScheduleEntity",
