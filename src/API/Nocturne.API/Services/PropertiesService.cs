@@ -5,9 +5,11 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for properties operations with 1:1 legacy JavaScript compatibility
-/// Implements the complex logic from the legacy properties.js file
+/// Computes the Nightscout <c>/api/v1/properties</c> response, aggregating current glucose,
+/// IOB, COB, AR2 forecast, delta, direction, and plugin data into a single structured payload
+/// with 1:1 compatibility with the legacy <c>properties.js</c>.
 /// </summary>
+/// <seealso cref="IPropertiesService"/>
 public class PropertiesService : IPropertiesService
 {
     private readonly IDDataService _ddataService;

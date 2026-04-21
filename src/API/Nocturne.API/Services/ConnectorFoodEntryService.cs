@@ -8,8 +8,11 @@ using Nocturne.Infrastructure.Data.Mappers;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for importing connector food entries and deduplicating foods.
+/// Imports food entries sourced from connectors (e.g. MyFitnessPal) and deduplicates them against
+/// the existing food catalogue via <see cref="IMealMatchingService"/>. New food entries are created
+/// for unmatched items; matched items are linked to the canonical food record.
 /// </summary>
+/// <seealso cref="IConnectorFoodEntryService"/>
 public class ConnectorFoodEntryService : IConnectorFoodEntryService
 {
     private readonly NocturneDbContext _context;

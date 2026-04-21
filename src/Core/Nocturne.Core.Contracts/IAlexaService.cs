@@ -3,9 +3,12 @@ using Nocturne.Core.Models;
 namespace Nocturne.Core.Contracts;
 
 /// <summary>
-/// Service for handling Alexa Skills Kit requests
-/// Provides voice assistant integration for Nightscout data
+/// Service for handling Alexa Skills Kit requests.
+/// Provides voice assistant integration for Nightscout data.
 /// </summary>
+/// <seealso cref="AlexaRequest"/>
+/// <seealso cref="AlexaResponse"/>
+/// <seealso cref="AlexaIntent"/>
 public interface IAlexaService
 {
     /// <summary>

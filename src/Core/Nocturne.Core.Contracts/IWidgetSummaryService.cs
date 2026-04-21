@@ -6,6 +6,8 @@ namespace Nocturne.Core.Contracts;
 /// Service interface for widget-friendly summary data aggregation.
 /// Provides essential diabetes management data optimized for mobile widgets, watch faces, and other constrained displays.
 /// </summary>
+/// <seealso cref="ISummaryService"/>
+/// <seealso cref="IEntryService"/>
 public interface IWidgetSummaryService
 {
     /// <summary>

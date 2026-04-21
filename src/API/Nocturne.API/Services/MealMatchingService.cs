@@ -6,8 +6,11 @@ using Nocturne.Infrastructure.Data.Repositories;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for matching MFP food entries to treatments
+/// Matches connector food entries (primarily from MyFitnessPal) to existing meal-bolus treatments
+/// within a configurable time window, linking them via <see cref="ITreatmentFoodService"/>. Raises
+/// an in-app notification for new matches so users can review auto-linked meals.
 /// </summary>
+/// <seealso cref="IMealMatchingService"/>
 public class MealMatchingService : IMealMatchingService
 {
     private readonly IConnectorFoodEntryRepository _foodEntryRepository;

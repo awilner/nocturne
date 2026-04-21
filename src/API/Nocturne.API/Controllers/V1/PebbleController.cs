@@ -6,10 +6,14 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Controllers.V1;
 
 /// <summary>
-/// Pebble endpoint providing 1:1 compatibility with Nightscout's /pebble endpoint
-/// Used by smartwatch apps, Loop, and other CGM monitoring applications
-/// Based on the legacy pebble.js implementation
+/// Pebble endpoint providing 1:1 compatibility with Nightscout's /pebble endpoint.
+/// Used by smartwatch apps, Loop, and other CGM monitoring applications.
+/// Based on the legacy pebble.js implementation.
 /// </summary>
+/// <seealso cref="IEntryService"/>
+/// <seealso cref="IDeviceStatusService"/>
+/// <seealso cref="ITreatmentService"/>
+/// <seealso cref="IProfileDataService"/>
 [ApiController]
 [Route("")]
 public class PebbleController : ControllerBase
@@ -20,6 +24,14 @@ public class PebbleController : ControllerBase
     private readonly IProfileDataService _profileDataService;
     private readonly ILogger<PebbleController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="PebbleController"/>.
+    /// </summary>
+    /// <param name="entryService">Service for glucose entry retrieval.</param>
+    /// <param name="deviceStatusService">Service for device status retrieval.</param>
+    /// <param name="treatmentService">Service for treatment data retrieval.</param>
+    /// <param name="profileDataService">Service for therapy profile retrieval.</param>
+    /// <param name="logger">Logger instance.</param>
     public PebbleController(
         IEntryService entryService,
         IDeviceStatusService deviceStatusService,

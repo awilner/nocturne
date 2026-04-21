@@ -8,8 +8,11 @@ using Nocturne.Infrastructure.Data.Entities.V4;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Domain service implementation for food breakdown operations linked to carb intake records.
+/// Domain service for food breakdown operations linked to v4 carb intake records.
+/// Manages <see cref="TreatmentFood"/> entries that associate specific food items with a
+/// <see cref="CarbIntake"/>, including portion, carb grams, and time offset.
 /// </summary>
+/// <seealso cref="ITreatmentFoodService"/>
 public class TreatmentFoodService : ITreatmentFoodService
 {
     private readonly NocturneDbContext _context;

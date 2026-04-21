@@ -4,16 +4,22 @@ using Nocturne.Core.Constants;
 namespace Nocturne.Core.Models.Entries;
 
 /// <summary>
-/// Pure domain logic for entry operations. All methods are static with zero I/O,
+/// Pure domain logic for <see cref="Entry"/> operations. All methods are static with zero I/O,
 /// making them trivially testable without mocks.
 /// </summary>
+/// <seealso cref="Entry"/>
 public static class EntryDomainLogic
 {
     /// <summary>
     /// Merges legacy entries with V4-projected entries.
     /// Deduplicates by ID and Mills (timestamp).
-    /// Orders by Mills descending, applies skip/take.
+    /// Orders by <see cref="Entry.Mills"/> descending, applies skip/take.
     /// </summary>
+    /// <param name="legacyEntries">Entries from the legacy V1-V3 data store.</param>
+    /// <param name="projectedEntries">Entries projected from V4 glucose readings.</param>
+    /// <param name="count">Maximum number of entries to return.</param>
+    /// <param name="skip">Number of entries to skip (for pagination).</param>
+    /// <returns>Deduplicated, sorted list of entries.</returns>
     public static IReadOnlyList<Entry> MergeAndDeduplicate(
         IEnumerable<Entry> legacyEntries,
         IEnumerable<Entry> projectedEntries,
@@ -79,6 +85,8 @@ public static class EntryDomainLogic
     /// Walks the document looking for numeric $gte / $lte values on any field.
     /// Returns (null, null) if the query is absent or contains no time constraints.
     /// </summary>
+    /// <param name="find">A MongoDB-style JSON query string (may be null).</param>
+    /// <returns>A tuple of (From, To) timestamps in Unix milliseconds, either of which may be null.</returns>
     public static (long? From, long? To) ParseTimeRangeFromFind(string? find)
     {
         if (string.IsNullOrEmpty(find))
@@ -118,11 +126,16 @@ public static class EntryDomainLogic
     /// <summary>
     /// Returns true for common entry counts that are worth caching (10, 50, 100).
     /// </summary>
+    /// <param name="count">The entry count to check.</param>
+    /// <returns><c>true</c> if <paramref name="count"/> is 10, 50, or 100.</returns>
     public static bool IsCommonEntryCount(int count) => count is 10 or 50 or 100;
 
     /// <summary>
-    /// Returns the entry with the higher Mills timestamp, handling nulls.
+    /// Returns the <see cref="Entry"/> with the higher <see cref="Entry.Mills"/> timestamp, handling nulls.
     /// </summary>
+    /// <param name="legacy">Entry from the legacy data store (may be null).</param>
+    /// <param name="projected">Entry projected from V4 data (may be null).</param>
+    /// <returns>The more recent entry, or <c>null</c> if both are null.</returns>
     public static Entry? SelectMostRecent(Entry? legacy, Entry? projected)
     {
         if (legacy == null && projected == null)
@@ -136,7 +149,9 @@ public static class EntryDomainLogic
     }
 
     /// <summary>
-    /// Returns true if the type is null, empty, or "sgv" — i.e., should be projected from V4.
+    /// Returns true if the type is null, empty, or "sgv" -- i.e., should be projected from V4.
     /// </summary>
+    /// <param name="type">The <see cref="Entry.Type"/> value to check.</param>
+    /// <returns><c>true</c> if entries of this type should be projected from V4 glucose readings.</returns>
     public static bool ShouldProject(string? type) => string.IsNullOrEmpty(type) || type == "sgv";
 }

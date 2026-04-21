@@ -4,6 +4,10 @@ namespace Nocturne.Core.Models;
 /// Defines the defaults for a notification type, used by the template registry
 /// to merge with caller-provided values when creating notifications.
 /// </summary>
+/// <seealso cref="InAppNotificationDto"/>
+/// <seealso cref="CreateNotificationRequest"/>
+/// <seealso cref="NotificationCategory"/>
+/// <seealso cref="NotificationUrgency"/>
 public class NotificationTemplate
 {
     /// <summary>

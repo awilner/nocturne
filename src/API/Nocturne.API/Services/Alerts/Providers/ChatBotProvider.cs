@@ -4,11 +4,22 @@ using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.API.Services.Alerts.Providers;
 
+/// <summary>
+/// Delivers alert payloads to chat-platform users by forwarding a dispatch request
+/// to the Nocturne bot service over HTTP.
+/// </summary>
+/// <remarks>
+/// The bot endpoint is derived from the <c>WEB_URL</c> configuration value.
+/// Delivery is skipped with a warning when that value is not set.
+/// </remarks>
 internal sealed class ChatBotProvider(
     IHttpClientFactory httpClientFactory,
     IConfiguration configuration,
     ILogger<ChatBotProvider> logger)
 {
+    /// <summary>
+    /// The set of <see cref="ChannelType"/> values that this provider can deliver to.
+    /// </summary>
     public static readonly HashSet<ChannelType> SupportedChannelTypes =
     [
         ChannelType.DiscordDm,
@@ -20,6 +31,14 @@ internal sealed class ChatBotProvider(
         ChannelType.WhatsAppDm,
     ];
 
+    /// <summary>
+    /// Sends an alert payload to the specified chat destination.
+    /// </summary>
+    /// <param name="deliveryId">The unique delivery identifier for idempotency tracking.</param>
+    /// <param name="channelType">The target channel type (e.g. Discord DM, Telegram group).</param>
+    /// <param name="destination">Platform-specific destination identifier (user/channel ID).</param>
+    /// <param name="payload">The <see cref="AlertPayload"/> to deliver.</param>
+    /// <param name="ct">Cancellation token.</param>
     public async Task SendAsync(Guid deliveryId, ChannelType channelType, string destination, AlertPayload payload, CancellationToken ct)
     {
         var webUrl = configuration["WEB_URL"];

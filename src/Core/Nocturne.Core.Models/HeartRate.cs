@@ -8,6 +8,8 @@ namespace Nocturne.Core.Models;
 /// Heart rate data is time-series sensor data similar to glucose entries,
 /// typically sourced from wearable devices via xDrip.
 /// </summary>
+/// <seealso cref="StepCount"/>
+/// <seealso cref="ProcessableDocumentBase"/>
 public class HeartRate : ProcessableDocumentBase
 {
     /// <summary>

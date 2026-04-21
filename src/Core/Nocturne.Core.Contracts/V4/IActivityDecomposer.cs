@@ -9,6 +9,9 @@ namespace Nocturne.Core.Contracts.V4;
 /// Activities with "metric" in AdditionalProperties are routed to step_counts table.
 /// Regular activities (exercise, sleep, etc.) pass through unchanged to StateSpan storage.
 /// </summary>
+/// <seealso cref="IDecompositionPipeline"/>
+/// <seealso cref="IHeartRateService"/>
+/// <seealso cref="IStepCountService"/>
 public interface IActivityDecomposer
 {
     /// <summary>

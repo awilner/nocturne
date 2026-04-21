@@ -12,9 +12,27 @@ using OpenApi.Remote.Attributes;
 namespace Nocturne.API.Controllers.V4.Analytics;
 
 /// <summary>
-/// Controller for comprehensive glucose and treatment statistics
-/// Provides endpoints for calculating various glucose metrics and analytics
+/// Controller for comprehensive glucose and treatment statistics.
+/// Provides endpoints for calculating various glucose metrics and analytics including
+/// time-in-range, glycemic variability, GMI, GRI, basal/bolus ratios, and AID system metrics.
 /// </summary>
+/// <remarks>
+/// Several computation endpoints accept large payloads (up to 100 MB) to accommodate
+/// 90-day datasets. These are decorated with <c>[RequestSizeLimit(100 * 1024 * 1024)]</c>.
+///
+/// <c>GET /periods</c> and <c>GET /basal-analysis</c> fetch data directly from the database
+/// using the injected V4 repositories, apply profile-based scheduled-basal fallback when no
+/// TempBasal records exist, and cache results for 5 minutes to absorb rapid dashboard refreshes.
+///
+/// DbContext is not thread-safe; all repository queries within a single request are executed
+/// sequentially.
+/// </remarks>
+/// <seealso cref="IStatisticsService"/>
+/// <seealso cref="ISensorGlucoseRepository"/>
+/// <seealso cref="IBolusRepository"/>
+/// <seealso cref="ICarbIntakeRepository"/>
+/// <seealso cref="ITempBasalRepository"/>
+/// <seealso cref="IAidMetricsService"/>
 [ApiController]
 [Route("api/v4/[controller]")]
 [Produces("application/json")]
@@ -536,11 +554,20 @@ public class StatisticsController : ControllerBase
     }
 
     /// <summary>
-    /// Get comprehensive statistics for multiple time periods (1, 3, 7, 30, 90 days)
-    /// Uses in-memory cache for performance with daily expiration
+    /// Gets comprehensive statistics for multiple time periods (1, 3, 7, 30, and 90 days).
+    /// Fetches sensor glucose, bolus, carb, and temp-basal data from the database for each period,
+    /// computes <see cref="GlucoseAnalytics"/>, <see cref="TreatmentSummary"/>, and
+    /// <see cref="InsulinDeliveryStatistics"/>, and caches the result for 5 minutes.
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Multi-period statistics with comprehensive analytics for each time period</returns>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="MultiPeriodStatistics"/> containing a <see cref="PeriodStatistics"/>
+    /// entry for each of the five standard periods.</returns>
+    /// <remarks>
+    /// When no TempBasal or algorithm bolus records are found but a profile is loaded, the method
+    /// falls back to computing scheduled basal from the active <see cref="IProfileService"/> schedule.
+    /// GMI reliability is assessed per-period using context-appropriate recommended-day minimums
+    /// (e.g., 1-day periods cannot require 14 days of data).
+    /// </remarks>
     [HttpGet("periods")]
     [RemoteQuery]
     public async Task<ActionResult<MultiPeriodStatistics>> GetMultiPeriodStatistics(
@@ -1119,9 +1146,19 @@ public class StatisticsController : ControllerBase
     }
 
     /// <summary>
-    /// Calculate AID (Automated Insulin Delivery) system metrics for a date range.
-    /// Uses patient device data to segment the period and compute time-weighted metrics.
+    /// Calculates AID (Automated Insulin Delivery) system metrics for a date range.
+    /// Uses patient device records to segment the period by algorithm and compute time-weighted metrics
+    /// via <see cref="IAidMetricsService"/>.
     /// </summary>
+    /// <param name="startDate">Inclusive start of the analysis period (UTC).</param>
+    /// <param name="endDate">Inclusive end of the analysis period (UTC).</param>
+    /// <returns>An <see cref="AidSystemMetrics"/> object containing loop-on time, site-change counts,
+    /// CGM active percent, and per-algorithm segment breakdowns.</returns>
+    /// <remarks>
+    /// Fetches APS snapshots, temp basals, device events, glucose readings, and target-range schedules
+    /// from their respective repositories. CGM metrics are derived from <see cref="IStatisticsService.AnalyzeGlucoseData"/>.
+    /// Target range is optional; the method continues without it if the repository throws.
+    /// </remarks>
     [HttpGet("aid-system-metrics")]
     [RemoteQuery]
     public async Task<ActionResult<AidSystemMetrics>> GetAidSystemMetrics(

@@ -8,8 +8,10 @@ using Nocturne.Infrastructure.Data.Entities;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for managing tenant membership invite links.
+/// Manages tenant membership invite links: creates JWT-signed invite tokens,
+/// validates them on claim, and enforces single-use expiry via the database.
 /// </summary>
+/// <seealso cref="IMemberInviteService"/>
 public class MemberInviteService : IMemberInviteService
 {
     private readonly NocturneDbContext _dbContext;

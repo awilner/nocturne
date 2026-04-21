@@ -7,9 +7,18 @@ using Nocturne.Infrastructure.Cache.Keys;
 namespace Nocturne.API.Services.Entries;
 
 /// <summary>
-/// Entry event sink that translates write events into cache invalidation
-/// and SignalR broadcasts via IWriteSideEffects.
+/// <see cref="IDataEventSink{T}"/> implementation for <see cref="Entry"/> that translates
+/// write lifecycle events (created, updated, deleted, bulk-deleted) into cache invalidation
+/// and <see cref="ISignalRBroadcastService"/> broadcasts via <see cref="IWriteSideEffects"/>.
 /// </summary>
+/// <remarks>
+/// Cache invalidation removes the per-tenant current-entry key and clears recent-entry cache patterns.
+/// V4 decomposition is enabled on all events so that SGV entries are projected into typed V4 tables.
+/// <c>dataUpdate</c> broadcasts are suppressed on single-record updates to avoid duplicate client refreshes.
+/// </remarks>
+/// <seealso cref="IDataEventSink{T}"/>
+/// <seealso cref="IWriteSideEffects"/>
+/// <seealso cref="EntryService"/>
 public class SignalREntryEventSink : IDataEventSink<Entry>
 {
     private readonly IWriteSideEffects _sideEffects;
@@ -20,6 +29,12 @@ public class SignalREntryEventSink : IDataEventSink<Entry>
     private string TenantCacheId => _tenantAccessor.Context?.TenantId.ToString()
         ?? throw new InvalidOperationException("Tenant context is not resolved");
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="SignalREntryEventSink"/>.
+    /// </summary>
+    /// <param name="sideEffects">Orchestrates cache invalidation, broadcasting, and V4 decomposition.</param>
+    /// <param name="tenantAccessor">Provides the current tenant context for scoping cache keys.</param>
+    /// <param name="logger">The logger instance.</param>
     public SignalREntryEventSink(
         IWriteSideEffects sideEffects,
         ITenantAccessor tenantAccessor,

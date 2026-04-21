@@ -4,9 +4,11 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service implementation for V2 notification operations with 1:1 legacy JavaScript compatibility
-/// Handles Loop notifications and enhanced notification system features based on the legacy notifications-v2.js
+/// V2 notification service with 1:1 legacy JavaScript compatibility. Implements the enhanced
+/// notification system from <c>notifications-v2.js</c>, including Loop APNS push notification
+/// dispatch via <see cref="ILoopService"/> and a three-level urgency model (INFO, WARN, URGENT).
 /// </summary>
+/// <seealso cref="INotificationV2Service"/>
 public class NotificationV2Service : INotificationV2Service
 {
     private readonly ILogger<NotificationV2Service> _logger;

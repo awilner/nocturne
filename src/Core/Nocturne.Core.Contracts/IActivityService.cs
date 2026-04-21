@@ -3,18 +3,20 @@ using Nocturne.Core.Models;
 namespace Nocturne.Core.Contracts;
 
 /// <summary>
-/// Domain service for activity operations with WebSocket broadcasting
+/// Domain service for <see cref="Activity"/> operations with WebSocket broadcasting.
 /// </summary>
+/// <seealso cref="Activity"/>
+/// <seealso cref="IStateSpanService"/>
 public interface IActivityService
 {
     /// <summary>
-    /// Get activity records with optional filtering and pagination
+    /// Get <see cref="Activity"/> records with optional filtering and pagination.
     /// </summary>
-    /// <param name="find">Optional MongoDB query filter</param>
-    /// <param name="count">Maximum number of records to return</param>
-    /// <param name="skip">Number of records to skip for pagination</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Collection of activity records</returns>
+    /// <param name="find">Optional MongoDB-style query filter string (e.g., <c>find[type][$eq]=exercise</c>).</param>
+    /// <param name="count">Maximum number of records to return.</param>
+    /// <param name="skip">Number of records to skip for pagination.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Collection of <see cref="Activity"/> records matching the filter criteria.</returns>
     Task<IEnumerable<Activity>> GetActivitiesAsync(
         string? find = null,
         int? count = null,
@@ -23,31 +25,33 @@ public interface IActivityService
     );
 
     /// <summary>
-    /// Get a specific activity record by ID
+    /// Get a specific <see cref="Activity"/> record by ID.
     /// </summary>
-    /// <param name="id">Activity ID</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Activity record if found, null otherwise</returns>
+    /// <param name="id">Activity ID (legacy MongoDB ObjectId or UUID v7 string).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The <see cref="Activity"/> if found; <c>null</c> otherwise.</returns>
     Task<Activity?> GetActivityByIdAsync(string id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Create new activity records with WebSocket broadcasting
+    /// Create new <see cref="Activity"/> records with WebSocket broadcasting.
     /// </summary>
-    /// <param name="activities">Activity records to create</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Created activity records with assigned IDs</returns>
+    /// <remarks>Broadcasts a storage-create event via SignalR after persistence.</remarks>
+    /// <param name="activities"><see cref="Activity"/> records to create.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Created <see cref="Activity"/> records with assigned IDs.</returns>
     Task<IEnumerable<Activity>> CreateActivitiesAsync(
         IEnumerable<Activity> activities,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Update an existing activity record with WebSocket broadcasting
+    /// Update an existing <see cref="Activity"/> record with WebSocket broadcasting.
     /// </summary>
-    /// <param name="id">Activity ID to update</param>
-    /// <param name="activity">Updated activity data</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Updated activity record if successful, null otherwise</returns>
+    /// <remarks>Broadcasts a storage-update event via SignalR after persistence.</remarks>
+    /// <param name="id">Activity ID to update.</param>
+    /// <param name="activity">Updated <see cref="Activity"/> data.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The updated <see cref="Activity"/> if successful; <c>null</c> if not found.</returns>
     Task<Activity?> UpdateActivityAsync(
         string id,
         Activity activity,
@@ -55,19 +59,20 @@ public interface IActivityService
     );
 
     /// <summary>
-    /// Delete an activity record with WebSocket broadcasting
+    /// Delete an <see cref="Activity"/> record with WebSocket broadcasting.
     /// </summary>
-    /// <param name="id">Activity ID to delete</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>True if deleted successfully, false otherwise</returns>
+    /// <remarks>Broadcasts a storage-delete event via SignalR after persistence.</remarks>
+    /// <param name="id">Activity ID to delete.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns><c>true</c> if deleted successfully; <c>false</c> if not found.</returns>
     Task<bool> DeleteActivityAsync(string id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Delete multiple activity records with optional filtering
+    /// Delete multiple <see cref="Activity"/> records with optional filtering.
     /// </summary>
-    /// <param name="find">Optional MongoDB query filter</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Number of records deleted</returns>
+    /// <param name="find">Optional MongoDB-style query filter string.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Number of records deleted.</returns>
     Task<long> DeleteMultipleActivitiesAsync(
         string? find = null,
         CancellationToken cancellationToken = default

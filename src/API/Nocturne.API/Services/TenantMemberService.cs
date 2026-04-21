@@ -4,6 +4,12 @@ using Nocturne.Infrastructure.Data;
 
 namespace Nocturne.API.Services;
 
+/// <summary>
+/// Provides tenant membership lookups: checking whether a subject belongs to a tenant and
+/// listing all tenants a subject has access to. Uses a factory-created <see cref="NocturneDbContext"/>
+/// per operation to avoid context lifetime issues in singleton-scoped callers.
+/// </summary>
+/// <seealso cref="ITenantMemberService"/>
 public class TenantMemberService : ITenantMemberService
 {
     private readonly IDbContextFactory<NocturneDbContext> _factory;

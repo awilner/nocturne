@@ -5,9 +5,11 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// COB calculation result with exact 1:1 legacy JavaScript compatibility
-/// Based on ClientApp/lib/plugins/cob.js return structure
+/// COB calculation result with exact 1:1 legacy JavaScript compatibility.
+/// Based on the <c>ClientApp/lib/plugins/cob.js</c> return structure.
 /// </summary>
+/// <seealso cref="CobService"/>
+/// <seealso cref="ICobService"/>
 public class CobResult
 {
     public double Cob { get; set; }
@@ -29,9 +31,10 @@ public class CobResult
 }
 
 /// <summary>
-/// COB calculation result from cobCalc function
-/// Exact structure from legacy JavaScript
+/// COB calculation result from the <c>cobCalc</c> function.
+/// Exact structure from legacy JavaScript.
 /// </summary>
+/// <seealso cref="CobService"/>
 public class CobCalcResult
 {
     public double InitialCarbs { get; set; }
@@ -43,8 +46,9 @@ public class CobCalcResult
 // Profile interface moved to IProfileService.cs for unified COB/IOB compatibility
 
 /// <summary>
-/// COB calculation result for individual treatment
+/// COB contribution calculated for a single <see cref="Treatment"/>.
 /// </summary>
+/// <seealso cref="CobService.CalcTreatment"/>
 public class TreatmentCobResult
 {
     public double CobContrib { get; set; }
@@ -54,11 +58,23 @@ public class TreatmentCobResult
 }
 
 /// <summary>
-/// Service for calculating Carbs on Board (COB) with exact 1:1 legacy JavaScript compatibility
-/// Implements exact algorithms from ClientApp/lib/plugins/cob.js with NO SIMPLIFICATIONS
+/// Service for calculating Carbs on Board (COB) with exact 1:1 legacy JavaScript compatibility.
+/// Implements exact algorithms from <c>ClientApp/lib/plugins/cob.js</c> with no simplifications.
 /// </summary>
+/// <seealso cref="CobService"/>
+/// <seealso cref="IobService"/>
+/// <seealso cref="IProfileService"/>
 public interface ICobService
 {
+    /// <summary>
+    /// Computes total COB, prioritizing <see cref="DeviceStatus"/> data over treatment-based calculation.
+    /// </summary>
+    /// <param name="treatments">The treatment list to calculate COB from when device status is unavailable.</param>
+    /// <param name="deviceStatus">Device status entries (Loop, OpenAPS) for direct COB reading.</param>
+    /// <param name="profile">Optional profile service for carb absorption rate and sensitivity lookups.</param>
+    /// <param name="time">Unix millisecond timestamp; defaults to now.</param>
+    /// <param name="specProfile">Optional specific profile name.</param>
+    /// <returns>A <see cref="CobResult"/> with COB, activity, decay information, and display strings.</returns>
     CobResult CobTotal(
         List<Treatment> treatments,
         List<DeviceStatus> deviceStatus,
@@ -66,6 +82,17 @@ public interface ICobService
         long? time = null,
         string? specProfile = null
     );
+
+    /// <summary>
+    /// Calculates COB from <see cref="Treatment"/> records using the exact legacy algorithm
+    /// including IOB integration with liver sensitivity ratio.
+    /// </summary>
+    /// <param name="treatments">The treatments to calculate COB from.</param>
+    /// <param name="deviceStatus">Device status entries used for IOB integration during decay calculation.</param>
+    /// <param name="profile">Optional profile service for carb absorption rate, sensitivity, and carb ratio lookups.</param>
+    /// <param name="time">Unix millisecond timestamp; defaults to now.</param>
+    /// <param name="specProfile">Optional specific profile name.</param>
+    /// <returns>A <see cref="CobResult"/> with treatment-based COB, decay state, and display information.</returns>
     CobResult FromTreatments(
         List<Treatment> treatments,
         List<DeviceStatus> deviceStatus,
@@ -73,9 +100,38 @@ public interface ICobService
         long? time = null,
         string? specProfile = null
     );
+
+    /// <summary>
+    /// Extracts COB from a single <see cref="DeviceStatus"/> entry.
+    /// Prioritizes Loop COB, then OpenAPS enacted/suggested COB.
+    /// </summary>
+    /// <param name="deviceStatusEntry">The device status entry to extract COB from.</param>
+    /// <returns>A <see cref="CobResult"/> with source attribution, or an empty result if no COB data found.</returns>
     CobResult FromDeviceStatus(DeviceStatus deviceStatusEntry);
+
+    /// <summary>
+    /// Gets the most recent COB from <see cref="DeviceStatus"/> entries within the recency threshold.
+    /// </summary>
+    /// <param name="deviceStatus">The device status entries to search.</param>
+    /// <param name="time">Unix millisecond timestamp for recency filtering.</param>
+    /// <returns>The most recent <see cref="CobResult"/> with a positive COB value, or an empty result.</returns>
     CobResult LastCOBDeviceStatus(List<DeviceStatus> deviceStatus, long time);
+
+    /// <summary>
+    /// Determines whether any of the given <see cref="DeviceStatus"/> entries contain COB data.
+    /// </summary>
+    /// <param name="deviceStatus">The device status entries to check.</param>
+    /// <returns><see langword="true"/> if at least one entry has a positive COB value.</returns>
     bool IsDeviceStatusAvailable(List<DeviceStatus> deviceStatus);
+
+    /// <summary>
+    /// Calculates the COB contribution from a single <see cref="Treatment"/>.
+    /// </summary>
+    /// <param name="treatment">The treatment to calculate COB for.</param>
+    /// <param name="profile">Profile service for carb absorption rate, sensitivity, and carb ratio lookups.</param>
+    /// <param name="time">Unix millisecond timestamp; defaults to now.</param>
+    /// <param name="specProfile">Optional specific profile name.</param>
+    /// <returns>A <see cref="TreatmentCobResult"/> with COB contribution, activity, decay time, and decay state.</returns>
     TreatmentCobResult CalcTreatment(
         Treatment treatment,
         IProfileService profile,
@@ -85,14 +141,22 @@ public interface ICobService
 }
 
 /// <summary>
-/// Implementation of COB calculations with exact 1:1 legacy JavaScript compatibility
-/// Based on ClientApp/lib/plugins/cob.js with NO SIMPLIFICATIONS
-/// CRITICAL: This implements the exact legacy algorithm including:
-/// - 20-minute delay period before absorption
-/// - IOB integration with liver sensitivity ratio
-/// - Complex decay calculations with cobCalc
-/// - Exact device status prioritization (Loop > OpenAPS)
+/// Implementation of Carbs on Board (COB) calculations with exact 1:1 legacy JavaScript compatibility.
+/// Based on <c>ClientApp/lib/plugins/cob.js</c> with no simplifications.
 /// </summary>
+/// <remarks>
+/// The algorithm includes:
+/// <list type="bullet">
+///   <item>20-minute delay period before carb absorption begins.</item>
+///   <item>IOB integration with a liver sensitivity ratio of 8 to adjust decay timing.</item>
+///   <item>Complex decay calculations via an internal <c>CobCalc</c> helper.</item>
+///   <item>Exact device status prioritization: Loop COB takes precedence over OpenAPS (enacted, then suggested).</item>
+/// </list>
+/// </remarks>
+/// <seealso cref="ICobService"/>
+/// <seealso cref="IobService"/>
+/// <seealso cref="IProfileService"/>
+/// <seealso cref="TreatmentService"/>
 public class CobService : ICobService
 {
     private readonly ILogger<CobService> _logger;
@@ -108,6 +172,11 @@ public class CobService : ICobService
     private const double DEFAULT_SENSITIVITY = 95.0; // Insulin sensitivity
     private const double DEFAULT_CARB_RATIO = 18.0; // Carb ratio
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="CobService"/>.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="iobService">IOB service used for IOB integration during COB decay adjustment.</param>
     public CobService(ILogger<CobService> logger, IIobService iobService)
     {
         _logger = logger;

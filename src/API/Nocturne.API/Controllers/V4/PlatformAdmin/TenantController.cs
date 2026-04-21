@@ -9,6 +9,15 @@ using Nocturne.Infrastructure.Data;
 
 namespace Nocturne.API.Controllers.V4.PlatformAdmin;
 
+/// <summary>
+/// Platform-admin controller for managing tenants on the instance.
+/// </summary>
+/// <remarks>
+/// In multi-tenant deployments, platform administrators can create new tenants, update tenant
+/// settings (display name, access-request flag), and deactivate tenants. Restricted to users
+/// with the <c>platform_admin</c> role.
+/// </remarks>
+/// <seealso cref="ITenantService"/>
 [ApiController]
 [Route("api/v4/admin/tenants")]
 [Produces("application/json")]

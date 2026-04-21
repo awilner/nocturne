@@ -11,7 +11,8 @@ using Nocturne.Infrastructure.Data;
 namespace Nocturne.API.Services.Migration;
 
 /// <summary>
-/// Service for managing migration jobs
+/// Service for managing MongoDB-to-Nocturne migration jobs. Supports starting, monitoring,
+/// and cancelling migrations, as well as testing source connections and retrieving migration history.
 /// </summary>
 public interface IMigrationJobService
 {
@@ -35,8 +36,12 @@ public interface IMigrationJobService
 }
 
 /// <summary>
-/// Implementation of migration job service
+/// Implements <see cref="IMigrationJobService"/>. Runs migration jobs as background
+/// <see cref="Task"/> instances, tracked in a <see cref="ConcurrentDictionary{TKey,TValue}"/>
+/// keyed by job ID. Each job streams MongoDB collections into the Nocturne EF Core database in
+/// configurable batches.
 /// </summary>
+/// <seealso cref="IMigrationJobService"/>
 public class MigrationJobService : IMigrationJobService
 {
     private readonly ILogger<MigrationJobService> _logger;

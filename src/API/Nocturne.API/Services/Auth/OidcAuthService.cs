@@ -12,8 +12,12 @@ using Nocturne.Core.Models.Authorization;
 namespace Nocturne.API.Services.Auth;
 
 /// <summary>
-/// Service for handling OIDC authentication flows
+/// Handles OpenID Connect authentication flows including login, session refresh,
+/// logout, and account linking.
 /// </summary>
+/// <seealso cref="IOidcAuthService"/>
+/// <seealso cref="IOidcProviderService"/>
+/// <seealso cref="ISubjectService"/>
 public class OidcAuthService : IOidcAuthService
 {
     private readonly IOidcProviderService _providerService;
@@ -26,8 +30,16 @@ public class OidcAuthService : IOidcAuthService
     private readonly ILogger<OidcAuthService> _logger;
 
     /// <summary>
-    /// Creates a new instance of OidcAuthService
+    /// Initialises a new <see cref="OidcAuthService"/>.
     /// </summary>
+    /// <param name="providerService">Service for resolving and caching OIDC provider configurations.</param>
+    /// <param name="subjectService">Service for finding or creating subjects from OIDC identities.</param>
+    /// <param name="jwtService">Service for generating Nocturne access tokens.</param>
+    /// <param name="refreshTokenService">Service for issuing and rotating refresh tokens.</param>
+    /// <param name="httpClientFactory">Factory for the <c>OidcProvider</c> named HTTP client.</param>
+    /// <param name="options">OIDC session and state configuration options.</param>
+    /// <param name="configuration">Application configuration for reading the base URL.</param>
+    /// <param name="logger">Logger instance.</param>
     public OidcAuthService(
         IOidcProviderService providerService,
         ISubjectService subjectService,
@@ -529,10 +541,15 @@ public class OidcAuthService : IOidcAuthService
     }
 
     /// <summary>
-    /// Internal branching logic for attaching a verified OIDC identity to an authenticated
-    /// subject. Extracted from <see cref="HandleLinkCallbackAsync"/> so it can be unit tested
-    /// without having to mock token exchange + JWKS verification.
+    /// Attaches a verified OIDC identity to an already-authenticated subject.
+    /// Extracted from <see cref="HandleLinkCallbackAsync"/> to enable unit testing
+    /// without mocking token exchange and JWKS verification.
     /// </summary>
+    /// <param name="stateData">Decoded state data from the link callback, which must have <c>Intent == "link"</c>.</param>
+    /// <param name="provider">The OIDC provider from which the identity originated.</param>
+    /// <param name="claims">Parsed claims from the provider's ID token.</param>
+    /// <param name="authenticatedSubjectId">The currently authenticated subject to link the identity to.</param>
+    /// <returns>An <see cref="OidcLinkResult"/> describing the outcome of the link operation.</returns>
     internal async Task<OidcLinkResult> AttachVerifiedIdentityAsync(
         OidcStateData stateData,
         OidcProvider provider,
@@ -573,8 +590,10 @@ public class OidcAuthService : IOidcAuthService
     private const string LinkCallbackPath = "/api/v4/oidc/link/callback";
 
     /// <summary>
-    /// Get the redirect URI for OIDC callbacks
+    /// Builds the absolute redirect URI by combining the configured base URL with the specified callback path.
     /// </summary>
+    /// <param name="callbackPath">The server-relative callback path (default: <see cref="LoginCallbackPath"/>).</param>
+    /// <returns>The fully qualified redirect URI.</returns>
     private string GetRedirectUri(string callbackPath = LoginCallbackPath)
     {
         var baseUrl = _configuration[ServiceNames.ConfigKeys.BaseUrl]?.TrimEnd('/') ?? "http://localhost:5000";
@@ -582,8 +601,15 @@ public class OidcAuthService : IOidcAuthService
     }
 
     /// <summary>
-    /// Build the authorization URL for the OIDC provider
+    /// Constructs the provider's authorization URL with all required OIDC query parameters.
     /// </summary>
+    /// <param name="authorizationEndpoint">The provider's authorization endpoint URL.</param>
+    /// <param name="clientId">The registered OAuth client identifier.</param>
+    /// <param name="redirectUri">The registered redirect URI for the callback.</param>
+    /// <param name="scopes">The requested OAuth scopes.</param>
+    /// <param name="state">URL-safe state token for CSRF protection.</param>
+    /// <param name="nonce">Replay-prevention nonce embedded in the ID token.</param>
+    /// <returns>The fully assembled authorization URL string.</returns>
     private static string BuildAuthorizationUrl(
         string authorizationEndpoint,
         string clientId,
@@ -612,8 +638,16 @@ public class OidcAuthService : IOidcAuthService
     }
 
     /// <summary>
-    /// Exchange authorization code for tokens
+    /// Exchanges an authorisation code for provider tokens at the token endpoint.
+    /// Uses HTTP Basic authentication when a <paramref name="clientSecret"/> is provided (confidential client).
     /// </summary>
+    /// <param name="tokenEndpoint">The provider's token endpoint URL.</param>
+    /// <param name="code">The authorisation code from the callback.</param>
+    /// <param name="clientId">The registered OAuth client identifier.</param>
+    /// <param name="clientSecret">Optional client secret for confidential clients.</param>
+    /// <param name="redirectUri">The redirect URI that was used in the authorisation request.</param>
+    /// <returns>The <see cref="OidcProviderTokenResponse"/> containing ID and access tokens.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the provider returns a non-success status code.</exception>
     private async Task<OidcProviderTokenResponse> ExchangeCodeForTokensAsync(
         string tokenEndpoint,
         string code,
@@ -668,9 +702,16 @@ public class OidcAuthService : IOidcAuthService
     }
 
     /// <summary>
-    /// Parse claims from an ID token (without full signature validation -
-    /// signature is validated by OidcTokenHandler when token is used)
+    /// Parses the payload claims from a JWT ID token without validating the signature.
     /// </summary>
+    /// <remarks>
+    /// Full signature validation is performed by the OIDC token handler when the token is
+    /// subsequently used. This method is intentionally minimal — it only decodes the Base64url
+    /// payload and deserialises the JSON claims.
+    /// </remarks>
+    /// <param name="idToken">The raw JWT ID token string.</param>
+    /// <returns>Deserialised <see cref="OidcIdTokenClaims"/> from the token payload.</returns>
+    /// <exception cref="InvalidOperationException">Thrown for malformed token format or empty claims.</exception>
     private static OidcIdTokenClaims ParseIdToken(string idToken)
     {
         var parts = idToken.Split('.');
@@ -704,8 +745,10 @@ public class OidcAuthService : IOidcAuthService
     }
 
     /// <summary>
-    /// Generate a cryptographically secure random string
+    /// Generates a cryptographically secure URL-safe Base64 random string of the specified byte length.
     /// </summary>
+    /// <param name="length">Number of random bytes to generate.</param>
+    /// <returns>A URL-safe Base64 string (without padding).</returns>
     private static string GenerateRandomString(int length)
     {
         var bytes = RandomNumberGenerator.GetBytes(length);
@@ -713,8 +756,10 @@ public class OidcAuthService : IOidcAuthService
     }
 
     /// <summary>
-    /// Encode state data as a URL-safe string
+    /// Serialises an <see cref="OidcStateData"/> object to a URL-safe Base64 string.
     /// </summary>
+    /// <param name="data">The state data to encode.</param>
+    /// <returns>URL-safe Base64-encoded JSON state string.</returns>
     private static string EncodeState(OidcStateData data)
     {
         var json = JsonSerializer.Serialize(data);
@@ -723,8 +768,11 @@ public class OidcAuthService : IOidcAuthService
     }
 
     /// <summary>
-    /// Decode state data from a URL-safe string
+    /// Deserialises an <see cref="OidcStateData"/> object from a URL-safe Base64 string.
     /// </summary>
+    /// <param name="encoded">URL-safe Base64-encoded state string produced by <see cref="EncodeState"/>.</param>
+    /// <returns>The decoded <see cref="OidcStateData"/>.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the state cannot be deserialised.</exception>
     private static OidcStateData DecodeState(string encoded)
     {
         // Restore base64 padding
@@ -746,8 +794,10 @@ public class OidcAuthService : IOidcAuthService
     }
 
     /// <summary>
-    /// Parse a short device description from user agent
+    /// Extracts a short human-readable device description from a user-agent string.
     /// </summary>
+    /// <param name="userAgent">The raw HTTP user-agent header value, or <see langword="null"/>.</param>
+    /// <returns>A brief platform label (e.g. <c>Windows</c>, <c>iPhone</c>), a truncated user-agent, or <see langword="null"/>.</returns>
     private static string? ParseUserAgentShort(string? userAgent)
     {
         if (string.IsNullOrEmpty(userAgent))

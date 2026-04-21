@@ -6,9 +6,21 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services.Alerts;
 
 /// <summary>
-/// Wires condition evaluators, excursion tracker, and delivery dispatch together.
-/// Called on every new glucose reading to evaluate all enabled alert rules for the tenant.
+/// Wires <see cref="ConditionEvaluatorRegistry"/>, <see cref="IExcursionTracker"/>, and
+/// <see cref="IAlertDeliveryService"/> together into a per-reading alert evaluation pass.
+/// Called on every new glucose reading to evaluate all enabled alert rules for the current tenant.
 /// </summary>
+/// <remarks>
+/// For each enabled rule, the orchestrator resolves the appropriate <see cref="IConditionEvaluator"/>,
+/// checks whether the condition is met, manages excursion lifecycle (open/resolve), advances
+/// escalation steps, and dispatches delivery. Errors from individual rule evaluations are caught
+/// and logged without aborting the rest of the evaluation pass.
+/// </remarks>
+/// <seealso cref="IAlertOrchestrator"/>
+/// <seealso cref="ConditionEvaluatorRegistry"/>
+/// <seealso cref="IExcursionTracker"/>
+/// <seealso cref="IAlertDeliveryService"/>
+/// <seealso cref="IEscalationAdvancer"/>
 internal sealed class AlertOrchestrator(
     ConditionEvaluatorRegistry evaluatorRegistry,
     IExcursionTracker excursionTracker,

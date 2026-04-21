@@ -3,6 +3,11 @@ using Nocturne.Infrastructure.Cache.Keys;
 
 namespace Nocturne.API.Services.Effects;
 
+/// <summary>
+/// <see cref="ICollectionEffectDescriptor"/> for the <c>profiles</c> collection.
+/// Invalidates the current-profile cache key and the profile timestamp pattern on write.
+/// </summary>
+/// <seealso cref="ICollectionEffectDescriptor"/>
 public class ProfileEffectDescriptor : ICollectionEffectDescriptor
 {
     public string CollectionName => "profiles";

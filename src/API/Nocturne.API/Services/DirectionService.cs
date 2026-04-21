@@ -3,10 +3,28 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Static direction helpers with 1:1 legacy JavaScript compatibility.
-/// Implements the exact algorithms from ClientApp/lib/plugins/direction.js and ClientApp/lib/plugins/bgnow.js.
-/// All methods are pure functions with no dependencies.
+/// Static direction helpers that implement the exact algorithms from the legacy Nightscout JavaScript
+/// files <c>direction.js</c> and <c>bgnow.js</c>, preserving 1:1 API compatibility.
+/// All methods are pure functions with no side effects or dependencies.
 /// </summary>
+/// <remarks>
+/// <para>
+/// <see cref="CalculateDelta"/> mirrors the legacy interpolation rule: when two consecutive
+/// readings are more than 9 minutes apart (<c>isInterpolated = true</c>) the 5-minute delta
+/// is computed via linear interpolation between the two readings rather than taking the raw
+/// difference. This prevents anomalously large deltas when readings arrive late.
+/// </para>
+/// <para>
+/// <see cref="CalculateDirection(double, double, double)"/> maps slope (mg/dL per minute) to
+/// <see cref="Direction"/> using the original Nightscout thresholds:
+/// &gt;3 TripleUp, &gt;2 DoubleUp, ≥1 SingleUp, &gt;0 FortyFiveUp, &gt;-0.5 Flat,
+/// &gt;-1 FortyFiveDown, &gt;-2 SingleDown, ≥-3 DoubleDown, else TripleDown.
+/// </para>
+/// <para>
+/// mmol/L display formatting rounds to one decimal place with explicit sign, matching legacy
+/// behaviour. mg/dL values are rounded to the nearest integer.
+/// </para>
+/// </remarks>
 public static class DirectionService
 {
     /// <summary>

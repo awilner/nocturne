@@ -7,10 +7,11 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Controllers.V2;
 
 /// <summary>
-/// Loop controller providing Apple Push Notification Service (APNS) integration for iOS Loop app
-/// Implements the legacy loop.sendNotification() functionality with 1:1 backwards compatibility
-/// Based on the legacy loop.js implementation
+/// Loop controller providing Apple Push Notification Service (APNS) integration for iOS Loop app.
+/// Implements the legacy loop.sendNotification() functionality with 1:1 backwards compatibility.
+/// Based on the legacy loop.js implementation.
 /// </summary>
+/// <seealso cref="ILoopService"/>
 [ApiController]
 [Route("api/v2")]
 [Produces("application/json")]
@@ -20,6 +21,11 @@ public class LoopController : ControllerBase
     private readonly ILoopService _loopService;
     private readonly ILogger<LoopController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="LoopController"/>.
+    /// </summary>
+    /// <param name="loopService">Service for sending Loop APNS notifications.</param>
+    /// <param name="logger">Logger instance.</param>
     public LoopController(ILoopService loopService, ILogger<LoopController> logger)
     {
         _loopService = loopService;

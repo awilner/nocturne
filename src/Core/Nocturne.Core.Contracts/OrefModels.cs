@@ -81,91 +81,119 @@ public class OrefProfile
     public double MaxMealAbsorptionTime { get; set; } = 6.0;
 
     // SMB Settings
+    /// <summary>Always allow Super Micro Boluses (SMB), regardless of COB or temp target.</summary>
     [JsonPropertyName("enableSmbAlways")]
     public bool EnableSmbAlways { get; set; }
 
+    /// <summary>Allow SMB when carbs on board are present.</summary>
     [JsonPropertyName("enableSmbWithCob")]
     public bool EnableSmbWithCob { get; set; }
 
+    /// <summary>Allow SMB when an active temp target is set.</summary>
     [JsonPropertyName("enableSmbWithTemptarget")]
     public bool EnableSmbWithTemptarget { get; set; }
 
+    /// <summary>Allow SMB for a period after carbs are entered.</summary>
     [JsonPropertyName("enableSmbAfterCarbs")]
     public bool EnableSmbAfterCarbs { get; set; }
 
+    /// <summary>Allow SMB when BG is above <see cref="EnableSmbHighBgTarget"/>.</summary>
     [JsonPropertyName("enableSmbHighBg")]
     public bool EnableSmbHighBg { get; set; }
 
+    /// <summary>BG threshold (mg/dL) above which SMB is allowed when <see cref="EnableSmbHighBg"/> is true.</summary>
     [JsonPropertyName("enableSmbHighBgTarget")]
     public double EnableSmbHighBgTarget { get; set; } = 110.0;
 
+    /// <summary>Allow SMB even when a high temp target is active.</summary>
     [JsonPropertyName("allowSmbWithHighTemptarget")]
     public bool AllowSmbWithHighTemptarget { get; set; }
 
+    /// <summary>Maximum SMB size expressed as minutes of the current basal rate.</summary>
     [JsonPropertyName("maxSmbBasalMinutes")]
     public int MaxSmbBasalMinutes { get; set; } = 30;
 
+    /// <summary>Maximum UAM SMB size expressed as minutes of the current basal rate.</summary>
     [JsonPropertyName("maxUamSmbBasalMinutes")]
     public int MaxUamSmbBasalMinutes { get; set; } = 30;
 
+    /// <summary>Minimum interval between SMBs (minutes).</summary>
     [JsonPropertyName("smbInterval")]
     public int SmbInterval { get; set; } = 3;
 
+    /// <summary>Pump bolus increment (units) for rounding SMB amounts.</summary>
     [JsonPropertyName("bolusIncrement")]
     public double BolusIncrement { get; set; } = 0.1;
 
+    /// <summary>Fraction of the calculated insulin requirement delivered as an SMB (0–1).</summary>
     [JsonPropertyName("smbDeliveryRatio")]
     public double SmbDeliveryRatio { get; set; } = 0.5;
 
     // UAM Settings
+    /// <summary>Enable Un-Announced Meal (UAM) detection for unlogged carb absorption.</summary>
     [JsonPropertyName("enableUam")]
     public bool EnableUam { get; set; }
 
     // Dynamic ISF Settings
+    /// <summary>Enable dynamic insulin sensitivity factor (Dynamic ISF / Autosens ISF).</summary>
     [JsonPropertyName("useDynamicIsf")]
     public bool UseDynamicIsf { get; set; }
 
+    /// <summary>Use sigmoid function for Dynamic ISF scaling instead of linear scaling.</summary>
     [JsonPropertyName("sigmoid")]
     public bool Sigmoid { get; set; }
 
+    /// <summary>Adjustment factor for Dynamic ISF linear scaling.</summary>
     [JsonPropertyName("adjustmentFactor")]
     public double AdjustmentFactor { get; set; } = 1.0;
 
+    /// <summary>Adjustment factor for Dynamic ISF sigmoid scaling.</summary>
     [JsonPropertyName("adjustmentFactorSigmoid")]
     public double AdjustmentFactorSigmoid { get; set; } = 0.5;
 
+    /// <summary>Weight percentage blending Dynamic ISF with the scheduled ISF (0–1).</summary>
     [JsonPropertyName("weightPercentage")]
     public double WeightPercentage { get; set; } = 0.65;
 
+    /// <summary>Adjust basal rate based on total daily dose (TDD).</summary>
     [JsonPropertyName("tddAdjBasal")]
     public bool TddAdjBasal { get; set; }
 
     // Temp Target Settings
+    /// <summary>Whether a temporary BG target is currently active.</summary>
     [JsonPropertyName("temptargetSet")]
     public bool TemptargetSet { get; set; }
 
+    /// <summary>When true, a high temp target increases insulin sensitivity (lowers ISF).</summary>
     [JsonPropertyName("highTemptargetRaisesSensitivity")]
     public bool HighTemptargetRaisesSensitivity { get; set; }
 
+    /// <summary>When true, a low temp target decreases insulin sensitivity (raises ISF).</summary>
     [JsonPropertyName("lowTemptargetLowersSensitivity")]
     public bool LowTemptargetLowersSensitivity { get; set; }
 
+    /// <summary>Enable exercise mode, which adjusts sensitivity during physical activity.</summary>
     [JsonPropertyName("exerciseMode")]
     public bool ExerciseMode { get; set; }
 
+    /// <summary>BG target (mg/dL) at which exercise mode reduces basal to half the scheduled rate.</summary>
     [JsonPropertyName("halfBasalExerciseTarget")]
     public double HalfBasalExerciseTarget { get; set; } = 160.0;
 
     // Safety Settings
+    /// <summary>Skip setting neutral temp basals when the algorithm would otherwise cancel a running temp.</summary>
     [JsonPropertyName("skipNeutralTemps")]
     public bool SkipNeutralTemps { get; set; }
 
+    /// <summary>Reset autosens calculation when a pump rewind event is detected.</summary>
     [JsonPropertyName("rewindResetsAutosens")]
     public bool RewindResetsAutosens { get; set; } = true;
 
+    /// <summary>Enable the A52 risk calculation for additional safety checks.</summary>
     [JsonPropertyName("a52RiskEnable")]
     public bool A52RiskEnable { get; set; }
 
+    /// <summary>Zero out IOB when the pump is suspended.</summary>
     [JsonPropertyName("suspendZerosIob")]
     public bool SuspendZerosIob { get; set; } = true;
 }
@@ -343,6 +371,7 @@ public class OrefCurrentTemp
     [JsonPropertyName("temp")]
     public string Temp { get; set; } = "absolute";
 
+    /// <summary>A zero-duration, zero-rate absolute temp basal representing no active temp.</summary>
     public static OrefCurrentTemp None =>
         new()
         {

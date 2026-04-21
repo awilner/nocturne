@@ -8,37 +8,62 @@ using Nocturne.Infrastructure.Data.Mappers;
 namespace Nocturne.API.Services.V4;
 
 /// <summary>
-/// Decomposes legacy Activity records into HeartRate or StepCount records.
-/// Detection is based on the presence of specific keys in Activity.AdditionalProperties.
+/// Decomposes legacy <see cref="Activity"/> records into typed v4 models (<see cref="HeartRate"/> or
+/// <see cref="StepCount"/>). Detection is based on the presence of specific keys in
+/// <see cref="Activity.AdditionalProperties"/>: <c>bpm</c> indicates heart-rate data; <c>metric</c>
+/// indicates step-count data. Supports idempotent create-or-update via <c>OriginalId</c> matching.
 /// </summary>
+/// <seealso cref="IActivityDecomposer"/>
+/// <seealso cref="IDecomposer{T}"/>
 public class ActivityDecomposer : IActivityDecomposer, IDecomposer<Activity>
 {
     private readonly NocturneDbContext _dbContext;
     private readonly ILogger<ActivityDecomposer> _logger;
 
+    /// <param name="dbContext">EF Core context used for direct entity read/write operations.</param>
+    /// <param name="logger">Logger instance for this decomposer.</param>
     public ActivityDecomposer(NocturneDbContext dbContext, ILogger<ActivityDecomposer> logger)
     {
         _dbContext = dbContext;
         _logger = logger;
     }
 
+    /// <summary>
+    /// Returns <see langword="true"/> if the activity carries heart-rate data (identified by the
+    /// presence of a <c>bpm</c> key in <see cref="Activity.AdditionalProperties"/>).
+    /// </summary>
+    /// <param name="activity">The activity to inspect.</param>
+    /// <returns><see langword="true"/> when the activity has a <c>bpm</c> property; otherwise <see langword="false"/>.</returns>
     public bool IsHeartRate(Activity activity)
     {
         return activity.AdditionalProperties != null
             && activity.AdditionalProperties.ContainsKey("bpm");
     }
 
+    /// <summary>
+    /// Returns <see langword="true"/> if the activity carries step-count data (identified by the
+    /// presence of a <c>metric</c> key in <see cref="Activity.AdditionalProperties"/>).
+    /// </summary>
+    /// <param name="activity">The activity to inspect.</param>
+    /// <returns><see langword="true"/> when the activity has a <c>metric</c> property; otherwise <see langword="false"/>.</returns>
     public bool IsStepCount(Activity activity)
     {
         return activity.AdditionalProperties != null
             && activity.AdditionalProperties.ContainsKey("metric");
     }
 
+    /// <summary>
+    /// Returns <see langword="true"/> if the activity represents sensor-derived physiological data,
+    /// i.e. it is either a heart-rate or step-count record.
+    /// </summary>
+    /// <param name="activity">The activity to inspect.</param>
+    /// <returns><see langword="true"/> when the activity is either heart-rate or step-count data.</returns>
     public bool IsSensorData(Activity activity)
     {
         return IsHeartRate(activity) || IsStepCount(activity);
     }
 
+    /// <inheritdoc/>
     public async Task<DecompositionResult> DecomposeAsync(
         Activity activity,
         CancellationToken ct = default
@@ -65,6 +90,7 @@ public class ActivityDecomposer : IActivityDecomposer, IDecomposer<Activity>
         return result;
     }
 
+    /// <inheritdoc/>
     public async Task<int> DeleteByLegacyIdAsync(string legacyId, CancellationToken ct = default)
     {
         var deleted = 0;
@@ -104,6 +130,12 @@ public class ActivityDecomposer : IActivityDecomposer, IDecomposer<Activity>
 
     // --- Reverse mapping for backward-compat GET ---
 
+    /// <summary>
+    /// Reconstructs a legacy <see cref="Activity"/> from a stored <see cref="HeartRate"/> record
+    /// for backward-compatible GET responses on the v1/v3 activities endpoint.
+    /// </summary>
+    /// <param name="heartRate">The v4 heart-rate record to reverse-map.</param>
+    /// <returns>An <see cref="Activity"/> with <c>bpm</c> and <c>accuracy</c> in its additional properties.</returns>
     internal static Activity HeartRateToActivity(HeartRate heartRate)
     {
         var activity = new Activity
@@ -126,6 +158,12 @@ public class ActivityDecomposer : IActivityDecomposer, IDecomposer<Activity>
         return activity;
     }
 
+    /// <summary>
+    /// Reconstructs a legacy <see cref="Activity"/> from a stored <see cref="StepCount"/> record
+    /// for backward-compatible GET responses on the v1/v3 activities endpoint.
+    /// </summary>
+    /// <param name="stepCount">The v4 step-count record to reverse-map.</param>
+    /// <returns>An <see cref="Activity"/> with <c>metric</c> and <c>source</c> in its additional properties.</returns>
     internal static Activity StepCountToActivity(StepCount stepCount)
     {
         var activity = new Activity

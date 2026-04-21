@@ -10,9 +10,13 @@ using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Controllers.V3;
 
 /// <summary>
-/// V3 DeviceStatus controller that provides full V3 API compatibility with Nightscout devicestatus endpoints
-/// Implements the /api/v3/devicestatus endpoints with pagination, field selection, sorting, and advanced filtering
+/// V3 DeviceStatus controller that provides full V3 API compatibility with Nightscout devicestatus endpoints.
+/// Implements the /api/v3/devicestatus endpoints with pagination, field selection, sorting, and advanced filtering.
 /// </summary>
+/// <seealso cref="IDeviceStatusService"/>
+/// <seealso cref="IDeviceStatusRepository"/>
+/// <seealso cref="DeviceStatus"/>
+/// <seealso cref="BaseV3Controller{T}"/>
 [ApiController]
 [Route("api/v3/[controller]")]
 [Authorize(Policy = PolicyNames.HasPermissions)]
@@ -411,8 +415,14 @@ public class DeviceStatusController : BaseV3Controller<DeviceStatus>
     }
 
     /// <summary>
-    /// Get device status records modified since a given timestamp (for AAPS incremental sync)
+    /// Get device status records modified since a given timestamp (for AAPS incremental sync).
     /// </summary>
+    /// <param name="lastModified">Unix timestamp in milliseconds. Only records modified after this time are returned.</param>
+    /// <param name="limit">Maximum number of records to return (1-1000, default 1000).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>V3 collection of <see cref="DeviceStatus"/> objects modified since the given timestamp.</returns>
+    /// <response code="200">Device status records modified since the given timestamp.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("history/{lastModified:long}")]
     [NightscoutEndpoint("/api/v3/devicestatus/history/{lastModified}")]
     [ProducesResponseType(typeof(object), 200)]

@@ -6,13 +6,25 @@ using Nocturne.Infrastructure.Data.Mappers;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Domain service for StateSpan operations
+/// Domain service for <see cref="StateSpan"/> operations including
+/// <see cref="Activity"/> compatibility methods that map activities to/from
+/// <see cref="StateSpan"/> records via <see cref="ActivityStateSpanMapper"/>.
 /// </summary>
+/// <seealso cref="IStateSpanService"/>
+/// <seealso cref="IStateSpanRepository"/>
+/// <seealso cref="ActivityStateSpanMapper"/>
+/// <seealso cref="ActivityService"/>
+/// <seealso cref="StateSpanCategory"/>
 public class StateSpanService : IStateSpanService
 {
     private readonly IStateSpanRepository _repository;
     private readonly ILogger<StateSpanService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="StateSpanService"/>.
+    /// </summary>
+    /// <param name="repository">The state span repository for data access.</param>
+    /// <param name="logger">The logger instance.</param>
     public StateSpanService(
         IStateSpanRepository repository,
         ILogger<StateSpanService> logger)

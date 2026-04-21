@@ -3,20 +3,21 @@ using dotAPNS;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Factory interface for creating APNS clients
-/// Allows mocking in tests while maintaining production behavior
+/// Factory for creating APNs clients, abstracted for testability.
+/// The production implementation is <see cref="ApnsClientFactory"/>.
 /// </summary>
 public interface IApnsClientFactory
 {
     /// <summary>
-    /// Creates an APNS client configured for the specified bundle ID
+    /// Creates an APNs client for the specified bundle ID.
+    /// Returns <see langword="null"/> when APNs configuration is incomplete or when the
+    /// underlying client constructor throws.
     /// </summary>
-    /// <param name="bundleId">iOS app bundle identifier</param>
-    /// <returns>Configured APNS client, or null if configuration is invalid</returns>
     IApnsClient? CreateClient(string bundleId);
 
     /// <summary>
-    /// Checks if the factory is properly configured
+    /// <see langword="true"/> when all required APNs configuration values (key, key ID,
+    /// 10-character team ID) are present and non-empty.
     /// </summary>
     bool IsConfigured { get; }
 }

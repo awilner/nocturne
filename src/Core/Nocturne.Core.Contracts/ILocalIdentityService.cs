@@ -297,8 +297,13 @@ public class LocalAuthResult
     /// </summary>
     public DateTime? LockedUntil { get; set; }
 
+    /// <summary>When <c>true</c>, the user must change their password before continuing.</summary>
     public bool RequirePasswordChange { get; set; }
 
+    /// <summary>Returns a successful authentication result.</summary>
+    /// <param name="user">The authenticated <see cref="LocalUser"/>.</param>
+    /// <param name="subjectId">The subject identifier for the user.</param>
+    /// <param name="requirePasswordChange">Whether the user must change their password immediately.</param>
     public static LocalAuthResult Succeeded(
         LocalUser user,
         Guid subjectId,
@@ -312,6 +317,11 @@ public class LocalAuthResult
             RequirePasswordChange = requirePasswordChange,
         };
 
+    /// <summary>Returns a failed authentication result.</summary>
+    /// <param name="errorCode">Machine-readable error code.</param>
+    /// <param name="message">Human-readable error message.</param>
+    /// <param name="remainingAttempts">Remaining login attempts before lockout, if applicable.</param>
+    /// <param name="lockedUntil">UTC time when the lockout ends, if the account is locked.</param>
     public static LocalAuthResult Failed(
         string errorCode,
         string message,
@@ -356,43 +366,81 @@ public class PasswordResetRequestResult
 }
 
 /// <summary>
-/// A local user
+/// A local user registered through the built-in identity provider.
 /// </summary>
 public class LocalUser
 {
+    /// <summary>Unique identifier for the local user record.</summary>
     public Guid Id { get; set; }
+
+    /// <summary>Email address used to log in.</summary>
     public string Email { get; set; } = string.Empty;
+
+    /// <summary>Optional display name shown in the UI.</summary>
     public string? DisplayName { get; set; }
+
+    /// <summary>Whether the user's email address has been verified.</summary>
     public bool EmailVerified { get; set; }
+
+    /// <summary>Whether the account is currently active and permitted to log in.</summary>
     public bool IsActive { get; set; }
+
+    /// <summary>Whether the account is awaiting administrator approval before it can be used.</summary>
     public bool PendingApproval { get; set; }
+
+    /// <summary>When <c>true</c>, the user must change their password on next login.</summary>
     public bool RequirePasswordChange { get; set; }
+
+    /// <summary>The subject identifier linking this user to the authorization system, or <c>null</c> if not yet linked.</summary>
     public Guid? SubjectId { get; set; }
+
+    /// <summary>UTC timestamp of the user's last successful login, or <c>null</c> if they have never logged in.</summary>
     public DateTime? LastLoginAt { get; set; }
+
+    /// <summary>UTC timestamp when the user account was created.</summary>
     public DateTime CreatedAt { get; set; }
 }
 
 /// <summary>
-/// Filter for listing local users
+/// Filter criteria for listing <see cref="LocalUser"/> records.
+/// Null properties are ignored (not applied as filters).
 /// </summary>
 public class LocalUserFilter
 {
+    /// <summary>Filter to only users pending administrator approval, or only those not pending.</summary>
     public bool? PendingApproval { get; set; }
+
+    /// <summary>Filter to only active users, or only inactive users.</summary>
     public bool? IsActive { get; set; }
+
+    /// <summary>Filter to only email-verified users, or only unverified users.</summary>
     public bool? EmailVerified { get; set; }
+
+    /// <summary>Optional free-text search term matched against email and display name.</summary>
     public string? SearchTerm { get; set; }
 }
 
 /// <summary>
-/// A pending password reset request
+/// A pending password reset request submitted by a user who cannot log in.
 /// </summary>
 public class PasswordResetRequest
 {
+    /// <summary>Unique identifier for this password reset request.</summary>
     public Guid Id { get; set; }
+
+    /// <summary>Email address of the user requesting the reset.</summary>
     public string Email { get; set; } = string.Empty;
+
+    /// <summary>Display name of the user, if available.</summary>
     public string? DisplayName { get; set; }
+
+    /// <summary>IP address from which the reset was requested, if available.</summary>
     public string? RequestedFromIp { get; set; }
+
+    /// <summary>User agent string from the requesting browser, if available.</summary>
     public string? UserAgent { get; set; }
+
+    /// <summary>UTC timestamp when the reset request was submitted.</summary>
     public DateTime CreatedAt { get; set; }
 }
 
@@ -418,15 +466,21 @@ public class AllowlistCheckResult
 }
 
 /// <summary>
-/// Result of password validation
+/// Result of password validation against the configured complexity requirements.
 /// </summary>
 public class PasswordValidationResult
 {
+    /// <summary>Whether the password satisfies all requirements.</summary>
     public bool IsValid { get; set; }
+
+    /// <summary>Human-readable error messages describing each unmet requirement.</summary>
     public List<string> Errors { get; set; } = new();
 
+    /// <summary>Returns a successful validation result with no errors.</summary>
     public static PasswordValidationResult Valid() => new() { IsValid = true };
 
+    /// <summary>Returns a failed validation result with the specified error messages.</summary>
+    /// <param name="errors">One or more error messages describing the requirement violations.</param>
     public static PasswordValidationResult Invalid(params string[] errors) =>
         new() { IsValid = false, Errors = errors.ToList() };
 }

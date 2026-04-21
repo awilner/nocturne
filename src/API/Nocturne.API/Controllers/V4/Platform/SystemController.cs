@@ -6,6 +6,15 @@ using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.API.Controllers.V4.Platform;
 
+/// <summary>
+/// Controller for system-level lifecycle signals such as bot heartbeats.
+/// </summary>
+/// <remarks>
+/// <c>POST /heartbeat</c> is called by the <c>@nocturne/bot</c> process on each polling cycle
+/// to report which platforms (Discord, Telegram, etc.) are currently online. The
+/// <see cref="BotHealthService"/> records these timestamps for health-check display in the admin UI.
+/// </remarks>
+/// <seealso cref="BotHealthService"/>
 [ApiController]
 [Authorize]
 [Route("api/v4/system")]

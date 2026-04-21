@@ -11,12 +11,31 @@ namespace Nocturne.API.Controllers.V4.Treatments;
 
 /// <summary>
 /// V4 Treatments controller with authentication and tracker integration.
-/// Unlike V1-V3 endpoints, this does NOT include StateSpan-derived basal data.
-/// For basal delivery data, use /api/v4/state-spans?category=BasalDelivery instead.
-/// This provides a clean separation of concerns:
-/// - V4 treatments: boluses, site changes, notes, etc.
-/// - StateSpans: basal delivery, temp basals, pump modes, etc.
+/// Unlike V1-V3 endpoints, this does NOT include <see cref="StateSpan"/>-derived basal data.
+/// For basal delivery data, use <c>/api/v4/state-spans?category=BasalDelivery</c> instead.
 /// </summary>
+/// <remarks>
+/// This provides a clean separation of concerns:
+/// <list type="bullet">
+///   <item><description>V4 treatments (<c>/api/v4/treatments</c>): boluses, site changes, notes, etc.</description></item>
+///   <item><description>StateSpans (<c>/api/v4/state-spans</c>): basal delivery, temp basals, pump modes, etc.</description></item>
+/// </list>
+///
+/// On create, the controller:
+/// <list type="number">
+///   <item><description>Processes the treatment via <see cref="IDocumentProcessingService"/> (adds timestamps, etc.).</description></item>
+///   <item><description>Triggers any matching trackers via <see cref="ITrackerTriggerService"/>.</description></item>
+///   <item><description>Evaluates tracker suggestions (e.g., site change → cannula reset suggestion) via <see cref="ITrackerSuggestionService"/>.</description></item>
+///   <item><description>Broadcasts the new record over SignalR via <see cref="ISignalRBroadcastService"/>.</description></item>
+/// </list>
+///
+/// The bulk create endpoint is limited to 1 000 treatments per request.
+/// The <c>GET /</c> list endpoint is <see cref="AllowAnonymousAttribute"/> and cached for 90 seconds.
+/// </remarks>
+/// <seealso cref="ITreatmentRepository"/>
+/// <seealso cref="ITrackerTriggerService"/>
+/// <seealso cref="ITrackerSuggestionService"/>
+/// <seealso cref="ISignalRBroadcastService"/>
 [ApiController]
 [Route("api/v4/treatments")]
 [Authorize]

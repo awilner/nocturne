@@ -3,13 +3,19 @@ using Nocturne.Core.Models;
 namespace Nocturne.Core.Contracts;
 
 /// <summary>
-/// Service for managing compression low suggestions
+/// Service for managing compression low suggestions.
 /// </summary>
+/// <seealso cref="ICompressionLowDetectionService"/>
+/// <seealso cref="IStateSpanService"/>
 public interface ICompressionLowService
 {
     /// <summary>
-    /// Get suggestions with optional filtering
+    /// Get suggestions with optional filtering.
     /// </summary>
+    /// <param name="status">Filter by <see cref="CompressionLowStatus"/>, or null to return all statuses.</param>
+    /// <param name="nightOf">Filter to a specific night, or null to return all nights.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Matching compression-low suggestions.</returns>
     Task<IEnumerable<CompressionLowSuggestion>> GetSuggestionsAsync(
         CompressionLowStatus? status = null,
         DateOnly? nightOf = null,

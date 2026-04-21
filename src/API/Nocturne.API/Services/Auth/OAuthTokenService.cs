@@ -9,6 +9,11 @@ namespace Nocturne.API.Services.Auth;
 /// Orchestrates OAuth token operations: authorization code exchange,
 /// refresh token rotation, and revocation.
 /// </summary>
+/// <seealso cref="IOAuthTokenService"/>
+/// <seealso cref="IJwtService"/>
+/// <seealso cref="ISubjectService"/>
+/// <seealso cref="IOAuthGrantService"/>
+/// <seealso cref="RefreshTokenService"/>
 public class OAuthTokenService : IOAuthTokenService
 {
     private readonly NocturneDbContext _db;
@@ -19,6 +24,14 @@ public class OAuthTokenService : IOAuthTokenService
 
     private static readonly TimeSpan AuthorizationCodeLifetime = TimeSpan.FromMinutes(10);
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="OAuthTokenService"/>.
+    /// </summary>
+    /// <param name="db">The EF Core database context for authorization code and token entity access.</param>
+    /// <param name="jwtService">Service for generating and validating JWT access tokens and refresh tokens.</param>
+    /// <param name="subjectService">Service for resolving subject permissions and roles for token claims.</param>
+    /// <param name="grantService">Service for persisting and querying OAuth consent grants.</param>
+    /// <param name="logger">The logger instance.</param>
     public OAuthTokenService(
         NocturneDbContext db,
         IJwtService jwtService,

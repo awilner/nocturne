@@ -49,6 +49,19 @@ public interface IOAuthClientService
     /// </summary>
     Task SeedKnownOAuthClientsAsync(Guid tenantId, CancellationToken ct = default);
 
+    /// <summary>
+    /// RFC 7591 Dynamic Client Registration. Registers a new OAuth client or returns an existing
+    /// row for the same (tenant, software_id) pair. See <see cref="IOAuthClientService"/> for details.
+    /// </summary>
+    /// <param name="softwareId">RFC 7591 software_id (reverse-DNS), or null for anonymous clients.</param>
+    /// <param name="clientName">Display name shown on the consent screen.</param>
+    /// <param name="clientUri">Homepage URI for the application.</param>
+    /// <param name="logoUri">Logo URI displayed on the consent screen.</param>
+    /// <param name="redirectUris">Allowed redirect URIs (must already be validated).</param>
+    /// <param name="scope">Space-delimited scope string.</param>
+    /// <param name="createdFromIp">IP address that performed the registration request.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The registered or existing <see cref="OAuthClientInfo"/>.</returns>
     Task<OAuthClientInfo> RegisterClientAsync(
         string? softwareId,
         string? clientName,
@@ -66,12 +79,27 @@ public interface IOAuthClientService
 /// </summary>
 public class OAuthClientInfo
 {
+    /// <summary>Internal entity ID.</summary>
     public Guid Id { get; set; }
+
+    /// <summary>The tenant-scoped OAuth client_id string.</summary>
     public string ClientId { get; set; } = string.Empty;
+
+    /// <summary>Display name shown on the consent screen, if any.</summary>
     public string? DisplayName { get; set; }
+
+    /// <summary>Homepage URI for the application, if any.</summary>
     public string? ClientUri { get; set; }
+
+    /// <summary>Logo URI displayed on the consent screen, if any.</summary>
     public string? LogoUri { get; set; }
+
+    /// <summary>RFC 7591 software_id (reverse-DNS), or null for anonymous clients.</summary>
     public string? SoftwareId { get; set; }
+
+    /// <summary>Whether this client comes from the bundled known-app directory.</summary>
     public bool IsKnown { get; set; }
+
+    /// <summary>Allowed redirect URIs for this client.</summary>
     public List<string> RedirectUris { get; set; } = new();
 }

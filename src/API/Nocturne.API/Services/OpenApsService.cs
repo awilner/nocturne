@@ -8,10 +8,12 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// OpenAPS service implementation with 1:1 legacy JavaScript compatibility
-/// Handles OpenAPS loop data analysis, visualization, and notifications
-/// Implements the functionality from legacy openaps.js with full backwards compatibility
+/// OpenAPS loop data service with 1:1 legacy JavaScript compatibility. Analyses APS-uploaded
+/// <see cref="DeviceStatus"/> records to produce OpenAPS alarm states, suggested basals, predicted
+/// BG curves, and bolus recommendation data for display on the Nightscout-compatible dashboard.
+/// Implements <c>openaps.js</c> with full backwards compatibility.
 /// </summary>
+/// <seealso cref="IOpenApsService"/>
 public class OpenApsService : IOpenApsService
 {
     private readonly ILogger<OpenApsService> _logger;

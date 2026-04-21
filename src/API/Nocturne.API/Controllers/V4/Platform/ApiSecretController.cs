@@ -6,6 +6,15 @@ using Nocturne.Core.Contracts.Multitenancy;
 
 namespace Nocturne.API.Controllers.V4.Platform;
 
+/// <summary>
+/// Controller for managing the Nightscout-compatible API secret for the resolved tenant.
+/// </summary>
+/// <remarks>
+/// The API secret is a plaintext shared secret used by Nightscout v1–v3 compatible clients
+/// (e.g., AAPS, xDrip+) to authenticate. Only the owner of the tenant may read or regenerate
+/// the secret. All operations delegate to <see cref="ITenantService"/>.
+/// </remarks>
+/// <seealso cref="ITenantService"/>
 [ApiController]
 [Route("api/v4/me/tenant/api-secret")]
 [Produces("application/json")]

@@ -21,6 +21,31 @@ namespace Nocturne.API.Controllers.Authentication;
 /// Controller for WebAuthn/FIDO2 passkey authentication ceremonies.
 /// Handles registration, login (both discoverable and non-discoverable), and recovery code verification.
 /// </summary>
+/// <remarks>
+/// Authentication flows:
+/// <list type="bullet">
+///   <item><description><b>Registration:</b> <c>POST /register/options</c> → <c>POST /register/complete</c></description></item>
+///   <item><description><b>Discoverable login</b> (no username): <c>POST /login/discoverable/options</c> → <c>POST /login/complete</c></description></item>
+///   <item><description><b>Non-discoverable login</b> (with username): <c>POST /login/options</c> → <c>POST /login/complete</c></description></item>
+///   <item><description><b>Recovery:</b> <c>POST /recovery/verify</c> issues a 10-minute restricted token allowing passkey management only.</description></item>
+///   <item><description><b>Initial setup:</b> <c>POST /setup/options</c> → <c>POST /setup/complete</c> (only available before any passkeys exist).</description></item>
+///   <item><description><b>Invite acceptance:</b> <c>POST /invite/options</c> → <c>POST /invite/complete</c> using a pre-issued invite token.</description></item>
+/// </list>
+///
+/// On successful login or setup, the controller calls <see cref="SetSessionCookies"/> to set three
+/// <c>HttpOnly</c> cookies: the access token, refresh token, and a non-<c>HttpOnly</c>
+/// <c>IsAuthenticated</c> flag cookie that the frontend reads to detect auth state.
+/// The <c>IsAuthenticated</c> cookie contains no secrets.
+///
+/// Passkey deletion is guarded by <see cref="ISubjectService.TryRemovePasskeyCredentialAsync"/> which
+/// enforces an atomic last-factor check inside a serializable transaction.
+/// </remarks>
+/// <seealso cref="IPasskeyService"/>
+/// <seealso cref="IJwtService"/>
+/// <seealso cref="IRefreshTokenService"/>
+/// <seealso cref="IRecoveryCodeService"/>
+/// <seealso cref="ISubjectService"/>
+/// <seealso cref="IAuthAuditService"/>
 [ApiController]
 [Route("api/auth/passkey")]
 [Tags("Authentication")]
@@ -738,6 +763,13 @@ public class PasskeyController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Begin passkey registration for an anonymous access request.
+    /// Creates a pending subject and returns WebAuthn registration options.
+    /// Only available when <c>AllowAccessRequests</c> is enabled on the default tenant.
+    /// </summary>
+    /// <param name="request">The requestor's display name and optional message.</param>
+    /// <returns>A <see cref="PasskeyOptionsResponse"/> with the WebAuthn options and challenge token, or <c>404</c> if access requests are disabled.</returns>
     [HttpPost("access-request/options")]
     [AllowAnonymous]
     [RemoteCommand]
@@ -797,6 +829,14 @@ public class PasskeyController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Complete passkey registration for an anonymous access request.
+    /// Verifies the attestation, stores the credential, and notifies tenant owners via
+    /// <see cref="IInAppNotificationService"/>. The subject remains inactive until an owner approves.
+    /// </summary>
+    /// <param name="request">The attestation response and challenge token from the WebAuthn ceremony.</param>
+    /// <param name="notificationService">Injected notification service for alerting owners.</param>
+    /// <returns><c>200 OK</c> on success, or <c>400</c> / <c>404</c> on error.</returns>
     [HttpPost("access-request/complete")]
     [AllowAnonymous]
     [RemoteCommand]

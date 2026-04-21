@@ -7,8 +7,11 @@ using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for DData operations implementing complex data processing logic
+/// Implements the Nightscout <c>/api/v1/ddata</c> response payload, which bundles recent entries,
+/// treatments, profiles, device statuses, food, and activity data into a single response used by
+/// legacy Nightscout clients and plugins.
 /// </summary>
+/// <seealso cref="IDDataService"/>
 public class DDataService : IDDataService
 {
     private readonly IEntryRepository _entries;

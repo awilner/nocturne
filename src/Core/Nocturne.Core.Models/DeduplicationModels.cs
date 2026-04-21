@@ -3,8 +3,12 @@ using System.Text.Json.Serialization;
 namespace Nocturne.Core.Models;
 
 /// <summary>
-/// Criteria for matching records during deduplication
+/// Criteria for matching records during deduplication.
+/// Fields are selective: populate only those relevant to the record type being matched
+/// (<see cref="Entry"/>, <see cref="Treatment"/>, or <see cref="StateSpan"/>).
 /// </summary>
+/// <seealso cref="DeduplicationResult"/>
+/// <seealso cref="DeduplicationJobStatus"/>
 public record MatchCriteria
 {
     // Entry matching

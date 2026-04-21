@@ -8,8 +8,10 @@ using Nocturne.Infrastructure.Data.Entities;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for managing global MyFitnessPal matching settings.
+/// Manages MyFitnessPal food-matching settings stored as a JSON blob under the key
+/// <c>connectors:myfitnesspal:matching-settings</c> in the tenant settings table.
 /// </summary>
+/// <seealso cref="IMyFitnessPalMatchingSettingsService"/>
 public class MyFitnessPalMatchingSettingsService : IMyFitnessPalMatchingSettingsService
 {
     private const string SettingsKey = "connectors:myfitnesspal:matching-settings";

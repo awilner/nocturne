@@ -19,6 +19,16 @@ namespace Nocturne.API.Controllers.Authentication;
 /// Controller for TOTP (Time-based One-Time Password) authenticator management and login.
 /// Handles setup, verification, credential listing/removal, and TOTP-based authentication.
 /// </summary>
+/// <remarks>
+/// TOTP is treated as a second factor. Setup requires at least one primary auth factor
+/// (passkey or OIDC link) to be configured first. This prevents a user from having TOTP
+/// as their only authentication method.
+/// </remarks>
+/// <seealso cref="ITotpService"/>
+/// <seealso cref="IJwtService"/>
+/// <seealso cref="IRefreshTokenService"/>
+/// <seealso cref="ISubjectService"/>
+/// <seealso cref="IAuthAuditService"/>
 [ApiController]
 [Route("api/auth/totp")]
 [Tags("Authentication")]
@@ -55,8 +65,17 @@ public class TotpController : ControllerBase
     }
 
     /// <summary>
-    /// Generate TOTP setup data including provisioning URI and secret
+    /// Generate TOTP setup data including provisioning URI and secret.
     /// </summary>
+    /// <returns>A <see cref="TotpSetupResponse"/> containing the provisioning URI, base32 secret, and challenge token.</returns>
+    /// <remarks>
+    /// Requires at least one primary auth factor (passkey or OIDC link) to be configured.
+    /// The returned <see cref="TotpSetupResponse.ChallengeToken"/> must be passed to
+    /// <see cref="VerifySetup"/> along with a valid 6-digit code to complete setup.
+    /// </remarks>
+    /// <response code="200">TOTP setup data generated.</response>
+    /// <response code="400">No primary factor configured, or user account not found.</response>
+    /// <response code="401">Not authenticated.</response>
     [HttpPost("setup")]
     [RemoteCommand]
     [ProducesResponseType(typeof(TotpSetupResponse), StatusCodes.Status200OK)]
@@ -94,8 +113,14 @@ public class TotpController : ControllerBase
     }
 
     /// <summary>
-    /// Verify a TOTP code to complete authenticator setup
+    /// Verify a TOTP code to complete authenticator setup.
     /// </summary>
+    /// <param name="request">A <see cref="TotpVerifySetupRequest"/> containing the 6-digit code, label, and challenge token.</param>
+    /// <returns>A <see cref="TotpVerifySetupResponse"/> with the new credential ID on success.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the challenge token is invalid or the code does not match.</exception>
+    /// <response code="200">TOTP setup verified and credential created.</response>
+    /// <response code="400">Invalid code or challenge token.</response>
+    /// <response code="401">Not authenticated.</response>
     [HttpPost("verify-setup")]
     [RemoteCommand(Invalidates = ["ListCredentials"])]
     [ProducesResponseType(typeof(TotpVerifySetupResponse), StatusCodes.Status200OK)]
@@ -124,8 +149,11 @@ public class TotpController : ControllerBase
     }
 
     /// <summary>
-    /// List all TOTP credentials for the authenticated user
+    /// List all TOTP credentials for the authenticated user.
     /// </summary>
+    /// <returns>A list of <see cref="TotpCredentialDto"/> for the current subject.</returns>
+    /// <response code="200">List of TOTP credentials.</response>
+    /// <response code="401">Not authenticated.</response>
     [HttpGet]
     [RemoteQuery]
     [ProducesResponseType(typeof(List<TotpCredentialDto>), StatusCodes.Status200OK)]
@@ -148,8 +176,16 @@ public class TotpController : ControllerBase
     }
 
     /// <summary>
-    /// Remove a TOTP credential by ID
+    /// Remove a TOTP credential by ID.
     /// </summary>
+    /// <param name="id">The unique identifier of the TOTP credential to remove.</param>
+    /// <returns>204 on success.</returns>
+    /// <remarks>
+    /// No factor-count guard: TOTP is a second factor, so removing it can never
+    /// lock a user out of their primary sign-in method.
+    /// </remarks>
+    /// <response code="204">Credential removed.</response>
+    /// <response code="401">Not authenticated.</response>
     [HttpDelete("{id:guid}")]
     [RemoteCommand(Invalidates = ["ListCredentials"])]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -169,8 +205,17 @@ public class TotpController : ControllerBase
     }
 
     /// <summary>
-    /// Authenticate using a TOTP code and username
+    /// Authenticate using a TOTP code and username.
     /// </summary>
+    /// <param name="request">A <see cref="TotpLoginRequest"/> containing the username and 6-digit code.</param>
+    /// <returns>A <see cref="TotpLoginResponse"/> with access token on success.</returns>
+    /// <remarks>
+    /// Rate-limited via the "totp-login" policy.
+    /// On success: issues session cookies, updates last login time, and logs
+    /// <see cref="AuthAuditEventType.Login"/>. On failure: logs <see cref="AuthAuditEventType.FailedAuth"/>.
+    /// </remarks>
+    /// <response code="200">Login successful with access token.</response>
+    /// <response code="400">Invalid username or code.</response>
     [HttpPost("login")]
     [AllowAnonymous]
     [EnableRateLimiting("totp-login")]

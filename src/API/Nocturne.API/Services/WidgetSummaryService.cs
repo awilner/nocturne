@@ -7,9 +7,11 @@ using Nocturne.Infrastructure.Data.Entities;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for aggregating widget-friendly summary data from multiple sources.
-/// Provides essential diabetes management data optimized for mobile widgets, watch faces, and other constrained displays.
+/// Aggregates widget-friendly summary data from multiple sources (CGM entries, IOB, COB, treatments,
+/// device status, tracker state, and alarm state) for mobile widgets, watch faces, and other
+/// constrained displays where response size and latency are critical.
 /// </summary>
+/// <seealso cref="IWidgetSummaryService"/>
 public class WidgetSummaryService : IWidgetSummaryService
 {
     private readonly IEntryService _entryService;

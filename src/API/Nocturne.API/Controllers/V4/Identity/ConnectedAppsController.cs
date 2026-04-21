@@ -12,6 +12,8 @@ namespace Nocturne.API.Controllers.V4.Identity;
 /// Manages OAuth app grants ("connected apps") for the authenticated user.
 /// Filters to grant_type='app' so direct/follower grants are managed elsewhere.
 /// </summary>
+/// <seealso cref="IOAuthGrantService"/>
+/// <seealso cref="IOAuthTokenService"/>
 [ApiController]
 [Route("api/v4/account/connected-apps")]
 [Authorize]
@@ -39,10 +41,10 @@ public class ConnectedAppsController : ControllerBase
     /// List all connected apps (OAuth app grants) for the authenticated user
     /// on the current tenant.
     /// </summary>
+    /// <inheritdoc cref="IOAuthGrantService.GetGrantsForSubjectAsync"/>
     [HttpGet]
     [RemoteQuery]
     [ProducesResponseType(typeof(List<ConnectedAppDto>), StatusCodes.Status200OK)]
-    /// <inheritdoc cref="IOAuthGrantService.GetGrantsForSubjectAsync"/>
     public async Task<ActionResult<List<ConnectedAppDto>>> List(CancellationToken ct)
     {
         var subjectId = HttpContext.GetSubjectId();

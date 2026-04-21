@@ -11,6 +11,17 @@ using Nocturne.Infrastructure.Data;
 
 namespace Nocturne.API.Controllers.V4.PlatformAdmin;
 
+/// <summary>
+/// Platform-admin controller for reviewing and actioning user access requests.
+/// </summary>
+/// <remarks>
+/// Access requests are created when an unauthenticated user completes the
+/// <c>POST /api/auth/passkey/access-request/complete</c> ceremony. Admins with the
+/// <c>platform_admin</c> role can list pending requests, approve them (activating the subject
+/// and adding them as a tenant member), or reject them (deactivating the subject record).
+/// </remarks>
+/// <seealso cref="ISubjectService"/>
+/// <seealso cref="ITenantService"/>
 [ApiController]
 [Route("api/v4/admin/access-requests")]
 [Authorize(Roles = "platform_admin")]

@@ -9,9 +9,34 @@ using Nocturne.Infrastructure.Data.Abstractions;
 namespace Nocturne.API.Services.ChartData.Stages;
 
 /// <summary>
-/// Pipeline stage that fetches all raw data required for the dashboard chart.
-/// All repository calls are sequential because the underlying DbContext is not thread-safe.
+/// Chart data pipeline stage that fetches all raw data required for the dashboard chart.
+/// All repository calls are made sequentially because the underlying EF Core
+/// <see cref="Microsoft.EntityFrameworkCore.DbContext"/> is not thread-safe.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Dynamic query limits are derived from the requested time range to avoid over-fetching on
+/// wide windows while still guaranteeing coverage on narrow ones. The baseline is 12 CGM
+/// readings per hour (5-minute intervals) with a 50% safety margin.
+/// </para>
+/// <para>
+/// Bolus and carb data are fetched from an extended window beginning at
+/// <see cref="ChartDataContext.BufferStartTime"/> (8 hours before <see cref="ChartDataContext.StartTime"/>)
+/// so that IOB and COB calculations account for insulin and carbs administered before the
+/// visible chart window. <see cref="ChartDataContext.DisplayBoluses"/> and
+/// <see cref="ChartDataContext.DisplayCarbIntakes"/> are derived subsets trimmed to the display window.
+/// </para>
+/// <para>
+/// TempBasal records are fetched in ascending order because basal series construction
+/// (in <see cref="IobCobComputeStage"/>) walks them forward in time.
+/// </para>
+/// <para>
+/// All <see cref="StateSpanCategory"/> variants are fetched in a single batched query via
+/// <c>IStateSpanRepository.GetByCategories</c> to avoid N+1 round trips.
+/// </para>
+/// </remarks>
+/// <seealso cref="IChartDataStage"/>
+/// <seealso cref="ChartDataContext"/>
 internal sealed class DataFetchStage(
     ISensorGlucoseRepository sensorGlucoseRepository,
     IBolusRepository bolusRepository,

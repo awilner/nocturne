@@ -8,8 +8,9 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Controllers.V4.Monitoring;
 
 /// <summary>
-/// Controller for managing in-app notifications
+/// Controller for managing in-app notifications.
 /// </summary>
+/// <seealso cref="IInAppNotificationService"/>
 [ApiController]
 [Route("api/v4/notifications")]
 public class NotificationsController : ControllerBase

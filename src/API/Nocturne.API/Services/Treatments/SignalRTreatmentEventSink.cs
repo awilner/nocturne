@@ -3,12 +3,31 @@ using Nocturne.Core.Models;
 
 namespace Nocturne.API.Services.Treatments;
 
+/// <summary>
+/// <see cref="IDataEventSink{T}"/> implementation for <see cref="Treatment"/> that forwards
+/// write lifecycle events (created, updated, deleted) to <see cref="ISignalRBroadcastService"/>
+/// as real-time storage events in the <c>treatments</c> collection group.
+/// </summary>
+/// <remarks>
+/// Unlike <see cref="SignalREntryEventSink"/>, this sink does not perform cache invalidation or
+/// V4 decomposition — those responsibilities belong to <see cref="TreatmentService"/> and
+/// <see cref="DualPathTreatmentStore"/> respectively.
+/// Broadcast failures are caught and logged without propagating.
+/// </remarks>
+/// <seealso cref="IDataEventSink{T}"/>
+/// <seealso cref="ISignalRBroadcastService"/>
+/// <seealso cref="TreatmentService"/>
 public class SignalRTreatmentEventSink : IDataEventSink<Treatment>
 {
     private readonly ISignalRBroadcastService _broadcast;
     private readonly ILogger<SignalRTreatmentEventSink> _logger;
     private const string Collection = "treatments";
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="SignalRTreatmentEventSink"/>.
+    /// </summary>
+    /// <param name="broadcast">The SignalR broadcast service for real-time event delivery.</param>
+    /// <param name="logger">The logger instance.</param>
     public SignalRTreatmentEventSink(
         ISignalRBroadcastService broadcast,
         ILogger<SignalRTreatmentEventSink> logger)

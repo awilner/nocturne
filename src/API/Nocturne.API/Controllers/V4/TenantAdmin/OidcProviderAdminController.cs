@@ -11,6 +11,16 @@ using Nocturne.Infrastructure.Data;
 
 namespace Nocturne.API.Controllers.V4.TenantAdmin;
 
+/// <summary>
+/// Platform-admin controller for managing OIDC identity providers configured on the instance.
+/// </summary>
+/// <remarks>
+/// Allows platform administrators to register, update, and remove OIDC providers (Google,
+/// Microsoft, custom IdPs) that are presented on the login page. Only users with the
+/// <c>platform_admin</c> role may access these endpoints. Endpoints are allowed during
+/// initial setup (<see cref="AllowDuringSetupAttribute"/>) so that an admin can configure
+/// a provider before any passkeys exist.
+/// </remarks>
 [ApiController]
 [Route("api/v4/admin/oidc-providers")]
 [Produces("application/json")]

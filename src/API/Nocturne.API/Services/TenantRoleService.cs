@@ -7,6 +7,11 @@ using Nocturne.Infrastructure.Data.Entities;
 
 namespace Nocturne.API.Services;
 
+/// <summary>
+/// Manages tenant-scoped roles and their permission assignments. Supports creation, updating,
+/// deletion, and slug validation of <see cref="TenantRoleDto"/> records.
+/// </summary>
+/// <seealso cref="ITenantRoleService"/>
 public partial class TenantRoleService(NocturneDbContext context) : ITenantRoleService
 {
     public async Task<List<TenantRoleDto>> GetRolesAsync(Guid tenantId, CancellationToken ct = default)

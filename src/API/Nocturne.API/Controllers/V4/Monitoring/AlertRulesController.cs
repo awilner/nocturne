@@ -12,6 +12,7 @@ namespace Nocturne.API.Controllers.V4.Monitoring;
 /// <summary>
 /// CRUD controller for alert rules with nested schedules, escalation steps, and channels.
 /// </summary>
+/// <seealso cref="NocturneDbContext"/>
 [ApiController]
 [Authorize]
 [Route("api/v4/alert-rules")]
@@ -20,6 +21,11 @@ public class AlertRulesController : ControllerBase
     private readonly IDbContextFactory<NocturneDbContext> _contextFactory;
     private readonly ILogger<AlertRulesController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AlertRulesController"/>.
+    /// </summary>
+    /// <param name="contextFactory">Factory for creating <see cref="NocturneDbContext"/> instances.</param>
+    /// <param name="logger">Logger instance.</param>
     public AlertRulesController(
         IDbContextFactory<NocturneDbContext> contextFactory,
         ILogger<AlertRulesController> logger)

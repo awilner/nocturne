@@ -6,7 +6,9 @@ using Nocturne.Infrastructure.Data.Abstractions;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service to automatically start tracker instances when matching treatments are created
+/// Automatically starts tracker instances when matching treatments are created. When a treatment
+/// event type matches a tracker's configured trigger (e.g. a site change starts a cannula tracker),
+/// the implementation starts a new tracker instance and broadcasts the event over SignalR.
 /// </summary>
 public interface ITrackerTriggerService
 {
@@ -29,6 +31,12 @@ public interface ITrackerTriggerService
     );
 }
 
+/// <summary>
+/// Default implementation of <see cref="ITrackerTriggerService"/>. Queries the tracker repository
+/// for definitions whose trigger event type matches the incoming treatment and starts instances
+/// accordingly, broadcasting state changes over SignalR.
+/// </summary>
+/// <seealso cref="ITrackerTriggerService"/>
 public class TrackerTriggerService : ITrackerTriggerService
 {
     private readonly ITrackerRepository _trackerRepository;

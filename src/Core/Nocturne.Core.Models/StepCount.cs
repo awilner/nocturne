@@ -7,6 +7,8 @@ namespace Nocturne.Core.Models;
 /// Represents a step count (PebbleMovement) record, compatible with xDrip step count uploads.
 /// Step count data is time-series movement data typically sourced from wearable devices via xDrip.
 /// </summary>
+/// <seealso cref="HeartRate"/>
+/// <seealso cref="ProcessableDocumentBase"/>
 public class StepCount : ProcessableDocumentBase
 {
     /// <summary>

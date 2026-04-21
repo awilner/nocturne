@@ -13,8 +13,17 @@ using Nocturne.Infrastructure.Data.Entities;
 namespace Nocturne.API.Services.BackgroundServices;
 
 /// <summary>
-/// Background service that detects compression lows in overnight glucose data
+/// Background service that detects compression-low artefacts in overnight CGM data.
+/// A compression low is a transient glucose dip caused by sensor compression during sleep,
+/// characterised by a rapid V-shaped drop and recovery that does not reflect true hypoglycaemia.
 /// </summary>
+/// <remarks>
+/// Detection is tenant-aware: each tenant's sleep schedule and timezone are read from
+/// <see cref="IUISettingsService"/> to determine the overnight evaluation window.
+/// The service schedules itself to wake shortly after the configured wake time so that
+/// the full overnight window is available for analysis.
+/// </remarks>
+/// <seealso cref="ICompressionLowDetectionService"/>
 public class CompressionLowDetectionService : BackgroundService, ICompressionLowDetectionService
 {
     private readonly IServiceProvider _serviceProvider;
@@ -30,6 +39,11 @@ public class CompressionLowDetectionService : BackgroundService, ICompressionLow
     internal const double MinConfidenceThreshold = 0.5;
     private const int StartTrimMinutes = 5;
 
+    /// <summary>
+    /// Initialises a new <see cref="CompressionLowDetectionService"/>.
+    /// </summary>
+    /// <param name="serviceProvider">Root service provider; scoped services are resolved per tenant.</param>
+    /// <param name="logger">Logger instance.</param>
     public CompressionLowDetectionService(
         IServiceProvider serviceProvider,
         ILogger<CompressionLowDetectionService> logger)
@@ -70,10 +84,12 @@ public class CompressionLowDetectionService : BackgroundService, ICompressionLow
     }
 
     /// <summary>
-    /// Iterates all active tenants and computes the earliest next detection time
-    /// based on each tenant's wake-time setting and timezone. Returns the delay
-    /// until that time. Falls back to a 1-hour delay if no tenants are configured.
+    /// Iterates all active tenants and computes the earliest next detection time based on each
+    /// tenant's configured wake-time and timezone. Returns the delay until that time.
+    /// Falls back to a 1-hour delay when no tenants are configured.
     /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="TimeSpan"/> representing the delay before the next detection run.</returns>
     private async Task<TimeSpan> ComputeNextRunDelayAsync(CancellationToken cancellationToken)
     {
         var nowUtc = DateTime.UtcNow;
@@ -184,6 +200,14 @@ public class CompressionLowDetectionService : BackgroundService, ICompressionLow
         }
     }
 
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Propagates the current HTTP request's tenant context to the new service scope so that
+    /// tenant-scoped services resolve correctly when called from an API endpoint.
+    /// </remarks>
+    /// <param name="nightOf">The local calendar date whose overnight window should be analysed.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The number of compression-low suggestions created.</returns>
     public async Task<int> DetectForNightAsync(
         DateOnly nightOf,
         CancellationToken cancellationToken = default)
@@ -568,8 +592,11 @@ public class CompressionLowDetectionService : BackgroundService, ICompressionLow
     }
 
     /// <summary>
-    /// Resolves a timezone ID string to a TimeZoneInfo, returning null if the ID is empty or invalid.
+    /// Resolves a timezone ID string to a <see cref="TimeZoneInfo"/>, returning
+    /// <see langword="null"/> when the ID is empty or does not map to a known timezone.
     /// </summary>
+    /// <param name="timezoneId">IANA or Windows timezone identifier string.</param>
+    /// <returns>The resolved <see cref="TimeZoneInfo"/>, or <see langword="null"/>.</returns>
     private static TimeZoneInfo? ResolveTimeZone(string? timezoneId)
     {
         if (string.IsNullOrEmpty(timezoneId))
@@ -585,9 +612,12 @@ public class CompressionLowDetectionService : BackgroundService, ICompressionLow
     }
 
     /// <summary>
-    /// Gets the user's timezone from the Nightscout profile active at the current time.
-    /// Returns null if the profile has no timezone set.
+    /// Reads the user's timezone from the Nightscout profile active at the current UTC time.
+    /// Returns <see langword="null"/> when the profile has no timezone set.
     /// </summary>
+    /// <param name="profileDataService">Service used to look up the active profile.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The user's <see cref="TimeZoneInfo"/>, or <see langword="null"/>.</returns>
     private async Task<TimeZoneInfo?> GetUserTimeZoneFromProfileAsync(
         IProfileDataService profileDataService,
         CancellationToken cancellationToken)
@@ -607,9 +637,13 @@ public class CompressionLowDetectionService : BackgroundService, ICompressionLow
     }
 
     /// <summary>
-    /// Gets the user's timezone from the Nightscout profile active during a specific night.
-    /// Returns null if the profile has no timezone set.
+    /// Reads the user's timezone from the Nightscout profile active at approximately 02:00 UTC
+    /// during the specified night. Returns <see langword="null"/> when no timezone is found.
     /// </summary>
+    /// <param name="profileDataService">Service used to look up the active profile.</param>
+    /// <param name="nightOf">The local calendar date whose overnight profile should be queried.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The user's <see cref="TimeZoneInfo"/>, or <see langword="null"/>.</returns>
     private async Task<TimeZoneInfo?> GetUserTimeZoneFromProfileAsync(
         IProfileDataService profileDataService,
         DateOnly nightOf,
@@ -632,9 +666,13 @@ public class CompressionLowDetectionService : BackgroundService, ICompressionLow
     }
 
     /// <summary>
-    /// Infers the user's timezone from the UtcOffset field on recent entries near the target night.
-    /// Returns null if no entries with offset data are found.
+    /// Infers the user's timezone from the <c>UtcOffset</c> field on CGM entries near the target night.
+    /// Returns <see langword="null"/> when no entries with a non-zero UTC offset are found.
     /// </summary>
+    /// <param name="entryService">Service used to query recent CGM entries.</param>
+    /// <param name="nightOf">The target night date used to scope the entry query.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A custom-offset <see cref="TimeZoneInfo"/>, or <see langword="null"/>.</returns>
     private async Task<TimeZoneInfo?> InferTimeZoneFromEntriesAsync(
         IEntryService entryService,
         DateOnly nightOf,
@@ -680,10 +718,13 @@ public class CompressionLowDetectionService : BackgroundService, ICompressionLow
     }
 
     /// <summary>
-    /// Looks up the subject ID of the tenant owner. Notifications require a real
-    /// subject/user ID (not a tenant ID) so they can be queried by the authenticated
-    /// user on the frontend.
+    /// Looks up the subject ID of the tenant owner so that in-app notifications are attributed to
+    /// a real user (not a tenant ID). Returns <see langword="null"/> if no owner subject is found.
     /// </summary>
+    /// <param name="tenantId">The tenant to look up the owner for.</param>
+    /// <param name="scopedProvider">Scoped service provider for database access.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The owner's subject ID as a string, or <see langword="null"/>.</returns>
     private async Task<string?> GetTenantOwnerSubjectIdAsync(
         Guid tenantId,
         IServiceProvider scopedProvider,

@@ -8,13 +8,19 @@ using Nocturne.Infrastructure.Data.Mappers;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Domain service for heart rate record operations.
-/// Inherits CRUD + broadcasting from SimpleEntityService.
+/// Domain service for heart rate record operations. Inherits standard CRUD, SignalR broadcasting,
+/// and document-processing behaviour from <see cref="SimpleEntityService{TModel,TEntity}"/>.
 /// </summary>
+/// <seealso cref="IHeartRateService"/>
+/// <seealso cref="SimpleEntityService{TModel,TEntity}"/>
 public class HeartRateService
     : SimpleEntityService<HeartRate, HeartRateEntity>,
         IHeartRateService
 {
+    /// <param name="dbContext">EF Core context providing access to the heart rates table.</param>
+    /// <param name="documentProcessingService">Service that applies field processing before save.</param>
+    /// <param name="signalRBroadcastService">Service used to broadcast entity changes over SignalR.</param>
+    /// <param name="logger">Logger instance for this service.</param>
     public HeartRateService(
         NocturneDbContext dbContext,
         IDocumentProcessingService documentProcessingService,

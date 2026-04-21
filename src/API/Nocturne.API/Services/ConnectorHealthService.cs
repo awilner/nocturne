@@ -6,6 +6,12 @@ using Nocturne.Core.Contracts.Repositories;
 
 namespace Nocturne.API.Services;
 
+/// <summary>
+/// Aggregates connector health information by combining ASP.NET Core health check results with
+/// per-connector configuration presence and last-reading timestamps. Used by the admin dashboard
+/// to display live connector status.
+/// </summary>
+/// <seealso cref="IConnectorHealthService"/>
 public class ConnectorHealthService(
     IConfiguration configuration,
     IEntryRepository entries,

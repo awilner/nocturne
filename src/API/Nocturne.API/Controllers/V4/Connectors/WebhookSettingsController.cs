@@ -6,6 +6,16 @@ using Nocturne.Core.Models.Configuration;
 
 namespace Nocturne.API.Controllers.V4.Connectors;
 
+/// <summary>
+/// Controller for managing outbound webhook notification settings (URL, headers, test dispatch).
+/// </summary>
+/// <remarks>
+/// Webhook settings are persisted per-tenant and allow administrators to configure an external
+/// HTTP endpoint that receives alert notifications. The <c>POST /test</c> endpoint sends a test
+/// payload via <see cref="WebhookRequestSender"/> to verify connectivity before saving.
+/// </remarks>
+/// <seealso cref="WebhookRequestSender"/>
+/// <seealso cref="WebhookNotificationSettings"/>
 [ApiController]
 [Route("api/v4/ui-settings/notifications/webhooks")]
 public class WebhookSettingsController(

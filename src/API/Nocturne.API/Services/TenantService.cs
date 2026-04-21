@@ -14,6 +14,18 @@ using Nocturne.Infrastructure.Data.Entities;
 
 namespace Nocturne.API.Services;
 
+/// <summary>
+/// Service for creating, resolving, updating, and deleting tenants.
+/// Manages <see cref="TenantEntity"/> lifecycle including slug validation, API secret hashing,
+/// <see cref="ITenantRoleService"/> default role seeding, and per-tenant <see cref="IMemoryCache"/> caching.
+/// </summary>
+/// <remarks>
+/// Slugs must match a <c>[a-z0-9][a-z0-9\-]{1,62}[a-z0-9]</c> pattern and cannot be reserved words.
+/// Tenant lookups by slug are cached with a short TTL to reduce database round-trips on every request.
+/// </remarks>
+/// <seealso cref="ITenantService"/>
+/// <seealso cref="ITenantRoleService"/>
+/// <seealso cref="AuthorizationSeedService"/>
 public partial class TenantService : ITenantService
 {
     private readonly IDbContextFactory<NocturneDbContext> _factory;
@@ -32,6 +44,15 @@ public partial class TenantService : ITenantService
     [GeneratedRegex(@"^[a-z0-9][a-z0-9\-]{1,62}[a-z0-9]$")]
     private static partial Regex SlugPattern();
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="TenantService"/>.
+    /// </summary>
+    /// <param name="factory">Factory for creating short-lived <see cref="NocturneDbContext"/> instances.</param>
+    /// <param name="cache">In-memory cache for caching resolved tenant contexts by slug.</param>
+    /// <param name="config">Multitenancy configuration (mode, base domain, etc.).</param>
+    /// <param name="httpClientFactory">HTTP client factory for external tenant validation calls if needed.</param>
+    /// <param name="roleService">Role service for seeding default roles on new tenant creation.</param>
+    /// <param name="logger">The logger instance.</param>
     public TenantService(
         IDbContextFactory<NocturneDbContext> factory,
         IMemoryCache cache,

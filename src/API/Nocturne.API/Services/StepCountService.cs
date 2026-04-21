@@ -8,13 +8,19 @@ using Nocturne.Infrastructure.Data.Mappers;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Domain service for step count record operations.
-/// Inherits CRUD + broadcasting from SimpleEntityService.
+/// Domain service for step count record operations. Inherits standard CRUD, SignalR broadcasting,
+/// and document-processing behaviour from <see cref="SimpleEntityService{TModel,TEntity}"/>.
 /// </summary>
+/// <seealso cref="IStepCountService"/>
+/// <seealso cref="SimpleEntityService{TModel,TEntity}"/>
 public class StepCountService
     : SimpleEntityService<StepCount, StepCountEntity>,
         IStepCountService
 {
+    /// <param name="dbContext">EF Core context providing access to the step counts table.</param>
+    /// <param name="documentProcessingService">Service that applies field processing before save.</param>
+    /// <param name="signalRBroadcastService">Service used to broadcast entity changes over SignalR.</param>
+    /// <param name="logger">Logger instance for this service.</param>
     public StepCountService(
         NocturneDbContext dbContext,
         IDocumentProcessingService documentProcessingService,

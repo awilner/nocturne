@@ -6,8 +6,10 @@ using Nocturne.Core.Contracts;
 namespace Nocturne.API.Controllers.V4.TenantAdmin;
 
 /// <summary>
-/// Migration endpoints for importing data from Nightscout
+/// Migration endpoints for importing data from Nightscout.
 /// </summary>
+/// <seealso cref="IMigrationJobService"/>
+/// <seealso cref="IConnectorConfigurationService"/>
 [ApiController]
 [Route("api/v4/migration")]
 public class MigrationController : ControllerBase
@@ -16,6 +18,12 @@ public class MigrationController : ControllerBase
     private readonly IConnectorConfigurationService _connectorConfigService;
     private readonly ILogger<MigrationController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="MigrationController"/>.
+    /// </summary>
+    /// <param name="migrationService">Service for managing Nightscout data migration jobs.</param>
+    /// <param name="connectorConfigService">Service for reading saved connector credentials.</param>
+    /// <param name="logger">Logger instance.</param>
     public MigrationController(
         IMigrationJobService migrationService,
         IConnectorConfigurationService connectorConfigService,

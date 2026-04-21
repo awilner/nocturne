@@ -12,9 +12,18 @@ using Nocturne.Infrastructure.Data.Entities;
 namespace Nocturne.API.Services.Auth;
 
 /// <summary>
-/// Implements WebAuthn/FIDO2 passkey registration and authentication ceremonies.
-/// Challenge state is persisted in encrypted tokens passed via request/response bodies.
+/// Implements WebAuthn/FIDO2 passkey registration and authentication ceremonies using Fido2NetLib.
+/// Challenge state is persisted in ASP.NET Data Protection-encrypted tokens passed via
+/// request/response bodies (stateless challenge flow — no server-side session required).
 /// </summary>
+/// <remarks>
+/// For multi-tenant wildcard subdomain deployments, the service dynamically adds tenant origins
+/// to the FIDO2 allowed-origins list when the browser's WebAuthn origin is a valid subdomain
+/// of the configured <c>rpId</c>. Maximum passkeys per subject is capped at 20.
+/// Challenge tokens expire after 5 minutes.
+/// </remarks>
+/// <seealso cref="IPasskeyService"/>
+/// <seealso cref="SubjectService"/>
 public class PasskeyService : IPasskeyService
 {
     private const int MaxCredentialsPerSubject = 20;
@@ -27,6 +36,15 @@ public class PasskeyService : IPasskeyService
     private readonly ILogger<PasskeyService> _logger;
     private readonly IHostEnvironment _environment;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="PasskeyService"/>.
+    /// </summary>
+    /// <param name="dbContext">The EF Core database context for passkey credential entity persistence.</param>
+    /// <param name="fido2">The Fido2NetLib instance for ceremony execution.</param>
+    /// <param name="dataProtectionProvider">ASP.NET Data Protection provider for encrypting challenge tokens.</param>
+    /// <param name="fido2Options">FIDO2 configuration options (rpId, rpName, allowed origins, attestation preference).</param>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="environment">The hosting environment used to adjust origin validation in development.</param>
     public PasskeyService(
         NocturneDbContext dbContext,
         IFido2 fido2,

@@ -6,9 +6,11 @@ using Wasmtime;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service that calls the oref Rust algorithms via WebAssembly using Wasmtime.
-/// This provides high-performance IOB, COB, autosens, and determine-basal calculations.
+/// Calls the oref Rust algorithms via a WebAssembly module loaded with Wasmtime, providing
+/// high-performance IOB, COB, autosens, and determine-basal calculations. Manages the WASM engine,
+/// module, linker, store, and memory lifetime, exposing them via <see cref="IOrefService"/>.
 /// </summary>
+/// <seealso cref="IOrefService"/>
 public class OrefWasmService : IOrefService, IAsyncDisposable, IDisposable
 {
     private readonly ILogger<OrefWasmService> _logger;

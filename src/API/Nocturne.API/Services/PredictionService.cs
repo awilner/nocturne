@@ -8,9 +8,12 @@ using OrefModels = Nocturne.Core.Oref.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Implementation of the prediction service using oref algorithms.
-/// Fetches current glucose, treatments, and profile data to calculate predictions.
+/// <see cref="IPredictionService"/> implementation that calculates glucose predictions using oref
+/// algorithms. Fetches current CGM readings, treatments, and profile data, then invokes the oref
+/// IOB, COB, and determine-basal pipeline to produce prediction curves.
 /// </summary>
+/// <seealso cref="IPredictionService"/>
+/// <seealso cref="IOrefService"/>
 public class PredictionService : IPredictionService
 {
     private readonly IEntryRepository _entries;

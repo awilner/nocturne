@@ -13,6 +13,8 @@ namespace Nocturne.API.Controllers.V4.Monitoring;
 /// <summary>
 /// Controller for active alert state, history, and acknowledgement.
 /// </summary>
+/// <seealso cref="IAlertAcknowledgementService"/>
+/// <seealso cref="IAlertDeliveryService"/>
 [ApiController]
 [Authorize]
 [Route("api/v4/alerts")]
@@ -24,6 +26,14 @@ public class AlertsController : ControllerBase
     private readonly ITenantAccessor _tenantAccessor;
     private readonly ILogger<AlertsController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AlertsController"/>.
+    /// </summary>
+    /// <param name="contextFactory">Factory for creating <see cref="NocturneDbContext"/> instances.</param>
+    /// <param name="acknowledgementService">Service for acknowledging alert excursions.</param>
+    /// <param name="deliveryService">Service for marking alert delivery outcomes.</param>
+    /// <param name="tenantAccessor">Accessor for the current request tenant context.</param>
+    /// <param name="logger">Logger instance.</param>
     public AlertsController(
         IDbContextFactory<NocturneDbContext> contextFactory,
         IAlertAcknowledgementService acknowledgementService,

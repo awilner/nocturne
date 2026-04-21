@@ -8,9 +8,11 @@ using Nocturne.Infrastructure.Data.Entities;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service implementation for UI settings persistence.
-/// Stores UI settings in the database using the Settings table with JSON values.
+/// Persists per-tenant UI settings as JSON blobs in the settings table, partitioned by section key
+/// (devices, algorithm, features, notifications, services, alarm configuration). Provides typed
+/// read/write access via <see cref="IUISettingsService"/>.
 /// </summary>
+/// <seealso cref="IUISettingsService"/>
 public class UISettingsService : IUISettingsService
 {
     private readonly NocturneDbContext _context;

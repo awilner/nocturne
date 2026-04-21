@@ -10,10 +10,15 @@ using V4Models = Nocturne.Core.Models.V4;
 namespace Nocturne.API.Services.V4;
 
 /// <summary>
-/// Decomposes legacy DeviceStatus records into typed v4 snapshot tables.
-/// Extracts APS (OpenAPS/AAPS/Trio and Loop), pump, and uploader snapshots
-/// and persists them with idempotent create-or-update via LegacyId matching.
+/// Decomposes legacy <see cref="DeviceStatus"/> records into typed v4 snapshot tables.
+/// Extracts APS (<see cref="V4Models.ApsSnapshot"/> for OpenAPS/AAPS/Trio and Loop), pump
+/// (<see cref="V4Models.PumpSnapshot"/>), and uploader (<see cref="V4Models.UploaderSnapshot"/>)
+/// snapshots, and persists them with idempotent create-or-update via <c>LegacyId</c> matching.
+/// Active device overrides are delegated to <see cref="IStateSpanService"/> as
+/// <see cref="StateSpanCategory.Override"/> spans.
 /// </summary>
+/// <seealso cref="IDeviceStatusDecomposer"/>
+/// <seealso cref="IDecomposer{T}"/>
 public class DeviceStatusDecomposer : IDeviceStatusDecomposer, IDecomposer<DeviceStatus>
 {
     private readonly IApsSnapshotRepository _apsRepo;
@@ -28,6 +33,12 @@ public class DeviceStatusDecomposer : IDeviceStatusDecomposer, IDecomposer<Devic
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
+    /// <param name="apsRepo">Repository for <see cref="V4Models.ApsSnapshot"/> records.</param>
+    /// <param name="pumpRepo">Repository for <see cref="V4Models.PumpSnapshot"/> records.</param>
+    /// <param name="uploaderRepo">Repository for <see cref="V4Models.UploaderSnapshot"/> records.</param>
+    /// <param name="stateSpanService">Service used to upsert override state spans extracted from device status.</param>
+    /// <param name="deviceService">Service that resolves or creates canonical device references.</param>
+    /// <param name="logger">Logger instance for this decomposer.</param>
     public DeviceStatusDecomposer(
         IApsSnapshotRepository apsRepo,
         IPumpSnapshotRepository pumpRepo,

@@ -8,8 +8,18 @@ using Nocturne.Core.Models.V4;
 namespace Nocturne.API.Controllers.V4.Treatments;
 
 /// <summary>
-/// Controller for managing note observations
+/// Controller for managing note observations.
+/// Exposes standard V4 CRUD operations via <see cref="V4CrudControllerBase{TModel,TCreateRequest,TUpdateRequest,TRepository}"/>.
 /// </summary>
+/// <remarks>
+/// Create and update use the same <see cref="UpsertNoteRequest"/> shape.
+/// On update, immutable fields (<see cref="Note.CorrelationId"/>, <see cref="Note.LegacyId"/>,
+/// <see cref="Note.CreatedAt"/>, <see cref="Note.SyncIdentifier"/>, and
+/// <see cref="Note.AdditionalProperties"/>) are preserved from the existing record.
+/// </remarks>
+/// <seealso cref="INoteRepository"/>
+/// <seealso cref="Note"/>
+/// <seealso cref="UpsertNoteRequest"/>
 [ApiController]
 [Route("api/v4/observations/notes")]
 [Authorize]

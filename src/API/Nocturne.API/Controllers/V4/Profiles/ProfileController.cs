@@ -8,8 +8,13 @@ namespace Nocturne.API.Controllers.V4.Profiles;
 
 /// <summary>
 /// Controller for managing V4 profile data: therapy settings, basal schedules,
-/// carb ratio schedules, sensitivity schedules, and target range schedules
+/// carb ratio schedules, sensitivity schedules, and target range schedules.
 /// </summary>
+/// <seealso cref="ITherapySettingsRepository"/>
+/// <seealso cref="IBasalScheduleRepository"/>
+/// <seealso cref="ICarbRatioScheduleRepository"/>
+/// <seealso cref="ISensitivityScheduleRepository"/>
+/// <seealso cref="ITargetRangeScheduleRepository"/>
 [ApiController]
 [Route("api/v4/profile")]
 [Authorize]
@@ -22,6 +27,14 @@ public class ProfileController : ControllerBase
     private readonly ISensitivityScheduleRepository _sensitivityRepo;
     private readonly ITargetRangeScheduleRepository _targetRangeRepo;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ProfileController"/>.
+    /// </summary>
+    /// <param name="therapyRepo">Repository for therapy settings records.</param>
+    /// <param name="basalRepo">Repository for basal schedule records.</param>
+    /// <param name="carbRatioRepo">Repository for carb ratio schedule records.</param>
+    /// <param name="sensitivityRepo">Repository for insulin sensitivity schedule records.</param>
+    /// <param name="targetRangeRepo">Repository for target glucose range schedule records.</param>
     public ProfileController(
         ITherapySettingsRepository therapyRepo,
         IBasalScheduleRepository basalRepo,
@@ -704,6 +717,14 @@ public class ProfileController : ControllerBase
 
     #endregion
 
+    /// <summary>
+    /// Computes schedule change information for a given date range.
+    /// </summary>
+    /// <typeparam name="T">Schedule record type implementing <see cref="IV4Record"/>.</typeparam>
+    /// <param name="schedules">All schedule records to evaluate.</param>
+    /// <param name="from">Start of the date range (inclusive).</param>
+    /// <param name="to">End of the date range (inclusive).</param>
+    /// <returns>A <see cref="ScheduleChangeInfo"/> describing change activity within the range.</returns>
     private static ScheduleChangeInfo ComputeChangeInfo<T>(
         IEnumerable<T> schedules,
         DateTime from,

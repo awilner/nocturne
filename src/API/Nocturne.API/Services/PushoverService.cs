@@ -7,9 +7,11 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Pushover notification service for sending notifications to Pushover API
-/// Implements full 1:1 legacy compatibility with original Nightscout Pushover functionality
+/// Sends push notifications to the Pushover API and polls for receipt acknowledgements.
+/// Implements full 1:1 legacy compatibility with the original Nightscout Pushover integration,
+/// including emergency-priority receipt tracking via <see cref="INotificationV1Service"/>.
 /// </summary>
+/// <seealso cref="IPushoverService"/>
 public class PushoverService : IPushoverService
 {
     private readonly HttpClient _httpClient;

@@ -9,8 +9,11 @@ using Nocturne.Infrastructure.Data.Entities;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for managing clock face configurations
+/// Domain service for managing clock face configurations. Persists <see cref="ClockFace"/> entities
+/// as JSON blobs in the settings table, supporting create, read, update, delete, and listing
+/// operations for the clock face editor.
 /// </summary>
+/// <seealso cref="IClockFaceService"/>
 public class ClockFaceService : IClockFaceService
 {
     private readonly NocturneDbContext _dbContext;

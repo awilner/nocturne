@@ -10,8 +10,15 @@ using Nocturne.Core.Models.V4;
 namespace Nocturne.API.Controllers.V4.Glucose;
 
 /// <summary>
-/// Controller for managing CGM sensor glucose readings
+/// Controller for managing CGM sensor glucose readings.
+/// Provides CRUD operations and bulk creation for <see cref="SensorGlucose"/> records.
+/// After creation, evaluates glucose alerts via <see cref="IAlertOrchestrator"/>.
 /// </summary>
+/// <seealso cref="ISensorGlucoseRepository"/>
+/// <seealso cref="SensorGlucose"/>
+/// <seealso cref="UpsertSensorGlucoseRequest"/>
+/// <seealso cref="IAlertOrchestrator"/>
+/// <seealso cref="V4CrudControllerBase{TModel, TCreateRequest, TUpdateRequest, TRepository}"/>
 [ApiController]
 [Route("api/v4/glucose/sensor")]
 [Authorize]

@@ -3,8 +3,10 @@ using Nocturne.Core.Models;
 namespace Nocturne.Core.Contracts.Repositories;
 
 /// <summary>
-/// Repository port for Activity domain operations
+/// Repository port for <see cref="Activity"/> domain operations.
 /// </summary>
+/// <seealso cref="Activity"/>
+/// <seealso cref="IStateSpanRepository"/>
 public interface IActivityRepository
 {
     /// <summary>

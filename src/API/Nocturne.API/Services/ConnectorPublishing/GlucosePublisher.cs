@@ -10,6 +10,12 @@ using Nocturne.Infrastructure.Data;
 
 namespace Nocturne.API.Services.ConnectorPublishing;
 
+/// <summary>
+/// Publishes CGM glucose readings from connectors into the Nocturne domain, writing to both the
+/// legacy <see cref="IEntryService"/> and the v4 <see cref="ISensorGlucoseRepository"/>, and
+/// triggering alert evaluation via <see cref="IAlertOrchestrator"/> after each successful write.
+/// </summary>
+/// <seealso cref="IGlucosePublisher"/>
 internal sealed class GlucosePublisher : IGlucosePublisher
 {
     private readonly IEntryService _entryService;

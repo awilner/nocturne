@@ -7,6 +7,11 @@ using Nocturne.Core.Contracts.Repositories;
 
 namespace Nocturne.API.Services.ConnectorPublishing;
 
+/// <summary>
+/// Publishes profile, food, activity, state-span, system event, and note data received from
+/// connectors into the Nocturne domain via the appropriate service and repository interfaces.
+/// </summary>
+/// <seealso cref="IMetadataPublisher"/>
 internal sealed class MetadataPublisher : IMetadataPublisher
 {
     private const string DefaultUserId = "default";

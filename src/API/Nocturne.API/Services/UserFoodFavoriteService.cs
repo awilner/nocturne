@@ -5,8 +5,10 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Domain service implementation for user food favorites and recent foods.
+/// Domain service for user food favourites and recently used foods. Manages the per-user
+/// favourites list and derives a recent-foods list from <see cref="TreatmentFood"/> records.
 /// </summary>
+/// <seealso cref="IUserFoodFavoriteService"/>
 public class UserFoodFavoriteService : IUserFoodFavoriteService
 {
     private readonly IUserFoodFavoriteRepository _favoriteRepository;

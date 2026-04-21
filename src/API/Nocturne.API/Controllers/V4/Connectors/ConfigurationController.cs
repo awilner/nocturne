@@ -11,6 +11,7 @@ namespace Nocturne.API.Controllers.V4.Connectors;
 /// This endpoint is intended for internal use by connectors via mTLS authentication.
 /// In the initial implementation, it uses standard API authentication.
 /// </summary>
+/// <seealso cref="IConnectorConfigurationService"/>
 [ApiController]
 [Route("api/v4/connectors/config")]
 [Authorize]
@@ -19,6 +20,11 @@ public class ConfigurationController : ControllerBase
     private readonly IConnectorConfigurationService _configService;
     private readonly ILogger<ConfigurationController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ConfigurationController"/>.
+    /// </summary>
+    /// <param name="configService">Service for connector configuration storage and retrieval.</param>
+    /// <param name="logger">Logger instance.</param>
     public ConfigurationController(
         IConnectorConfigurationService configService,
         ILogger<ConfigurationController> logger)

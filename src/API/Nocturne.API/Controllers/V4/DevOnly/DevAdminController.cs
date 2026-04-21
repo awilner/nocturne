@@ -16,6 +16,8 @@ namespace Nocturne.API.Controllers.V4.DevOnly;
 /// Dev-only admin controller for snapshot export/import and connector sync.
 /// Conditionally excluded from production builds.
 /// </summary>
+/// <seealso cref="IConnectorSyncService"/>
+/// <seealso cref="ITenantService"/>
 [ApiController]
 [Route("api/v4/dev-only/admin")]
 [AllowAnonymous]
@@ -35,6 +37,15 @@ public class DevAdminController : ControllerBase
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DevAdminController"/>.
+    /// </summary>
+    /// <param name="db">Database context for direct data access.</param>
+    /// <param name="encryption">Service for secret encryption/decryption in snapshots.</param>
+    /// <param name="syncService">Service for triggering connector synchronisation.</param>
+    /// <param name="tenantAccessor">Accessor for the current request tenant context.</param>
+    /// <param name="tenantService">Service for tenant lifecycle management.</param>
+    /// <param name="logger">Logger instance.</param>
     public DevAdminController(
         NocturneDbContext db,
         ISecretEncryptionService encryption,

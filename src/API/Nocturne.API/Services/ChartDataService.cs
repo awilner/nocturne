@@ -10,15 +10,30 @@ namespace Nocturne.API.Services;
 
 /// <summary>
 /// Service that orchestrates all data fetching and computation for the dashboard chart.
-/// Executes a sequential pipeline of stages, each populating the shared ChartDataContext,
-/// then assembles the final DTO from the completed context.
+/// Executes a sequential pipeline of <see cref="IChartDataStage"/> instances, each populating
+/// the shared <see cref="ChartDataContext"/>, then assembles the final <see cref="DashboardChartData"/>
+/// DTO via <see cref="IChartDataAssembler"/>.
 /// </summary>
+/// <remarks>
+/// A fixed 8-hour buffer is prepended to <see cref="ChartDataContext.StartTime"/> so that IOB/COB
+/// calculations have enough treatment history to be accurate at the start of the requested window.
+/// </remarks>
+/// <seealso cref="IChartDataService"/>
+/// <seealso cref="IChartDataStage"/>
+/// <seealso cref="IChartDataAssembler"/>
+/// <seealso cref="ChartDataContext"/>
 public class ChartDataService : IChartDataService
 {
     private readonly IEnumerable<IChartDataStage> _pipeline;
     private readonly IChartDataAssembler _assembler;
     private readonly ILogger<ChartDataService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ChartDataService"/>.
+    /// </summary>
+    /// <param name="pipeline">The ordered sequence of <see cref="IChartDataStage"/> stages to execute.</param>
+    /// <param name="assembler">The assembler that converts the completed context into the final DTO.</param>
+    /// <param name="logger">The logger instance.</param>
     public ChartDataService(
         IEnumerable<IChartDataStage> pipeline,
         IChartDataAssembler assembler,

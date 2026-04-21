@@ -5,9 +5,11 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for summary operations with 1:1 legacy JavaScript compatibility
-/// Provides summary data aggregation and processing functionality
+/// Aggregates recent DData and properties into the Nightscout summary response with 1:1 legacy
+/// JavaScript compatibility. Delegates data retrieval to <see cref="IDDataService"/> and property
+/// computation to <see cref="IPropertiesService"/>.
 /// </summary>
+/// <seealso cref="ISummaryService"/>
 public class SummaryService : ISummaryService
 {
     private readonly IDDataService _ddataService;

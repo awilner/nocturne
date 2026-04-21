@@ -3,8 +3,11 @@ using Nocturne.Core.Models;
 namespace Nocturne.Core.Contracts;
 
 /// <summary>
-/// Service interface for AR2 forecasting with 1:1 legacy JavaScript compatibility
+/// Service interface for AR2 forecasting with 1:1 legacy JavaScript compatibility.
 /// </summary>
+/// <seealso cref="DData"/>
+/// <seealso cref="Ar2Properties"/>
+/// <seealso cref="ForecastPoint"/>
 public interface IAr2Service
 {
     /// <summary>

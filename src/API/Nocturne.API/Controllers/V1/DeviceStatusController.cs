@@ -10,9 +10,10 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Controllers.V1;
 
 /// <summary>
-/// Device Status controller that provides 1:1 compatibility with Nightscout device status endpoints
-/// Implements the /api/v1/devicestatus/* endpoints from the legacy JavaScript implementation
+/// Device Status controller that provides 1:1 compatibility with Nightscout device status endpoints.
+/// Implements the /api/v1/devicestatus/* endpoints from the legacy JavaScript implementation.
 /// </summary>
+/// <seealso cref="IDeviceStatusService"/>
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize(Policy = PolicyNames.HasPermissions)]
@@ -21,6 +22,11 @@ public class DeviceStatusController : ControllerBase
     private readonly IDeviceStatusService _deviceStatusService;
     private readonly ILogger<DeviceStatusController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DeviceStatusController"/>.
+    /// </summary>
+    /// <param name="deviceStatusService">Service handling device status operations.</param>
+    /// <param name="logger">Logger instance.</param>
     public DeviceStatusController(
         IDeviceStatusService deviceStatusService,
         ILogger<DeviceStatusController> logger

@@ -4,8 +4,8 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Bolus Wizard Preview calculation result with exact 1:1 legacy JavaScript compatibility
-/// Maps directly to BWPResult from ClientApp/lib/plugins/boluswizardpreview.js
+/// Bolus Wizard Preview calculation result with exact 1:1 legacy JavaScript compatibility.
+/// Maps directly to <c>BWPResult</c> from <c>ClientApp/lib/plugins/boluswizardpreview.js</c>.
 /// </summary>
 public class BolusWizardResult
 {
@@ -29,8 +29,8 @@ public class BolusWizardResult
 }
 
 /// <summary>
-/// Temp basal adjustment recommendations with exact legacy property names
-/// Maps to tempBasalAdjustment from ClientApp/lib/plugins/boluswizardpreview.js
+/// Temp basal adjustment recommendations with exact legacy property names.
+/// Maps to <c>tempBasalAdjustment</c> from <c>ClientApp/lib/plugins/boluswizardpreview.js</c>.
 /// </summary>
 public class TempBasalAdjustment
 {

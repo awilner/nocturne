@@ -3,8 +3,28 @@ using Nocturne.API.Models.Requests.V4;
 
 namespace Nocturne.API.Validators.V4;
 
+/// <summary>
+/// Validates <see cref="CreateMealRequest"/> for the V4 atomic meal creation endpoint,
+/// which creates a correlated bolus and carb intake in a single operation.
+/// </summary>
+/// <remarks>
+/// <list type="bullet">
+/// <item><description>Timestamp must be a valid non-default <see cref="DateTimeOffset"/>.</description></item>
+/// <item><description>Device, App, DataSource, SyncIdentifier, InsulinType capped at 500 characters.</description></item>
+/// <item><description>Insulin and Carbs must be non-negative.</description></item>
+/// <item><description>Duration and AbsorptionTime, when provided, must be non-negative.</description></item>
+/// <item><description>DataSource is required when SyncIdentifier is supplied (composite key constraint).</description></item>
+/// <item><description>CorrelationId, when supplied, must be a non-empty GUID.</description></item>
+/// </list>
+/// </remarks>
+/// <seealso cref="CreateMealRequest"/>
+/// <seealso cref="Controllers.V4.Treatments.NutritionController"/>
 public class CreateMealRequestValidator : AbstractValidator<CreateMealRequest>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CreateMealRequestValidator"/> class
+    /// and configures all validation rules for meal creation.
+    /// </summary>
     public CreateMealRequestValidator()
     {
         RuleFor(x => x.Timestamp).NotEqual(default(DateTimeOffset)).WithMessage("Timestamp is required");

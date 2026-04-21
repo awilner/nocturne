@@ -7,10 +7,12 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Loop service implementation with 1:1 legacy JavaScript compatibility
-/// Handles Apple Push Notification Service (APNS) integration for iOS Loop app notifications
-/// Implements the functionality from legacy loop.js with full backwards compatibility
+/// Handles APNS (Apple Push Notification Service) integration for iOS Loop app notifications,
+/// implementing <see cref="ILoopService"/> with 1:1 legacy JavaScript compatibility based on
+/// <c>loop.js</c>. Manages the APNS client lifetime and exposes remote notification dispatch.
 /// </summary>
+/// <seealso cref="ILoopService"/>
+/// <seealso cref="IApnsClientFactory"/>
 public class LoopService : ILoopService, IDisposable
 {
     private readonly ILogger<LoopService> _logger;

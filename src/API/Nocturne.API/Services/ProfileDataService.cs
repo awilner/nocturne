@@ -12,8 +12,12 @@ using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Domain service implementation for profile data operations with WebSocket broadcasting
+/// Domain service for profile data operations. Persists profiles via <see cref="IProfileRepository"/>,
+/// applies write side-effects via <see cref="IWriteSideEffects"/> (cache invalidation, v4 decomposition),
+/// broadcasts changes via <see cref="IDataEventSink{T}"/>, and caches the current profile for fast
+/// retrieval.
 /// </summary>
+/// <seealso cref="IProfileDataService"/>
 public class ProfileDataService : IProfileDataService
 {
     private readonly IProfileRepository _profiles;

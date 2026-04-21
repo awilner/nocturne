@@ -34,11 +34,25 @@ public static class InsulinCatalog
         new() { Id = "custom", Name = "Custom", Category = InsulinCategory.RapidActing, DefaultDia = 4.0, DefaultPeak = 75, Curve = "rapid-acting", Concentration = 100 },
     ];
 
+    /// <summary>
+    /// Returns all known insulin formulations across all categories.
+    /// </summary>
+    /// <returns>A read-only list of all <see cref="InsulinFormulation"/> records.</returns>
     public static IReadOnlyList<InsulinFormulation> GetAll() => _formulations;
 
+    /// <summary>
+    /// Looks up an insulin formulation by its unique identifier.
+    /// </summary>
+    /// <param name="id">The catalog identifier (e.g., "humalog", "fiasp", "lantus").</param>
+    /// <returns>The matching <see cref="InsulinFormulation"/>, or <c>null</c> if not found.</returns>
     public static InsulinFormulation? GetById(string id) =>
         _formulations.FirstOrDefault(f => f.Id == id);
 
+    /// <summary>
+    /// Returns all formulations that belong to the specified <see cref="InsulinCategory"/>.
+    /// </summary>
+    /// <param name="category">The pharmacokinetic category to filter by.</param>
+    /// <returns>A read-only list of <see cref="InsulinFormulation"/> records in the given category.</returns>
     public static IReadOnlyList<InsulinFormulation> GetByCategory(InsulinCategory category) =>
         _formulations.Where(f => f.Category == category).ToList();
 }

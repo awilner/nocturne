@@ -7,10 +7,26 @@ namespace Nocturne.API.Middleware;
 
 /// <summary>
 /// Redirects OIDC callbacks that land on the apex domain to the originating
-/// tenant subdomain. Runs before <see cref="TenantResolutionMiddleware"/> so
+/// tenant subdomain. Runs before <see cref="Multitenancy.TenantResolutionMiddleware"/> so
 /// cookies set on the tenant subdomain are available when the callback is
 /// actually processed.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Pipeline order (position 3 of 8 custom middleware):
+/// <see cref="JsonExtensionMiddleware"/>, <see cref="RecoveryModeMiddleware"/>,
+/// <b>OidcCallbackRedirectMiddleware</b>, <see cref="Multitenancy.TenantResolutionMiddleware"/>,
+/// <see cref="TenantSetupMiddleware"/>, <see cref="AuthenticationMiddleware"/>,
+/// <see cref="MemberScopeMiddleware"/>, <see cref="SiteSecurityMiddleware"/>.
+/// </para>
+/// <para>
+/// Only active when <see cref="MultitenancyConfiguration.BaseDomain"/> is configured.
+/// Extracts the tenant slug from the base64-encoded OIDC <c>state</c> query parameter
+/// and issues a 302 redirect to the correct <c>{slug}.{baseDomain}</c> URL.
+/// </para>
+/// </remarks>
+/// <seealso cref="Multitenancy.TenantResolutionMiddleware"/>
+/// <seealso cref="MultitenancyConfiguration"/>
 public partial class OidcCallbackRedirectMiddleware
 {
     private readonly RequestDelegate _next;
@@ -23,6 +39,12 @@ public partial class OidcCallbackRedirectMiddleware
         "/api/v4/oidc/link/callback",
     ];
 
+    /// <summary>
+    /// Creates a new instance of <see cref="OidcCallbackRedirectMiddleware"/>.
+    /// </summary>
+    /// <param name="next">The next middleware in the pipeline.</param>
+    /// <param name="logger">Logger for redirect diagnostics.</param>
+    /// <param name="config">Multitenancy configuration providing the base domain.</param>
     public OidcCallbackRedirectMiddleware(
         RequestDelegate next,
         ILogger<OidcCallbackRedirectMiddleware> logger,
@@ -33,6 +55,12 @@ public partial class OidcCallbackRedirectMiddleware
         _config = config.Value;
     }
 
+    /// <summary>
+    /// Checks if the request is an OIDC callback on the apex domain and redirects to the
+    /// originating tenant subdomain if so.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
+    /// <returns>A task that completes when the middleware has finished processing.</returns>
     public async Task InvokeAsync(HttpContext context)
     {
         if (string.IsNullOrEmpty(_config.BaseDomain) || !IsOidcCallbackPath(context.Request.Path))

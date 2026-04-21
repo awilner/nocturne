@@ -6,6 +6,12 @@ using Nocturne.Core.Models.V4;
 
 namespace Nocturne.API.Services.ConnectorPublishing;
 
+/// <summary>
+/// Publishes treatment data received from connectors into both the legacy v1-v3 treatment store
+/// (via <see cref="ITreatmentService"/>) and the v4 event-centric repositories for boluses, carb
+/// intakes, BG checks, bolus calculations, and temporary basals.
+/// </summary>
+/// <seealso cref="ITreatmentPublisher"/>
 internal sealed class TreatmentPublisher : ITreatmentPublisher
 {
     private readonly ITreatmentService _treatmentService;

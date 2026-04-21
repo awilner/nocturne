@@ -10,9 +10,12 @@ using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Controllers.V3;
 
 /// <summary>
-/// V3 Profile controller that provides full V3 API compatibility with Nightscout profile endpoints
-/// Implements the /api/v3/profile endpoints with pagination, field selection, sorting, and advanced filtering
+/// V3 Profile controller that provides full V3 API compatibility with Nightscout profile endpoints.
+/// Implements the /api/v3/profile endpoints with pagination, field selection, sorting, and advanced filtering.
 /// </summary>
+/// <seealso cref="IProfileRepository"/>
+/// <seealso cref="Profile"/>
+/// <seealso cref="BaseV3Controller{T}"/>
 [ApiController]
 [Route("api/v3/[controller]")]
 [Authorize(Policy = PolicyNames.HasPermissions)]

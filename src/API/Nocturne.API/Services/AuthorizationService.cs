@@ -10,8 +10,12 @@ using AuthSubject = Nocturne.Core.Models.Authorization.Subject;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for handling authorization operations including JWT generation and permission management
+/// Handles authorisation operations including JWT generation from access tokens and permission
+/// management via a trie-based lookup for wildcard permission matching.
 /// </summary>
+/// <seealso cref="IAuthorizationService"/>
+/// <seealso cref="IJwtService"/>
+/// <seealso cref="ISubjectService"/>
 public class AuthorizationService : IAuthorizationService, IDisposable
 {
     private readonly IConfiguration _configuration;

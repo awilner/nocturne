@@ -13,6 +13,9 @@ namespace Nocturne.API.Controllers.V4.Platform;
 /// Provides information about connected data sources, available connectors,
 /// sync status for connectors, and setup instructions for uploaders like xDrip+, Loop, AAPS, etc.
 /// </summary>
+/// <seealso cref="IDataSourceService"/>
+/// <seealso cref="IConnectorHealthService"/>
+/// <seealso cref="IConnectorSyncService"/>
 [ApiController]
 [Route("api/v4/services")]
 [Produces("application/json")]
@@ -26,6 +29,16 @@ public class ServicesController : ControllerBase
     private readonly ILogger<ServicesController> _logger;
     private readonly IConfiguration _configuration;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ServicesController"/>.
+    /// </summary>
+    /// <param name="dataSourceService">Service for querying active data sources and their status.</param>
+    /// <param name="entryRepository">Repository used to compute last-entry timestamps.</param>
+    /// <param name="treatmentRepository">Repository used to compute last-treatment timestamps.</param>
+    /// <param name="connectorHealthService">Service for connector health state queries.</param>
+    /// <param name="connectorSyncService">Service for triggering on-demand connector syncs.</param>
+    /// <param name="logger">Logger instance.</param>
+    /// <param name="configuration">Application configuration for base URL resolution.</param>
     public ServicesController(
         IDataSourceService dataSourceService,
         IEntryRepository entryRepository,

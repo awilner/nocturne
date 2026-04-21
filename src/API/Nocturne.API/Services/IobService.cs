@@ -5,8 +5,23 @@ using Nocturne.Core.Models.V4;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Implementation of IOB calculations with exact 1:1 legacy JavaScript compatibility
+/// Implementation of Insulin on Board (IOB) calculations with exact 1:1 legacy JavaScript compatibility.
+/// Computes IOB from three sources: <see cref="DeviceStatus"/> (Loop, OpenAPS, pump),
+/// <see cref="Treatment"/> bolus/temp-basal records, and V4 <see cref="TempBasal"/> records.
 /// </summary>
+/// <remarks>
+/// The bolus IOB curve uses a two-phase model:
+/// <list type="bullet">
+///   <item>Before peak (0-75 min): curved rise with quadratic approximation.</item>
+///   <item>After peak (75-180 min): curved decline to zero.</item>
+/// </list>
+/// Per-treatment <see cref="TreatmentInsulinContext"/> overrides profile-level DIA and peak values
+/// when available, enabling accurate multi-insulin calculations.
+/// </remarks>
+/// <seealso cref="IIobService"/>
+/// <seealso cref="IProfileService"/>
+/// <seealso cref="CobService"/>
+/// <seealso cref="TreatmentService"/>
 public class IobService : IIobService
 {
     // Constants from legacy implementation
@@ -17,9 +32,21 @@ public class IobService : IIobService
     private const double MAX_IOB_MINUTES = 180.0; // IOB calculation cutoff at 180 minutes
 
     /// <summary>
-    /// Main IOB calculation function that combines device status and treatment data
-    /// Exact implementation of legacy calcTotal function
+    /// Main IOB calculation function that combines <see cref="DeviceStatus"/> and <see cref="Treatment"/> data.
+    /// Exact implementation of legacy calcTotal function.
     /// </summary>
+    /// <remarks>
+    /// Priority: device status IOB (Loop/OpenAPS/pump) takes precedence. If unavailable,
+    /// treatment-based IOB is used. V4 <see cref="TempBasal"/> basal IOB is always merged
+    /// into the treatment result regardless of source priority.
+    /// </remarks>
+    /// <param name="treatments">Bolus and temp basal treatments.</param>
+    /// <param name="deviceStatus">Device status entries from Loop, OpenAPS, or pump.</param>
+    /// <param name="profile">Optional profile service for DIA, sensitivity, and basal rate lookups.</param>
+    /// <param name="time">Unix millisecond timestamp; defaults to now.</param>
+    /// <param name="specProfile">Optional specific profile name.</param>
+    /// <param name="tempBasals">Optional V4 temp basal records for parallel basal IOB calculation.</param>
+    /// <returns>An <see cref="IobResult"/> containing the computed IOB, basal IOB, activity, and display strings.</returns>
     public IobResult CalculateTotal(
         List<Treatment> treatments,
         List<DeviceStatus> deviceStatus,
@@ -83,9 +110,12 @@ public class IobService : IIobService
     }
 
     /// <summary>
-    /// Get the most recent IOB from device status entries with prioritization
-    /// Exact implementation of legacy lastIOBDeviceStatus function
+    /// Get the most recent IOB from <see cref="DeviceStatus"/> entries with prioritization.
+    /// Exact implementation of legacy lastIOBDeviceStatus function.
     /// </summary>
+    /// <param name="deviceStatus">The device status entries to search.</param>
+    /// <param name="time">Unix millisecond timestamp for recency filtering.</param>
+    /// <returns>The most recent <see cref="IobResult"/>, with Loop sources prioritized over others.</returns>
     public IobResult LastIobDeviceStatus(List<DeviceStatus> deviceStatus, long time)
     {
         if (deviceStatus?.Any() != true)
@@ -121,9 +151,11 @@ public class IobService : IIobService
     }
 
     /// <summary>
-    /// Extract IOB from device status entry - exact implementation of legacy fromDeviceStatus
-    /// Priority: Loop > OpenAPS > Pump (MM Connect)
+    /// Extract IOB from a single <see cref="DeviceStatus"/> entry.
+    /// Priority: Loop > OpenAPS > Pump (MM Connect).
     /// </summary>
+    /// <param name="deviceStatusEntry">The device status entry to extract IOB from.</param>
+    /// <returns>An <see cref="IobResult"/> with source attribution, or an empty result if no IOB data found.</returns>
     public IobResult FromDeviceStatus(DeviceStatus deviceStatusEntry)
     {
         // Highest priority: Loop IOB
@@ -202,9 +234,15 @@ public class IobService : IIobService
     }
 
     /// <summary>
-    /// Calculate IOB from treatments (Care Portal entries) with exact legacy algorithm
-    /// Implements exact calculations from ClientApp/lib/plugins/iob.js fromTreatments function
+    /// Calculate IOB from <see cref="Treatment"/> records (Care Portal entries) with exact legacy algorithm.
+    /// Sums bolus IOB from treatments with <see cref="Treatment.Insulin"/> and basal IOB from
+    /// temp basal treatments, using <see cref="CalcTreatment"/> and <see cref="CalcBasalTreatment"/>.
     /// </summary>
+    /// <param name="treatments">The treatments to calculate IOB from.</param>
+    /// <param name="profile">Optional <see cref="IProfileService"/> for DIA and sensitivity lookups.</param>
+    /// <param name="time">Unix millisecond timestamp; defaults to now.</param>
+    /// <param name="specProfile">Optional specific profile name.</param>
+    /// <returns>An <see cref="IobResult"/> with aggregated bolus IOB, basal IOB, and activity.</returns>
     public IobResult FromTreatments(
         List<Treatment> treatments,
         IProfileService? profile = null,
@@ -268,9 +306,16 @@ public class IobService : IIobService
     }
 
     /// <summary>
-    /// Calculate IOB contribution from a single treatment - exact legacy algorithm
-    /// Implements exact curve from ClientApp/lib/plugins/iob.js calcTreatment
+    /// Calculate IOB contribution from a single <see cref="Treatment"/> using the exact legacy
+    /// two-phase insulin curve. Uses <see cref="TreatmentInsulinContext.Dia"/> and
+    /// <see cref="TreatmentInsulinContext.Peak"/> when available on the treatment,
+    /// otherwise falls back to <see cref="IProfileService.GetDIA"/>.
     /// </summary>
+    /// <param name="treatment">The treatment to calculate IOB for.</param>
+    /// <param name="profile">Optional profile service for DIA/sensitivity lookups.</param>
+    /// <param name="time">Unix millisecond timestamp; defaults to now.</param>
+    /// <param name="specProfile">Optional specific profile name.</param>
+    /// <returns>An <see cref="IobContribution"/> with the IOB and activity contributions.</returns>
     public IobContribution CalcTreatment(
         Treatment treatment,
         IProfileService? profile = null,
@@ -337,9 +382,16 @@ public class IobService : IIobService
     }
 
     /// <summary>
-    /// Calculate basal IOB contribution from temp basal treatment
-    /// Uses simplified algorithm based on insulin delivery and decay
+    /// Calculate basal IOB contribution from a temp basal <see cref="Treatment"/> using simplified
+    /// linear decay over the DIA period. Only processes treatments with
+    /// <see cref="Treatment.EventType"/> of <c>"Temp Basal"</c> and non-null
+    /// <see cref="Treatment.Duration"/> and <see cref="Treatment.Absolute"/>.
     /// </summary>
+    /// <param name="treatment">The temp basal treatment.</param>
+    /// <param name="profile">Optional profile service for DIA and basal rate lookups.</param>
+    /// <param name="time">Unix millisecond timestamp; defaults to now.</param>
+    /// <param name="specProfile">Optional specific profile name.</param>
+    /// <returns>An <see cref="IobContribution"/> with the basal IOB contribution.</returns>
     public IobContribution CalcBasalTreatment(
         Treatment treatment,
         IProfileService? profile = null,
@@ -401,10 +453,20 @@ public class IobService : IIobService
     }
 
     /// <summary>
-    /// Calculate basal IOB contribution from a V4 TempBasal record.
-    /// Uses the same simplified linear decay algorithm as CalcBasalTreatment
-    /// but operates on the typed TempBasal model instead of legacy Treatment objects.
+    /// Calculate basal IOB contribution from a V4 <see cref="TempBasal"/> record.
+    /// Uses the same simplified linear decay algorithm as <see cref="CalcBasalTreatment"/>
+    /// but operates on the typed <see cref="TempBasal"/> model instead of legacy <see cref="Treatment"/> objects.
     /// </summary>
+    /// <remarks>
+    /// For <see cref="TempBasalOrigin.Suspended"/> records, the rate is treated as zero (pump was suspended).
+    /// Uses <see cref="TempBasal.ScheduledRate"/> when available, otherwise falls back to
+    /// <see cref="IProfileService.GetBasalRate"/>.
+    /// </remarks>
+    /// <param name="tempBasal">The V4 temp basal record.</param>
+    /// <param name="profile">Optional profile service for DIA and basal rate lookups.</param>
+    /// <param name="time">Unix millisecond timestamp; defaults to now.</param>
+    /// <param name="specProfile">Optional specific profile name.</param>
+    /// <returns>An <see cref="IobContribution"/> with the basal IOB contribution.</returns>
     public IobContribution CalcTempBasalIob(
         TempBasal tempBasal,
         IProfileService? profile = null,
@@ -469,10 +531,15 @@ public class IobService : IIobService
     }
 
     /// <summary>
-    /// Calculate aggregated basal IOB from a list of V4 TempBasal records.
-    /// Parallel path to the temp basal loop in FromTreatments, operating on
-    /// typed TempBasal records instead of legacy Treatment objects.
+    /// Calculate aggregated basal IOB from a list of V4 <see cref="TempBasal"/> records.
+    /// Parallel path to the temp basal loop in <see cref="FromTreatments"/>, operating on
+    /// typed <see cref="TempBasal"/> records instead of legacy <see cref="Treatment"/> objects.
     /// </summary>
+    /// <param name="tempBasals">The V4 temp basal records.</param>
+    /// <param name="profile">Optional profile service for DIA and basal rate lookups.</param>
+    /// <param name="time">Unix millisecond timestamp; defaults to now.</param>
+    /// <param name="specProfile">Optional specific profile name.</param>
+    /// <returns>An <see cref="IobResult"/> with basal IOB only (bolus IOB is always zero).</returns>
     public IobResult FromTempBasals(
         List<TempBasal> tempBasals,
         IProfileService? profile = null,

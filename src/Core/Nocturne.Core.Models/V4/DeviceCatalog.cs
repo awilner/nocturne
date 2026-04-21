@@ -38,11 +38,25 @@ public static class DeviceCatalog
         new() { Id = "custom-pump",      Name = "Custom Pump",   Manufacturer = "Custom",     Category = DeviceCategory.InsulinPump },
     ];
 
+    /// <summary>
+    /// Returns all known device catalog entries across all categories.
+    /// </summary>
+    /// <returns>A read-only list of all <see cref="DeviceCatalogEntry"/> records.</returns>
     public static IReadOnlyList<DeviceCatalogEntry> GetAll() => _entries;
 
+    /// <summary>
+    /// Looks up a device catalog entry by its unique identifier.
+    /// </summary>
+    /// <param name="id">The catalog identifier (e.g., "omnipod-5", "dexcom-g7").</param>
+    /// <returns>The matching <see cref="DeviceCatalogEntry"/>, or <c>null</c> if not found.</returns>
     public static DeviceCatalogEntry? GetById(string id) =>
         _entries.FirstOrDefault(e => e.Id == id);
 
+    /// <summary>
+    /// Returns all catalog entries that belong to the specified <see cref="DeviceCategory"/>.
+    /// </summary>
+    /// <param name="category">The device category to filter by.</param>
+    /// <returns>A read-only list of <see cref="DeviceCatalogEntry"/> records in the given category.</returns>
     public static IReadOnlyList<DeviceCatalogEntry> GetByCategory(DeviceCategory category) =>
         _entries.Where(e => e.Category == category).ToList();
 }

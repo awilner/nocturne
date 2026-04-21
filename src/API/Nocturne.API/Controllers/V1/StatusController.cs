@@ -10,8 +10,10 @@ namespace Nocturne.API.Controllers.V1;
 /// <summary>
 /// Status controller that provides 1:1 compatibility with Nightscout status endpoint.
 /// Returns HTML "STATUS OK" by default (matching Nightscout), or JSON when requested via Accept header.
-/// For detailed JSON status, use the V4 status endpoint at /api/v4/status
+/// For detailed JSON status, use the V4 status endpoint at /api/v4/status.
 /// </summary>
+/// <seealso cref="IStatusService"/>
+/// <seealso cref="StatusResponse"/>
 [ApiController]
 [Route("api/v1/[controller]")]
 public class StatusController : ControllerBase
@@ -20,7 +22,8 @@ public class StatusController : ControllerBase
     private readonly ILogger<StatusController> _logger;
 
     /// <summary>
-    /// JSON serializer options for Nightscout-compatible responses
+    /// JSON serializer options configured for Nightscout-compatible camelCase responses
+    /// without null value serialization.
     /// </summary>
     private static readonly JsonSerializerOptions NightscoutJsonOptions = new()
     {
@@ -29,6 +32,11 @@ public class StatusController : ControllerBase
         WriteIndented = false
     };
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="StatusController"/>.
+    /// </summary>
+    /// <param name="statusService">Service providing system status information.</param>
+    /// <param name="logger">Logger instance.</param>
     public StatusController(IStatusService statusService, ILogger<StatusController> logger)
     {
         _statusService = statusService;

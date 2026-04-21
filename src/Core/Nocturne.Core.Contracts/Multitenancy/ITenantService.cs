@@ -1,5 +1,14 @@
 namespace Nocturne.Core.Contracts.Multitenancy;
 
+/// <summary>
+/// Core service for tenant lifecycle management: provisioning, configuration,
+/// membership administration, and API secret rotation. Tenants are the
+/// top-level isolation boundary enforced via PostgreSQL Row Level Security.
+/// </summary>
+/// <seealso cref="ITenantAccessor"/>
+/// <seealso cref="TenantContext"/>
+/// <seealso cref="ITenantMemberService"/>
+/// <seealso cref="ITenantRoleService"/>
 public interface ITenantService
 {
     /// <summary>Creates a new tenant with the specified subject as its owner.</summary>
@@ -51,12 +60,24 @@ public interface ITenantService
         CancellationToken ct = default);
 }
 
+/// <summary>
+/// Lightweight projection of a tenant for list views.
+/// </summary>
 public record TenantDto(Guid Id, string Slug, string DisplayName, bool IsActive, bool IsDefault, DateTime SysCreatedAt);
 
+/// <summary>
+/// Returned after tenant creation, including the generated API secret for initial configuration.
+/// </summary>
 public record TenantCreatedDto(Guid Id, string Slug, string DisplayName, bool IsActive, bool IsDefault, DateTime SysCreatedAt, string ApiSecret);
 
+/// <summary>
+/// Detailed tenant view including the full member list, used for admin UIs.
+/// </summary>
 public record TenantDetailDto(Guid Id, string Slug, string DisplayName, bool IsActive, bool IsDefault, DateTime SysCreatedAt, List<TenantMemberDto> Members);
 
+/// <summary>
+/// Projection of a tenant member, including their assigned roles and direct permissions.
+/// </summary>
 public record TenantMemberDto(
     Guid Id,
     Guid SubjectId,
@@ -68,10 +89,19 @@ public record TenantMemberDto(
     DateTime? LastUsedAt,
     DateTime SysCreatedAt);
 
+/// <summary>
+/// Lightweight role reference attached to a <see cref="TenantMemberDto"/>.
+/// </summary>
 public record TenantMemberRoleDto(Guid RoleId, string Name, string Slug);
 
+/// <summary>
+/// Result of a tenant slug validation check.
+/// </summary>
 public record SlugValidationResult(bool IsValid, string? Message = null);
 
+/// <summary>
+/// Passkey (WebAuthn) credential data provided during tenant provisioning.
+/// </summary>
 public record ProvisionCredentialData(
     string CredentialId,
     string PublicKey,
@@ -80,6 +110,9 @@ public record ProvisionCredentialData(
     Guid? AaGuid,
     Guid? SubjectId);
 
+/// <summary>
+/// OIDC identity data provided during tenant provisioning for federated login.
+/// </summary>
 public record ProvisionOidcIdentityData(
     string Provider,
     string OidcSubjectId,
@@ -87,4 +120,7 @@ public record ProvisionOidcIdentityData(
     string Email,
     Guid? SubjectId);
 
+/// <summary>
+/// Result of a full tenant-plus-owner provisioning operation.
+/// </summary>
 public record ProvisionResult(Guid TenantId, Guid SubjectId, string Slug);

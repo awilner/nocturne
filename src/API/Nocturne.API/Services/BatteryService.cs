@@ -6,8 +6,10 @@ using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for tracking and analyzing device battery status from DeviceStatus entries
+/// Tracks and analyses device battery status from recent <see cref="Nocturne.Core.Models.DeviceStatus"/> entries.
+/// Categorises battery levels using configurable warning and urgent thresholds.
 /// </summary>
+/// <seealso cref="IBatteryService"/>
 public class BatteryService : IBatteryService
 {
     private readonly IDeviceStatusRepository _deviceStatuses;

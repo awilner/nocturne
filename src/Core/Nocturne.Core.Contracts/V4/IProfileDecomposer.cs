@@ -9,6 +9,9 @@ namespace Nocturne.Core.Contracts.V4;
 /// Iterates through the profile's Store dictionary, producing one set of V4 records per named profile.
 /// Handles idempotent create-or-update based on composite LegacyId matching.
 /// </summary>
+/// <seealso cref="IDecompositionPipeline"/>
+/// <seealso cref="IEntryDecomposer"/>
+/// <seealso cref="ITreatmentDecomposer"/>
 public interface IProfileDecomposer
 {
     /// <summary>

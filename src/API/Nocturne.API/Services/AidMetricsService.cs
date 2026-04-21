@@ -4,10 +4,28 @@ using Nocturne.Core.Models.V4;
 
 namespace Nocturne.API.Services;
 
+/// <summary>
+/// Service for computing <see cref="AidSystemMetrics"/> from device segment and closed-loop data.
+/// Dispatches metric calculations to the registered <see cref="IAidDetectionStrategy"/> for the
+/// detected <see cref="AidAlgorithm"/> (AndroidAPS, Trio, Loop, etc.).
+/// </summary>
+/// <remarks>
+/// Each strategy is keyed by the <see cref="AidAlgorithm"/> values it supports.
+/// If multiple strategies claim the same algorithm, the last registered one wins.
+/// </remarks>
+/// <seealso cref="IAidMetricsService"/>
+/// <seealso cref="IAidDetectionStrategy"/>
+/// <seealso cref="ApsSnapshotStrategy"/>
+/// <seealso cref="TbrBasedStrategy"/>
 public class AidMetricsService : IAidMetricsService
 {
     private readonly Dictionary<AidAlgorithm, IAidDetectionStrategy> _strategies;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AidMetricsService"/> and builds a strategy
+    /// lookup keyed by <see cref="AidAlgorithm"/>.
+    /// </summary>
+    /// <param name="strategies">All registered <see cref="IAidDetectionStrategy"/> implementations.</param>
     public AidMetricsService(IEnumerable<IAidDetectionStrategy> strategies)
     {
         _strategies = new Dictionary<AidAlgorithm, IAidDetectionStrategy>();

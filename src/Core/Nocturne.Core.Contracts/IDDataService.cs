@@ -3,9 +3,13 @@ using Nocturne.Core.Models;
 namespace Nocturne.Core.Contracts;
 
 /// <summary>
-/// Service interface for DData operations
-/// Provides methods to construct and manipulate DData structures with 1:1 legacy compatibility
+/// Service interface for <see cref="DData"/> operations.
+/// Provides methods to construct and manipulate <see cref="DData"/> structures with 1:1 legacy compatibility.
 /// </summary>
+/// <seealso cref="DData"/>
+/// <seealso cref="DDataResponse"/>
+/// <seealso cref="Treatment"/>
+/// <seealso cref="DeviceStatus"/>
 public interface IDDataService
 {
     /// <summary>

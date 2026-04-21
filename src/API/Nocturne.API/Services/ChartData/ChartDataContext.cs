@@ -5,9 +5,21 @@ using Nocturne.Infrastructure.Data.Entities;
 namespace Nocturne.API.Services.ChartData;
 
 /// <summary>
-/// Immutable data envelope passed between chart data pipeline stages.
-/// Each stage produces a new instance via <c>with</c> expressions, contributing its results.
+/// Immutable data envelope passed sequentially through each <see cref="IChartDataStage"/>
+/// in the chart data pipeline. Each stage produces a new instance via <see langword="with"/>
+/// expressions and leaves the previous instance unchanged.
 /// </summary>
+/// <remarks>
+/// Stage ordering and responsibilities:
+/// <list type="number">
+///   <item><see cref="Stages.ProfileLoadStage"/> — populates <see cref="Timezone"/>, <see cref="Thresholds"/>, and <see cref="DefaultBasalRate"/>.</item>
+///   <item><see cref="Stages.DataFetchStage"/> — populates all raw data collections.</item>
+///   <item><see cref="Stages.TreatmentAdapterStage"/> — builds <see cref="SyntheticTreatments"/> from v4 Bolus/CarbIntake records for legacy IOB/COB calcs.</item>
+///   <item><see cref="Stages.IobCobComputeStage"/> — computes IOB/COB series and basal series, with 1-minute memory cache keyed by tenant + data fingerprint.</item>
+///   <item><see cref="Stages.DtoMappingStage"/> — converts raw data to chart-ready DTOs (markers, spans, glucose points).</item>
+/// </list>
+/// All timestamp properties use Unix milliseconds to match the mills-first domain convention.
+/// </remarks>
 public sealed record ChartDataContext
 {
     // === Request parameters ===

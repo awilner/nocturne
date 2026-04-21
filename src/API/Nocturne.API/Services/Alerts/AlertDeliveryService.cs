@@ -11,8 +11,18 @@ namespace Nocturne.API.Services.Alerts;
 
 /// <summary>
 /// Creates delivery records for an alert instance step and dispatches them
-/// to the appropriate channel providers (web_push, webhook, etc.).
+/// to the appropriate channel providers (<c>web_push</c>, <c>webhook</c>, <c>chat_bot</c>, etc.).
+/// Quiet hours are checked before any delivery is attempted.
 /// </summary>
+/// <remarks>
+/// Each delivery channel is resolved from a child DI scope to support scoped service lifetimes.
+/// Delivery records are written to the database regardless of dispatch success so that
+/// the alert audit trail is complete.
+/// Real-time <see cref="ISignalRBroadcastService"/> notifications are sent alongside channel deliveries.
+/// </remarks>
+/// <seealso cref="IAlertDeliveryService"/>
+/// <seealso cref="ISignalRBroadcastService"/>
+/// <seealso cref="AlertOrchestrator"/>
 internal sealed class AlertDeliveryService(
     IDbContextFactory<NocturneDbContext> contextFactory,
     ITenantAccessor tenantAccessor,

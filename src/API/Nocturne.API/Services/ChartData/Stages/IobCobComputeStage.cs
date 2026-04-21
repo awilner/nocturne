@@ -11,10 +11,35 @@ using Nocturne.Core.Models.V4;
 namespace Nocturne.API.Services.ChartData.Stages;
 
 /// <summary>
-/// Pipeline stage that computes IOB/COB time series and the basal delivery series.
-/// Extracts the heavy computation from ChartDataService: IOB/COB loop with caching,
-/// SHA256 cache key generation, and basal step-function construction from TempBasal records.
+/// Chart data pipeline stage that computes IOB/COB time series and the basal delivery series.
 /// </summary>
+/// <remarks>
+/// <para>
+/// IOB and COB are computed at each interval step across the requested time window.
+/// To avoid O(n²) work on wide windows, treatments are pre-filtered before each iteration:
+/// only boluses within DIA hours of the current timestamp contribute to IOB, and only
+/// carb intakes within 6 hours contribute to COB. The DIA value is read from the loaded profile.
+/// </para>
+/// <para>
+/// Results are cached in <see cref="Microsoft.Extensions.Caching.Memory.IMemoryCache"/> for
+/// one minute. The cache key is a 64-bit SHA-256 prefix of the treatment fingerprint (mills,
+/// insulin, carbs, temp basal rate) combined with the tenant ID, rounded time boundaries,
+/// and interval. The tenant ID component prevents cross-tenant cache leakage.
+/// </para>
+/// <para>
+/// Basal series construction (<see cref="BuildBasalSeriesFromTempBasals"/>) uses v4
+/// <see cref="TempBasal"/> records as the source of truth and fills any gaps with
+/// profile-inferred rates at 5-minute resolution. When no TempBasal records exist the
+/// entire series is inferred from the profile. The y-axis maximum is clamped to at least
+/// 2.5× the default basal rate so the chart always shows meaningful scale.
+/// </para>
+/// <para>
+/// The global IOB minimum is clamped to 3 U and COB minimum to 30 g so the chart axes
+/// are never collapsed to near-zero.
+/// </para>
+/// </remarks>
+/// <seealso cref="IChartDataStage"/>
+/// <seealso cref="ChartDataContext"/>
 internal sealed class IobCobComputeStage(
     IIobService iobService,
     ICobService cobService,

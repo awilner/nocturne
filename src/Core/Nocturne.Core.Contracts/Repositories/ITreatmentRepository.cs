@@ -4,8 +4,10 @@ using Nocturne.Core.Models;
 namespace Nocturne.Core.Contracts.Repositories;
 
 /// <summary>
-/// Repository port for Treatment domain operations
+/// Repository port for <see cref="Treatment"/> domain operations.
 /// </summary>
+/// <seealso cref="Treatment"/>
+/// <seealso cref="Nocturne.Core.Contracts.Treatments.ITreatmentStore"/>
 public interface ITreatmentRepository
 {
     /// <summary>

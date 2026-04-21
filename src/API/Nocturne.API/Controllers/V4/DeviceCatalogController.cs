@@ -8,6 +8,14 @@ namespace Nocturne.API.Controllers.V4;
 /// <summary>
 /// Controller for browsing the static device catalog.
 /// </summary>
+/// <remarks>
+/// The device catalog is a read-only in-memory registry of known pump and CGM hardware models
+/// stored in <see cref="DeviceCatalog"/>. Entries can be filtered by <see cref="DeviceCategory"/>
+/// (e.g., <c>Pump</c>, <c>Cgm</c>, <c>Meter</c>).
+/// </remarks>
+/// <seealso cref="DeviceCatalog"/>
+/// <seealso cref="DeviceCatalogEntry"/>
+/// <seealso cref="DeviceCategory"/>
 [ApiController]
 [Route("api/v4/devices")]
 [Tags("V4 Devices")]

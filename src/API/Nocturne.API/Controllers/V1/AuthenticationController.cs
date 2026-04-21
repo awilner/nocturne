@@ -6,8 +6,9 @@ using Nocturne.Core.Models.Authorization;
 namespace Nocturne.API.Controllers.V1;
 
 /// <summary>
-/// Authentication controller that provides authentication verification for legacy Nightscout compatibility
+/// Authentication controller that provides authentication verification for legacy Nightscout compatibility.
 /// </summary>
+/// <seealso cref="VerifyAuthResponse"/>
 [ApiController]
 [Route("api/v1")]
 public class AuthenticationController : ControllerBase

@@ -6,6 +6,24 @@ using Nocturne.Core.Models.V4;
 
 namespace Nocturne.API.Controllers.V4.Base;
 
+/// <summary>
+/// Base controller for CRUD V4 API endpoints, extending <see cref="V4ReadOnlyControllerBase{TModel, TRepository}"/>
+/// with create, update, and delete operations.
+/// </summary>
+/// <typeparam name="TModel">The V4 domain model type, must implement <see cref="IV4Record"/>.</typeparam>
+/// <typeparam name="TCreateRequest">The request DTO type for creating records.</typeparam>
+/// <typeparam name="TUpdateRequest">The request DTO type for updating records.</typeparam>
+/// <typeparam name="TRepository">The repository interface, must implement <see cref="IV4Repository{TModel}"/>.</typeparam>
+/// <remarks>
+/// Derived controllers must implement <see cref="MapCreateToModel"/> and <see cref="MapUpdateToModel"/>
+/// to map request DTOs to domain models. The <see cref="OnAfterCreateAsync"/> hook allows
+/// post-creation side effects (e.g., alert evaluation).
+/// Create and update methods are annotated with <see cref="RemoteFormAttribute"/>;
+/// delete uses <see cref="RemoteCommandAttribute"/>.
+/// </remarks>
+/// <seealso cref="V4ReadOnlyControllerBase{TModel, TRepository}"/>
+/// <seealso cref="IV4Record"/>
+/// <seealso cref="IV4Repository{TModel}"/>
 public abstract class V4CrudControllerBase<TModel, TCreateRequest, TUpdateRequest, TRepository>(TRepository repository)
     : V4ReadOnlyControllerBase<TModel, TRepository>(repository)
     where TModel : class, IV4Record
@@ -13,7 +31,20 @@ public abstract class V4CrudControllerBase<TModel, TCreateRequest, TUpdateReques
     where TUpdateRequest : class
     where TRepository : IV4Repository<TModel>
 {
+    /// <summary>
+    /// Maps a create request DTO to the domain model.
+    /// </summary>
+    /// <param name="request">The create request DTO.</param>
+    /// <returns>A new <typeparamref name="TModel"/> instance populated from the request.</returns>
     protected abstract TModel MapCreateToModel(TCreateRequest request);
+
+    /// <summary>
+    /// Maps an update request DTO to the domain model, preserving immutable fields from the existing record.
+    /// </summary>
+    /// <param name="id">The record ID being updated.</param>
+    /// <param name="request">The update request DTO.</param>
+    /// <param name="existing">The existing record from the database.</param>
+    /// <returns>A <typeparamref name="TModel"/> instance with updated fields.</returns>
     protected abstract TModel MapUpdateToModel(Guid id, TUpdateRequest request, TModel existing);
 
     /// <summary>Creates a new record and returns it with a `Location` header pointing to the created resource.</summary>
@@ -97,5 +128,12 @@ public abstract class V4CrudControllerBase<TModel, TCreateRequest, TUpdateReques
         }
     }
 
+    /// <summary>
+    /// Hook called after a record is successfully created. Override to add post-creation side effects
+    /// such as alert evaluation or SignalR broadcasting.
+    /// </summary>
+    /// <param name="created">The newly created record.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The record, potentially enriched by the hook.</returns>
     protected virtual Task<TModel> OnAfterCreateAsync(TModel created, CancellationToken ct) => Task.FromResult(created);
 }

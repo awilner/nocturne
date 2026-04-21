@@ -6,8 +6,13 @@ namespace Nocturne.Core.Models;
 /// <summary>
 /// Semantic color assignments for chart elements.
 /// Values are kebab-case strings matching CSS custom property names,
-/// so the frontend can resolve colors with: var(--{value})
+/// so the frontend can resolve colors with: <c>var(--{value})</c>.
+/// Backend code assigns these values; the frontend performs no color computation.
 /// </summary>
+/// <remarks>
+/// The enum member values (e.g., <c>"glucose-in-range"</c>) map directly to CSS custom properties
+/// defined in the Nocturne theme. Adding a new member requires a corresponding CSS variable.
+/// </remarks>
 [JsonConverter(typeof(JsonStringEnumConverter<ChartColor>))]
 public enum ChartColor
 {

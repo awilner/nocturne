@@ -17,9 +17,11 @@ using Nocturne.Infrastructure.Data.Entities;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for managing connector configurations stored in the database.
-/// Handles merging of environment variables (secrets) with database-stored runtime configuration.
+/// Domain service for connector configuration management. Stores and retrieves per-tenant connector
+/// configuration in the database, merging database-stored JSON with environment-variable secrets at
+/// read time so that sensitive credentials never persist in the database.
 /// </summary>
+/// <seealso cref="IConnectorConfigurationService"/>
 public class ConnectorConfigurationService : IConnectorConfigurationService
 {
     private readonly NocturneDbContext _context;

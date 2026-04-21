@@ -3,8 +3,12 @@ using Nocturne.Core.Models.Authorization;
 namespace Nocturne.Core.Contracts;
 
 /// <summary>
-/// Service for handling OIDC authentication flows
+/// Service for handling OIDC authentication flows.
 /// </summary>
+/// <seealso cref="IOidcProviderService"/>
+/// <seealso cref="IRefreshTokenService"/>
+/// <seealso cref="IJwtService"/>
+/// <seealso cref="ISubjectService"/>
 public interface IOidcAuthService
 {
     /// <summary>
@@ -74,9 +78,27 @@ public interface IOidcAuthService
     /// <returns>Subject ID if valid, null otherwise</returns>
     Task<Guid?> ValidateSessionAsync(string refreshToken);
 
+    /// <summary>
+    /// Generate an authorization URL for linking an additional OIDC identity to an already-authenticated subject.
+    /// </summary>
+    /// <param name="providerId">The OIDC provider ID to link with.</param>
+    /// <param name="subjectId">The currently authenticated subject's ID.</param>
+    /// <param name="returnUrl">URL to return to after the linking flow completes.</param>
+    /// <param name="tenantSlug">Optional tenant slug for subdomain-scoped deployments.</param>
+    /// <returns>Authorization request containing URL and state for CSRF verification.</returns>
     Task<OidcAuthorizationRequest> GenerateLinkAuthorizationUrlAsync(
         Guid providerId, Guid subjectId, string? returnUrl = null, string? tenantSlug = null);
 
+    /// <summary>
+    /// Handle the OIDC callback for an account-linking flow initiated by <see cref="GenerateLinkAuthorizationUrlAsync"/>.
+    /// </summary>
+    /// <param name="code">Authorization code from the provider.</param>
+    /// <param name="state">State parameter returned by the provider.</param>
+    /// <param name="expectedState">Expected state value stored in the session cookie.</param>
+    /// <param name="authenticatedSubjectId">The subject ID of the currently authenticated user.</param>
+    /// <param name="ipAddress">Client IP address for audit logging.</param>
+    /// <param name="userAgent">Client user-agent string for audit logging.</param>
+    /// <returns>An <see cref="OidcLinkResult"/> indicating success or failure of the link attempt.</returns>
     Task<OidcLinkResult> HandleLinkCallbackAsync(
         string code, string state, string expectedState,
         Guid authenticatedSubjectId,

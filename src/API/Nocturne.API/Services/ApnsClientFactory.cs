@@ -6,9 +6,18 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Default implementation of IApnsClientFactory
-/// Creates real APNS clients using dotAPNS library
+/// Production implementation of <see cref="IApnsClientFactory"/> that creates JWT-authenticated
+/// APNs clients via the <c>dotAPNS</c> library.
 /// </summary>
+/// <remarks>
+/// JWT authentication requires all three of <see cref="LoopConfiguration.ApnsKey"/>,
+/// <see cref="LoopConfiguration.ApnsKeyId"/>, and <see cref="LoopConfiguration.DeveloperTeamId"/>
+/// to be non-empty, and the team ID must be exactly 10 characters (Apple's format).
+/// When <see cref="LoopConfiguration.ApnsServerOverrideUrl"/> is set the underlying
+/// <see cref="HttpClient"/> base address is replaced, which redirects pushes to a local mock
+/// server for integration testing.
+/// </remarks>
+/// <seealso cref="IApnsClientFactory"/>
 public class ApnsClientFactory : IApnsClientFactory
 {
     private readonly LoopConfiguration _configuration;
@@ -46,7 +55,9 @@ public class ApnsClientFactory : IApnsClientFactory
         && _configuration.DeveloperTeamId.Length == 10;
 
     /// <summary>
-    /// Creates an APNS client configured for the specified bundle ID
+    /// Creates an APNs client configured for the specified bundle ID.
+    /// Returns <see langword="null"/> when <see cref="IsConfigured"/> is <see langword="false"/>
+    /// or when the dotAPNS constructor throws (e.g. malformed PEM key).
     /// </summary>
     public IApnsClient? CreateClient(string bundleId)
     {

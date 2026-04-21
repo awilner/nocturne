@@ -4,8 +4,19 @@ using Nocturne.Core.Contracts.Multitenancy;
 
 namespace Nocturne.API.Services;
 
+/// <summary>
+/// Service for triggering manual on-demand sync operations for data source connectors.
+/// </summary>
+/// <seealso cref="ConnectorSyncService"/>
 public interface IConnectorSyncService
 {
+    /// <summary>
+    /// Triggers an immediate sync for the specified connector within the current tenant context.
+    /// </summary>
+    /// <param name="connectorId">The connector identifier (e.g., <c>"dexcom"</c>, <c>"nightscout"</c>).</param>
+    /// <param name="request">The sync request parameters such as date range and data types.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A <see cref="SyncResult"/> indicating success or failure with a status message.</returns>
     Task<SyncResult> TriggerSyncAsync(
         string connectorId,
         SyncRequest request,
@@ -13,6 +24,17 @@ public interface IConnectorSyncService
     );
 }
 
+/// <summary>
+/// Implementation of <see cref="IConnectorSyncService"/> that resolves the appropriate
+/// <see cref="IConnectorSyncExecutor"/> from a child DI scope and executes the sync
+/// with the current tenant context propagated into that scope.
+/// </summary>
+/// <remarks>
+/// A child scope is created per sync operation so that scoped services (e.g., DbContext,
+/// tenant-aware repositories) are properly isolated and disposed after the sync completes.
+/// </remarks>
+/// <seealso cref="IConnectorSyncService"/>
+/// <seealso cref="ISyncProgressReporter"/>
 public class ConnectorSyncService : IConnectorSyncService
 {
     private readonly IServiceProvider _serviceProvider;
@@ -20,6 +42,13 @@ public class ConnectorSyncService : IConnectorSyncService
     private readonly ILogger<ConnectorSyncService> _logger;
     private readonly ISyncProgressReporter _progressReporter;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ConnectorSyncService"/>.
+    /// </summary>
+    /// <param name="serviceProvider">Root service provider used to create child scopes per sync.</param>
+    /// <param name="tenantAccessor">Provides the current tenant context to propagate into each sync scope.</param>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="progressReporter">Reporter for streaming sync progress events to clients via SignalR.</param>
     public ConnectorSyncService(
         IServiceProvider serviceProvider,
         ITenantAccessor tenantAccessor,

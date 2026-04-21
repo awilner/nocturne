@@ -2,6 +2,11 @@ using Nocturne.Core.Models;
 
 namespace Nocturne.API.Services.NotificationTemplates;
 
+/// <summary>
+/// Extension class that registers all built-in <see cref="NotificationTemplate"/> instances into a
+/// <see cref="NotificationTemplateRegistry"/> at startup. Built-in types include tracker alerts,
+/// meal-match suggestions, migration prompts, and admin/system notifications.
+/// </summary>
 public static class BuiltInNotificationTemplates
 {
     public static NotificationTemplateRegistry AddBuiltInTemplates(

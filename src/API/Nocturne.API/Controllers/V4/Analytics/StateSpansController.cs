@@ -7,8 +7,25 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Controllers.V4.Analytics;
 
 /// <summary>
-/// Controller for managing time-ranged system states (pump modes, connectivity, overrides)
+/// Controller for managing time-ranged system states such as pump modes, connectivity periods,
+/// temporary targets, overrides, and user-annotated activity periods (sleep, exercise, illness, travel).
 /// </summary>
+/// <remarks>
+/// <see cref="StateSpan"/> records are created automatically by connector-based ingest pipelines
+/// but can also be created and updated manually via this API.
+///
+/// Convenience sub-routes (<c>/pump-modes</c>, <c>/connectivity</c>, <c>/overrides</c>,
+/// <c>/temporary-targets</c>, <c>/profiles</c>, <c>/sleep</c>, <c>/exercise</c>,
+/// <c>/illness</c>, <c>/travel</c>, <c>/activities</c>) are thin wrappers that pre-filter
+/// <see cref="IStateSpanService.GetStateSpansAsync"/> by <see cref="StateSpanCategory"/>.
+///
+/// The main <c>GET /</c> endpoint is annotated with <see cref="OpenApi.Remote.Attributes.RemoteQueryAttribute"/>
+/// and cached for 120 seconds. Create, update, and delete use
+/// <see cref="OpenApi.Remote.Attributes.RemoteCommandAttribute"/> with cache invalidation hints.
+/// </remarks>
+/// <seealso cref="IStateSpanService"/>
+/// <seealso cref="StateSpan"/>
+/// <seealso cref="StateSpanCategory"/>
 [ApiController]
 [Route("api/v4/state-spans")]
 [Authorize]

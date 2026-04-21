@@ -3,8 +3,12 @@ using System.Text.Json.Serialization;
 namespace Nocturne.Core.Models;
 
 /// <summary>
-/// Pump monitoring preferences matching legacy Nightscout pump.getPrefs()
+/// Pump monitoring preferences matching legacy Nightscout pump.getPrefs().
+/// Drives alert thresholds for reservoir level, battery, and clock staleness.
 /// </summary>
+/// <seealso cref="PumpStatusResult"/>
+/// <seealso cref="PumpFieldStatus"/>
+/// <seealso cref="PumpAlertLevel"/>
 public class PumpPreferences
 {
     /// <summary>
@@ -86,8 +90,12 @@ public class PumpPreferences
 }
 
 /// <summary>
-/// Result of pump status analysis with alert levels
+/// Result of pump status analysis with alert levels for each monitored field.
 /// </summary>
+/// <seealso cref="PumpPreferences"/>
+/// <seealso cref="PumpFieldStatus"/>
+/// <seealso cref="PumpAlertLevel"/>
+/// <seealso cref="DeviceStatus"/>
 public class PumpStatusResult
 {
     /// <summary>

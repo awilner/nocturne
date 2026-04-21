@@ -8,8 +8,26 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Controllers.V4.Treatments;
 
 /// <summary>
-/// Controller for meal matching operations
+/// Controller for meal matching operations.
 /// </summary>
+/// <remarks>
+/// Meal matching surfaces suggested pairings between raw connector food entries
+/// (imported via <see cref="ConnectorFoodEntriesController"/>) and existing carb intake treatments.
+/// Suggestions are scored by <see cref="IMealMatchingService.GetSuggestionsAsync"/> and presented
+/// to the user for acceptance or dismissal.
+///
+/// <b>Accept</b> (<c>POST /accept</c>) — links a connector food entry to a treatment, archives the
+/// associated notification (topic <c>meal_matching.suggested_match</c>) with reason <c>Completed</c>.
+///
+/// <b>Dismiss</b> (<c>POST /dismiss</c>) — marks the food entry as dismissed and archives the
+/// notification with reason <c>Dismissed</c>.
+///
+/// Both mutation endpoints use <see cref="OpenApi.Remote.Attributes.RemoteCommandAttribute"/> with
+/// cache invalidation on <c>GetSuggestions</c>.
+/// </remarks>
+/// <seealso cref="IMealMatchingService"/>
+/// <seealso cref="IConnectorFoodEntryRepository"/>
+/// <seealso cref="IInAppNotificationService"/>
 [ApiController]
 [Route("api/v4/meal-matching")]
 [Authorize]

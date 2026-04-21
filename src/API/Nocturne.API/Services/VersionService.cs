@@ -5,8 +5,10 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service implementation for version operations
+/// Provides Nightscout API version information, returning the list of supported API versions
+/// (v1, v2, v3) and basic runtime metadata for compatibility with legacy Nightscout clients.
 /// </summary>
+/// <seealso cref="IVersionService"/>
 public class VersionService : IVersionService
 {
     private readonly ILogger<VersionService> _logger;

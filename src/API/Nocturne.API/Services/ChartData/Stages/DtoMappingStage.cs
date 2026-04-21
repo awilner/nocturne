@@ -6,9 +6,27 @@ using Nocturne.Core.Models.V4;
 namespace Nocturne.API.Services.ChartData.Stages;
 
 /// <summary>
-/// Pipeline stage that converts raw fetched data into chart-ready DTOs.
-/// Builds glucose data, all markers, state spans, basal delivery spans, and tracker markers.
+/// Chart data pipeline stage that converts raw fetched domain objects into chart-ready DTOs.
+/// Builds glucose series, all marker types, state-span series, basal delivery spans, and tracker markers.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Carb markers receive a secondary enrichment pass: foods with a non-zero
+/// <c>TimeOffsetMinutes</c> are emitted as additional <see cref="CarbMarkerDto"/> entries
+/// offset from the parent <c>CarbIntake.Mills</c>, capped to 20 characters for label display.
+/// Base markers (offset == 0) have their label updated from the associated food names.
+/// </para>
+/// <para>
+/// Activity state spans from Sleep, Exercise, Illness, and Travel categories are merged into
+/// a single <see cref="ChartDataContext.ActivitySpans"/> list so they share one chart layer.
+/// </para>
+/// <para>
+/// Color assignment for state spans is performed by <see cref="Helpers.ChartColorMapper"/>
+/// on the backend so the rendering layer is a pure display layer.
+/// </para>
+/// </remarks>
+/// <seealso cref="IChartDataStage"/>
+/// <seealso cref="ChartDataContext"/>
 internal sealed class DtoMappingStage(ITreatmentFoodService treatmentFoodService) : IChartDataStage
 {
     public async Task<ChartDataContext> ExecuteAsync(ChartDataContext context, CancellationToken cancellationToken)

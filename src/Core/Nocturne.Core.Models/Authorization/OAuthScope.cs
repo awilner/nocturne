@@ -7,6 +7,8 @@ namespace Nocturne.Core.Models.Authorization;
 /// Backend-owned OAuth scope taxonomy exposed to generated frontend clients.
 /// Values intentionally match the RFC 6749 scope strings used on the wire.
 /// </summary>
+/// <seealso cref="OAuthScopes"/>
+/// <seealso cref="ScopeTranslator"/>
 [JsonConverter(typeof(JsonStringEnumConverter<OAuthScope>))]
 public enum OAuthScope
 {

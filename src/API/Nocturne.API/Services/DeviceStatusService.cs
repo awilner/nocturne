@@ -8,8 +8,16 @@ using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Domain service implementation for device status operations with WebSocket broadcasting
+/// Domain service implementation for <see cref="DeviceStatus"/> operations with WebSocket broadcasting.
+/// Caches the default (recent 10, no filter) query for 60 seconds and delegates write side effects
+/// to <see cref="IWriteSideEffects"/> for cache invalidation, SignalR broadcasting, and V4 decomposition.
 /// </summary>
+/// <seealso cref="IDeviceStatusService"/>
+/// <seealso cref="IDeviceStatusRepository"/>
+/// <seealso cref="IWriteSideEffects"/>
+/// <seealso cref="ISignalRBroadcastService"/>
+/// <seealso cref="IobService"/>
+/// <seealso cref="CobService"/>
 public class DeviceStatusService : IDeviceStatusService
 {
     private readonly IDeviceStatusRepository _deviceStatuses;
@@ -23,6 +31,15 @@ public class DeviceStatusService : IDeviceStatusService
     private string TenantCacheId => _tenantAccessor.Context?.TenantId.ToString()
         ?? throw new InvalidOperationException("Tenant context is not resolved");
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DeviceStatusService"/>.
+    /// </summary>
+    /// <param name="deviceStatuses">The device status repository for data access.</param>
+    /// <param name="sideEffects">Handles cache invalidation, SignalR broadcasting, and V4 decomposition on writes.</param>
+    /// <param name="events">The event sink for broadcasting create/update/delete events.</param>
+    /// <param name="cacheService">The distributed cache service.</param>
+    /// <param name="tenantAccessor">Provides the current tenant context for cache key scoping.</param>
+    /// <param name="logger">The logger instance.</param>
     public DeviceStatusService(
         IDeviceStatusRepository deviceStatuses,
         IWriteSideEffects sideEffects,

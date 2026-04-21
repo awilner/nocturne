@@ -2,6 +2,17 @@ using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.API.Services;
 
+/// <summary>
+/// In-memory singleton that tracks bot heartbeat state and derives per-channel availability.
+/// The bot framework posts heartbeats containing the active platform list; this service converts
+/// those heartbeats into <see cref="ChannelStatusEntry"/> records reflecting whether each
+/// <see cref="ChannelType"/> is available, degraded (heartbeat stale), or unavailable (adapter not configured).
+/// </summary>
+/// <remarks>
+/// Channels in <see cref="AlwaysAvailable"/> (WebPush, Webhook) are always reported as available
+/// regardless of heartbeat state. Bot-backed channels are degraded if the last heartbeat is older
+/// than 2 minutes (see <c>StalenessThreshold</c>).
+/// </remarks>
 public sealed class BotHealthService
 {
     private static readonly TimeSpan StalenessThreshold = TimeSpan.FromMinutes(2);
@@ -24,6 +35,9 @@ public sealed class BotHealthService
     private DateTime _lastHeartbeat = DateTime.MinValue;
     private readonly object _lock = new();
 
+    /// <summary>Records a bot heartbeat with the set of currently active platforms.</summary>
+    /// <param name="platforms">Array of platform identifiers (e.g. <c>"discord"</c>, <c>"telegram"</c>) reported by the bot.</param>
+    /// <param name="timestamp">Optional heartbeat timestamp; defaults to <see cref="DateTime.UtcNow"/> when not supplied.</param>
     public void Record(string[] platforms, DateTime? timestamp = null)
     {
         lock (_lock)
@@ -33,6 +47,10 @@ public sealed class BotHealthService
         }
     }
 
+    /// <summary>
+    /// Returns the current availability status for every known <see cref="ChannelType"/>.
+    /// </summary>
+    /// <returns>A read-only list of <see cref="ChannelStatusEntry"/> — one entry per <see cref="ChannelType"/>.</returns>
     public IReadOnlyList<ChannelStatusEntry> GetChannelStatuses()
     {
         string[] platforms;
@@ -98,6 +116,7 @@ public sealed class BotHealthService
     }
 }
 
+/// <summary>Represents the derived availability status of a single alert delivery channel.</summary>
 public class ChannelStatusEntry
 {
     public ChannelType ChannelType { get; set; }

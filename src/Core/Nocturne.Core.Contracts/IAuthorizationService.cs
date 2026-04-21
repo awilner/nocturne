@@ -3,8 +3,12 @@ using Nocturne.Core.Models;
 namespace Nocturne.Core.Contracts;
 
 /// <summary>
-/// Service for handling authorization operations including JWT generation and permission management
+/// Service for handling authorization operations including JWT generation and permission management.
 /// </summary>
+/// <seealso cref="Subject"/>
+/// <seealso cref="Role"/>
+/// <seealso cref="ISubjectService"/>
+/// <seealso cref="IRoleService"/>
 public interface IAuthorizationService
 {
     /// <summary>

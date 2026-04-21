@@ -5,8 +5,11 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services.NotificationActionHandlers;
 
 /// <summary>
-/// Handles actions on suggested meal match notifications.
+/// Handles user actions (accept/reject/dismiss) on <c>meal_matching.suggested_match</c>
+/// in-app notifications produced by <see cref="MealMatchingService"/>. Accept is deferred to
+/// <c>MealMatchingController</c>; reject and dismiss are handled here by archiving the notification.
 /// </summary>
+/// <seealso cref="INotificationActionHandler"/>
 public class MealMatchActionHandler(
     IServiceProvider serviceProvider,
     IConnectorFoodEntryRepository foodEntryRepository,

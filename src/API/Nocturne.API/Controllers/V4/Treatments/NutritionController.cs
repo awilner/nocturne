@@ -17,8 +17,26 @@ using Nocturne.Infrastructure.Data.Mappers.V4;
 namespace Nocturne.API.Controllers.V4.Treatments;
 
 /// <summary>
-/// Controller for managing nutrition data: carbohydrate intakes, food breakdown, and meals
+/// Controller for managing nutrition data: carbohydrate intakes, food breakdown, and meals.
 /// </summary>
+/// <remarks>
+/// Three logical resource groups are exposed under <c>/api/v4/nutrition</c>:
+/// <list type="bullet">
+///   <item><description><b>Carb Intakes</b> (<c>/carbs</c>) — standard CRUD for <see cref="CarbIntake"/> records backed by <see cref="ICarbIntakeRepository"/>.</description></item>
+///   <item><description><b>Food Breakdown</b> (<c>/carbs/{id}/foods</c>) — per-carb-intake food attribution lines managed via <see cref="ITreatmentFoodService"/>.</description></item>
+///   <item><description><b>Meals</b> (<c>/meals</c>) — atomic creation of a correlated <see cref="Bolus"/> + <see cref="CarbIntake"/> pair, and event-centric meal retrieval grouped by <c>CorrelationId</c>.</description></item>
+/// </list>
+///
+/// The <c>POST /meals</c> endpoint is idempotent on <c>(DataSource, SyncIdentifier)</c>: if a matching
+/// bolus already exists its <c>CorrelationId</c> is propagated to both records. A database transaction
+/// wraps both inserts to ensure atomicity.
+///
+/// Demo mode is respected in <c>GET /meals</c>: when enabled only records from
+/// <c>DataSources.DemoService</c> are returned; otherwise demo records are excluded.
+/// </remarks>
+/// <seealso cref="ICarbIntakeRepository"/>
+/// <seealso cref="IBolusRepository"/>
+/// <seealso cref="ITreatmentFoodService"/>
 [ApiController]
 [Route("api/v4/nutrition")]
 [Authorize]

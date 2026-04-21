@@ -7,8 +7,9 @@ namespace Nocturne.API.Controllers.V4.Platform;
 /// <summary>
 /// Nocturne-native status controller providing detailed system status.
 /// This is the V4 endpoint that returns full JSON status information.
-/// For Nightscout-compatible HTML status, use /api/v1/status
+/// For Nightscout-compatible HTML status, use /api/v1/status.
 /// </summary>
+/// <seealso cref="IStatusService"/>
 [ApiController]
 [Route("api/v4/[controller]")]
 [Produces("application/json")]
@@ -17,6 +18,11 @@ public class StatusController : ControllerBase
     private readonly IStatusService _statusService;
     private readonly ILogger<StatusController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="StatusController"/>.
+    /// </summary>
+    /// <param name="statusService">Service providing system status information.</param>
+    /// <param name="logger">Logger instance.</param>
     public StatusController(IStatusService statusService, ILogger<StatusController> logger)
     {
         _statusService = statusService;

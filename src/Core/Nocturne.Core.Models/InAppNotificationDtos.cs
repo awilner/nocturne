@@ -3,8 +3,12 @@ using System.ComponentModel.DataAnnotations;
 namespace Nocturne.Core.Models;
 
 /// <summary>
-/// Data transfer object for in-app notifications displayed to users
+/// Data transfer object for in-app notifications displayed to users in the Nocturne frontend.
 /// </summary>
+/// <seealso cref="NotificationCategory"/>
+/// <seealso cref="NotificationUrgency"/>
+/// <seealso cref="NotificationActionDto"/>
+/// <seealso cref="NotificationTemplate"/>
 public class InAppNotificationDto
 {
     /// <summary>
@@ -158,8 +162,12 @@ public class NotificationEvent
 }
 
 /// <summary>
-/// Request to create a notification programmatically (for third-party integrations)
+/// Request to create a notification programmatically (for third-party integrations).
+/// If a <see cref="NotificationTemplate"/> is registered for the given <see cref="Type"/>,
+/// its defaults are merged with the values provided here.
 /// </summary>
+/// <seealso cref="InAppNotificationDto"/>
+/// <seealso cref="NotificationTemplate"/>
 public class CreateNotificationRequest
 {
     /// <summary>

@@ -6,8 +6,11 @@ using Nocturne.Core.Models.V4;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service to provide device age information using the V4 DeviceEvents system
+/// Calculates consumable device ages (cannula, sensor, insulin reservoir, pump battery) by querying
+/// the most recent relevant <see cref="DeviceEvent"/> records and comparing them against configurable
+/// info/warn/urgent thresholds. Default thresholds match legacy Nightscout values.
 /// </summary>
+/// <seealso cref="IDeviceAgeService"/>
 public class DeviceAgeService : IDeviceAgeService
 {
     private readonly IDeviceEventRepository _repository;

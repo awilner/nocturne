@@ -6,10 +6,11 @@ using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Prediction service that reads predictions from the most recent DeviceStatus
-/// (AAPS/Trio/Loop). Predictions are calculated by the AID system on the phone
-/// and uploaded as part of the device status.
+/// <see cref="IPredictionService"/> implementation that reads glucose predictions from the most recent
+/// <see cref="DeviceStatus"/> record. Predictions are calculated on the phone by the AID system
+/// (AAPS, Trio, or Loop) and uploaded as part of the device status payload.
 /// </summary>
+/// <seealso cref="IPredictionService"/>
 public class DeviceStatusPredictionService : IPredictionService
 {
     private readonly IDeviceStatusRepository _deviceStatuses;

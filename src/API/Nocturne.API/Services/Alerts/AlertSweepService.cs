@@ -7,17 +7,32 @@ using Nocturne.Core.Models.Alerts;
 namespace Nocturne.API.Services.Alerts;
 
 /// <summary>
-/// Background service that runs every 30 seconds to:
-/// 1. Advance escalations whose delay has elapsed.
-/// 2. Close excursions whose hysteresis window has expired.
-/// 3. Evaluate signal loss rules for tenants with stale readings.
-/// 4. Check snoozed instances for smart snooze extension or re-fire.
+/// <see cref="BackgroundService"/> that runs every 30 seconds to maintain alert lifecycle state:
 /// </summary>
+/// <remarks>
+/// <list type="number">
+///   <item>Advance escalations whose configured delay has elapsed.</item>
+///   <item>Close excursions whose hysteresis window has expired.</item>
+///   <item>Evaluate signal-loss rules for tenants with stale CGM readings.</item>
+///   <item>Check snoozed instances for smart-snooze extension or re-fire.</item>
+/// </list>
+/// Each sweep creates a child DI scope so that scoped services (DbContext, tenant repositories)
+/// are properly isolated and disposed. Individual tenant failures are caught and logged without
+/// aborting the rest of the sweep.
+/// </remarks>
+/// <seealso cref="AlertOrchestrator"/>
+/// <seealso cref="IEscalationAdvancer"/>
+/// <seealso cref="ExcursionTracker"/>
 public class AlertSweepService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<AlertSweepService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AlertSweepService"/>.
+    /// </summary>
+    /// <param name="serviceProvider">Root service provider for creating per-sweep DI scopes.</param>
+    /// <param name="logger">The logger instance.</param>
     public AlertSweepService(
         IServiceProvider serviceProvider,
         ILogger<AlertSweepService> logger)

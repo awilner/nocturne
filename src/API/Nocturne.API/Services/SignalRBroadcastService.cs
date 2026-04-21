@@ -8,8 +8,14 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for broadcasting real-time updates via SignalR (replaces socket.io server-side broadcasting)
+/// Service for broadcasting real-time updates via SignalR, replacing the legacy socket.io server-side broadcasting.
+/// All broadcasts are scoped to the current tenant's SignalR groups to enforce isolation.
 /// </summary>
+/// <seealso cref="SignalRBroadcastService"/>
+/// <seealso cref="DataHub"/>
+/// <seealso cref="AlarmHub"/>
+/// <seealso cref="ConfigHub"/>
+/// <seealso cref="AlertHub"/>
 public interface ISignalRBroadcastService
 {
     /// <summary>
@@ -110,8 +116,21 @@ public interface ISignalRBroadcastService
 }
 
 /// <summary>
-/// Implementation of SignalR broadcast service
+/// Concrete implementation of <see cref="ISignalRBroadcastService"/> that routes broadcasts
+/// to tenant-scoped groups across four hubs: <see cref="DataHub"/> (data and storage events),
+/// <see cref="AlarmHub"/> (notifications and alarms), <see cref="ConfigHub"/> (configuration
+/// changes and sync progress), and <see cref="AlertHub"/> (alert engine events).
 /// </summary>
+/// <remarks>
+/// Group names are always prefixed with the tenant ID via <see cref="TenantAwareHub.FormatTenantGroup"/>
+/// to prevent cross-tenant data leakage. Broadcast failures are caught and logged; they never
+/// propagate to the caller so that a SignalR outage cannot break write operations.
+/// </remarks>
+/// <seealso cref="ISignalRBroadcastService"/>
+/// <seealso cref="DataHub"/>
+/// <seealso cref="AlarmHub"/>
+/// <seealso cref="ConfigHub"/>
+/// <seealso cref="AlertHub"/>
 public class SignalRBroadcastService : ISignalRBroadcastService
 {
     private readonly IHubContext<DataHub> _dataHubContext;
@@ -121,6 +140,15 @@ public class SignalRBroadcastService : ISignalRBroadcastService
     private readonly ITenantAccessor _tenantAccessor;
     private readonly ILogger<SignalRBroadcastService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="SignalRBroadcastService"/>.
+    /// </summary>
+    /// <param name="dataHubContext">Hub context for <see cref="DataHub"/> — data updates and storage events.</param>
+    /// <param name="alarmHubContext">Hub context for <see cref="AlarmHub"/> — notifications, alarms, and announcements.</param>
+    /// <param name="configHubContext">Hub context for <see cref="ConfigHub"/> — configuration changes and sync progress.</param>
+    /// <param name="alertHubContext">Hub context for <see cref="AlertHub"/> — alert engine dispatch, resolution, and acknowledgement events.</param>
+    /// <param name="tenantAccessor">Provides the current tenant context for scoping group names.</param>
+    /// <param name="logger">The logger instance.</param>
     public SignalRBroadcastService(
         IHubContext<DataHub> dataHubContext,
         IHubContext<AlarmHub> alarmHubContext,

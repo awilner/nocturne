@@ -4,6 +4,11 @@ namespace Nocturne.Core.Contracts;
 /// Orchestrator service for OAuth token operations.
 /// Coordinates authorization code exchange, refresh token rotation, and revocation.
 /// </summary>
+/// <seealso cref="IOAuthClientService"/>
+/// <seealso cref="IOAuthGrantService"/>
+/// <seealso cref="IOAuthDeviceCodeService"/>
+/// <seealso cref="IRefreshTokenService"/>
+/// <seealso cref="IJwtService"/>
 public interface IOAuthTokenService
 {
     /// <summary>
@@ -73,14 +78,28 @@ public interface IOAuthTokenService
 /// </summary>
 public class OAuthTokenResult
 {
+    /// <summary>Whether the token exchange succeeded.</summary>
     public bool Success { get; set; }
+
+    /// <summary>The issued access token JWT, present on success.</summary>
     public string? AccessToken { get; set; }
+
+    /// <summary>The issued refresh token, present on success.</summary>
     public string? RefreshToken { get; set; }
+
+    /// <summary>Access token lifetime in seconds.</summary>
     public int ExpiresIn { get; set; }
+
+    /// <summary>Space-delimited scope string for the issued tokens, present on success.</summary>
     public string? Scope { get; set; }
+
+    /// <summary>OAuth 2.0 error code, present on failure.</summary>
     public string? Error { get; set; }
+
+    /// <summary>Human-readable error description, present on failure.</summary>
     public string? ErrorDescription { get; set; }
 
+    /// <summary>Create a successful token result.</summary>
     public static OAuthTokenResult Ok(
         string accessToken,
         string refreshToken,
@@ -96,6 +115,7 @@ public class OAuthTokenResult
             Scope = scope,
         };
 
+    /// <summary>Create a failed token result with an OAuth 2.0 error code and description.</summary>
     public static OAuthTokenResult Fail(string error, string description) =>
         new()
         {

@@ -8,8 +8,24 @@ using Nocturne.Core.Models.V4;
 namespace Nocturne.API.Controllers.V4.Devices;
 
 /// <summary>
-/// Controller for managing device event observations
+/// Controller for managing device event observations.
+/// Exposes standard V4 CRUD operations via <see cref="V4CrudControllerBase{TModel,TCreateRequest,TUpdateRequest,TRepository}"/>.
 /// </summary>
+/// <remarks>
+/// Device events record consumable changes and hardware lifecycle events such as
+/// site changes (CAGE), sensor starts/changes (SAGE), reservoir changes (IAGE),
+/// and battery changes (BAGE). These records feed the <see cref="DeviceAgeController"/>
+/// calculations via <see cref="IDeviceAgeService"/>.
+///
+/// Create and update use the same <see cref="UpsertDeviceEventRequest"/> shape. On update,
+/// the immutable fields <see cref="DeviceEvent.CorrelationId"/>, <see cref="DeviceEvent.LegacyId"/>,
+/// <see cref="DeviceEvent.CreatedAt"/>, <see cref="DeviceEvent.SyncIdentifier"/>, and
+/// <see cref="DeviceEvent.AdditionalProperties"/> are preserved from the existing record.
+/// </remarks>
+/// <seealso cref="IDeviceEventRepository"/>
+/// <seealso cref="DeviceEvent"/>
+/// <seealso cref="UpsertDeviceEventRequest"/>
+/// <seealso cref="DeviceAgeController"/>
 [ApiController]
 [Route("api/v4/observations/device-events")]
 [Authorize]

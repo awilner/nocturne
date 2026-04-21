@@ -7,8 +7,14 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Domain service implementation for entry operations using Store/Cache/EventSink ports
+/// Domain service implementation for <see cref="Entry"/> operations using Store/Cache/EventSink ports.
+/// Delegates reads through <see cref="IEntryCache"/> with fallback to <see cref="IEntryStore"/>,
+/// and writes through <see cref="IEntryRepository"/> with event notification via <see cref="IDataEventSink{T}"/>.
 /// </summary>
+/// <seealso cref="IEntryService"/>
+/// <seealso cref="IEntryStore"/>
+/// <seealso cref="IEntryRepository"/>
+/// <seealso cref="IEntryCache"/>
 public class EntryService : IEntryService
 {
     private readonly IEntryStore _store;
@@ -17,6 +23,14 @@ public class EntryService : IEntryService
     private readonly IDataEventSink<Entry> _events;
     private readonly ILogger<EntryService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="EntryService"/>.
+    /// </summary>
+    /// <param name="store">The entry store for query operations.</param>
+    /// <param name="repository">The entry repository for write operations.</param>
+    /// <param name="cache">The entry cache for read-through caching.</param>
+    /// <param name="events">The event sink for broadcasting create/update/delete events.</param>
+    /// <param name="logger">The logger instance.</param>
     public EntryService(
         IEntryStore store,
         IEntryRepository repository,
@@ -144,6 +158,11 @@ public class EntryService : IEntryService
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// Persists entries via <see cref="IEntryRepository.CreateEntriesAsync"/> and then
+    /// fires <see cref="IDataEventSink{T}.OnCreatedAsync"/> to trigger cache invalidation
+    /// and SignalR broadcasting.
+    /// </remarks>
     public async Task<IEnumerable<Entry>> CreateEntriesAsync(
         IEnumerable<Entry> entries,
         CancellationToken cancellationToken = default)
@@ -156,6 +175,7 @@ public class EntryService : IEntryService
     }
 
     /// <inheritdoc />
+    /// <returns>The updated <see cref="Entry"/>, or <see langword="null"/> if no entry with the given <paramref name="id"/> exists.</returns>
     public async Task<Entry?> UpdateEntryAsync(
         string id,
         Entry entry,
@@ -170,6 +190,10 @@ public class EntryService : IEntryService
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// Fires <see cref="IDataEventSink{T}.BeforeDeleteAsync"/> before deletion to allow
+    /// V4 decomposition cleanup, then removes the entry and broadcasts the deletion event.
+    /// </remarks>
     public async Task<bool> DeleteEntryAsync(
         string id,
         CancellationToken cancellationToken = default)
@@ -188,6 +212,7 @@ public class EntryService : IEntryService
     }
 
     /// <inheritdoc />
+    /// <returns>The number of entries deleted.</returns>
     public async Task<long> DeleteEntriesAsync(
         string? find = null,
         CancellationToken cancellationToken = default)

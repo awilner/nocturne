@@ -7,10 +7,22 @@ using Nocturne.Core.Models.V4;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Projects V4 granular records back into the legacy Entry and Treatment shapes for v1/v2/v3
-/// API compatibility.  Only records written directly to V4 tables (i.e. those whose LegacyId is
-/// null – they have no corresponding row in the legacy entries/treatments tables) are projected.
+/// Projects V4 granular records back into the legacy <see cref="Entry"/> and <see cref="Treatment"/>
+/// shapes for v1/v2/v3 API compatibility. Only records written directly to V4 tables (those whose
+/// <c>LegacyId</c> is <see langword="null"/> — they have no corresponding row in the legacy
+/// entries/treatments tables) are projected.
 /// </summary>
+/// <remarks>
+/// This service is the read side of the dual-path architecture.
+/// The write side (legacy record → V4 typed record) is handled by <see cref="DecompositionPipeline"/>.
+/// Projection covers: <see cref="SensorGlucose"/> → <see cref="Entry"/>,
+/// <see cref="Bolus"/> and <see cref="CarbIntake"/> → <see cref="Treatment"/>,
+/// <see cref="DeviceEvent"/> → <see cref="Treatment"/> using the legacy event-type map.
+/// </remarks>
+/// <seealso cref="IV4ToLegacyProjectionService"/>
+/// <seealso cref="DecompositionPipeline"/>
+/// <seealso cref="DualPathEntryStore"/>
+/// <seealso cref="DualPathTreatmentStore"/>
 public class V4ToLegacyProjectionService : IV4ToLegacyProjectionService
 {
     private readonly ISensorGlucoseRepository _sensorGlucoseRepository;
@@ -38,6 +50,17 @@ public class V4ToLegacyProjectionService : IV4ToLegacyProjectionService
             [DeviceEventType.TransmitterSensorInsert] = TreatmentTypes.TransmitterSensorInsert,
         };
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="V4ToLegacyProjectionService"/>.
+    /// </summary>
+    /// <param name="sensorGlucoseRepository">Repository for V4 sensor glucose records projected back to SGV entries.</param>
+    /// <param name="bolusRepository">Repository for V4 bolus records projected back to bolus treatments.</param>
+    /// <param name="carbIntakeRepository">Repository for V4 carb intake records projected back to carb treatments.</param>
+    /// <param name="bgCheckRepository">Repository for V4 blood glucose check records projected back to BG check treatments.</param>
+    /// <param name="noteRepository">Repository for V4 note records projected back to note treatments.</param>
+    /// <param name="deviceEventRepository">Repository for V4 device event records projected back to device event treatments.</param>
+    /// <param name="treatmentFoodService">Service for resolving food data attached to projected carb intake treatments.</param>
+    /// <param name="logger">The logger instance.</param>
     public V4ToLegacyProjectionService(
         ISensorGlucoseRepository sensorGlucoseRepository,
         IBolusRepository bolusRepository,

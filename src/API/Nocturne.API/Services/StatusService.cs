@@ -14,8 +14,16 @@ using Nocturne.Infrastructure.Data;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service implementation for status operations with 1:1 Nightscout compatibility
+/// Service implementation for status operations with 1:1 Nightscout compatibility.
+/// Returns <see cref="StatusResponse"/> and <see cref="V3StatusResponse"/> payloads
+/// with system information, enabled features, alarm thresholds, and extended settings.
+/// Responses are cached via <see cref="ICacheService"/> for 2 minutes.
 /// </summary>
+/// <seealso cref="IStatusService"/>
+/// <seealso cref="StatusResponse"/>
+/// <seealso cref="V3StatusResponse"/>
+/// <seealso cref="LastModifiedResponse"/>
+/// <seealso cref="IDemoModeService"/>
 public class StatusService : IStatusService
 {
     private readonly IConfiguration _configuration;

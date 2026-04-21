@@ -7,17 +7,38 @@ namespace Nocturne.API.Middleware;
 
 /// <summary>
 /// Middleware that enforces recovery mode restrictions when active.
-/// In multi-tenant mode, this middleware is a no-op — per-tenant recovery
-/// is handled by TenantSetupMiddleware (which runs after tenant resolution).
-/// In single-tenant mode, blocks API traffic when the global RecoveryModeState
+/// In multi-tenant mode, this middleware is a no-op -- per-tenant recovery
+/// is handled by <see cref="TenantSetupMiddleware"/> (which runs after tenant resolution).
+/// In single-tenant mode, blocks API traffic when the global <see cref="RecoveryModeState"/>
 /// is active, allowing only passkey/TOTP setup endpoints through.
-/// The NOCTURNE_RECOVERY_MODE env var override bypasses the multi-tenant skip.
+/// The <c>NOCTURNE_RECOVERY_MODE</c> env var override bypasses the multi-tenant skip.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Pipeline order (position 2 of 8 custom middleware):
+/// <see cref="JsonExtensionMiddleware"/>, <b>RecoveryModeMiddleware</b>,
+/// <see cref="OidcCallbackRedirectMiddleware"/>, <see cref="Multitenancy.TenantResolutionMiddleware"/>,
+/// <see cref="TenantSetupMiddleware"/>, <see cref="AuthenticationMiddleware"/>,
+/// <see cref="MemberScopeMiddleware"/>, <see cref="SiteSecurityMiddleware"/>.
+/// </para>
+/// <para>
+/// Endpoints decorated with <see cref="AllowDuringSetupAttribute"/> bypass the recovery gate.
+/// Uses <see cref="Multitenancy.MultitenancyConfiguration"/> to determine single- vs multi-tenant mode.
+/// </para>
+/// </remarks>
+/// <seealso cref="AllowDuringSetupAttribute"/>
+/// <seealso cref="TenantSetupMiddleware"/>
+/// <seealso cref="RecoveryModeState"/>
 public class RecoveryModeMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<RecoveryModeMiddleware> _logger;
 
+    /// <summary>
+    /// Creates a new instance of <see cref="RecoveryModeMiddleware"/>.
+    /// </summary>
+    /// <param name="next">The next middleware in the pipeline.</param>
+    /// <param name="logger">Logger for recovery/setup mode diagnostics.</param>
     public RecoveryModeMiddleware(
         RequestDelegate next,
         ILogger<RecoveryModeMiddleware> logger
@@ -27,6 +48,13 @@ public class RecoveryModeMiddleware
         _logger = logger;
     }
 
+    /// <summary>
+    /// Checks whether recovery mode or initial setup is active and blocks API traffic accordingly.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
+    /// <param name="state">The global <see cref="RecoveryModeState"/> singleton.</param>
+    /// <param name="multitenancyConfig">Multitenancy configuration for determining single- vs multi-tenant mode.</param>
+    /// <returns>A task that completes when the middleware has finished processing.</returns>
     public async Task InvokeAsync(
         HttpContext context,
         RecoveryModeState state,

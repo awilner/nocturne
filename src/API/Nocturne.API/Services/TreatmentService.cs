@@ -9,6 +9,22 @@ using Nocturne.Core.Models.V4;
 
 namespace Nocturne.API.Services;
 
+/// <summary>
+/// Domain service implementation for <see cref="Treatment"/> operations using Store/Cache/EventSink ports.
+/// Reads are served through <see cref="ITreatmentCache"/> with fallback to <see cref="ITreatmentStore"/>,
+/// writes go through <see cref="ITreatmentStore"/> or <see cref="ITreatmentRepository"/> with event
+/// notification via <see cref="IDataEventSink{T}"/>.
+/// </summary>
+/// <remarks>
+/// On creation, bolus and basal treatments are automatically enriched with
+/// <see cref="TreatmentInsulinContext"/> from the patient's configured <see cref="PatientInsulin"/>
+/// records via <see cref="IPatientInsulinRepository"/>.
+/// </remarks>
+/// <seealso cref="ITreatmentService"/>
+/// <seealso cref="ITreatmentStore"/>
+/// <seealso cref="ITreatmentRepository"/>
+/// <seealso cref="IobService"/>
+/// <seealso cref="CobService"/>
 public class TreatmentService : ITreatmentService
 {
     private readonly ITreatmentStore _store;
@@ -18,6 +34,9 @@ public class TreatmentService : ITreatmentService
     private readonly IPatientInsulinRepository _insulinRepo;
     private readonly ILogger<TreatmentService> _logger;
 
+    /// <summary>
+    /// Bolus event types that should be enriched with the patient's primary bolus insulin context.
+    /// </summary>
     private static readonly HashSet<string> BolusEventTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         "Snack Bolus",
@@ -26,12 +45,24 @@ public class TreatmentService : ITreatmentService
         "Combo Bolus"
     };
 
+    /// <summary>
+    /// Basal event types that should be enriched with the patient's primary basal insulin context.
+    /// </summary>
     private static readonly HashSet<string> BasalEventTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         "Temp Basal",
         "Temp Basal Start"
     };
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="TreatmentService"/>.
+    /// </summary>
+    /// <param name="store">The treatment store for query and write operations.</param>
+    /// <param name="repository">The treatment repository for patch and bulk operations.</param>
+    /// <param name="cache">The treatment cache for read-through caching.</param>
+    /// <param name="events">The event sink for broadcasting create/update/delete events.</param>
+    /// <param name="insulinRepo">The patient insulin repository for enriching treatments with insulin context.</param>
+    /// <param name="logger">The logger instance.</param>
     public TreatmentService(
         ITreatmentStore store,
         ITreatmentRepository repository,
@@ -48,6 +79,7 @@ public class TreatmentService : ITreatmentService
         _logger = logger;
     }
 
+    /// <inheritdoc />
     public async Task<IEnumerable<Treatment>> GetTreatmentsAsync(
         string? find = null, int? count = null, int? skip = null,
         CancellationToken cancellationToken = default)
@@ -67,18 +99,21 @@ public class TreatmentService : ITreatmentService
         return cached ?? await _store.QueryAsync(query, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IEnumerable<Treatment>> GetTreatmentsAsync(
         int count, int skip = 0, CancellationToken cancellationToken = default)
     {
         return await GetTreatmentsAsync(null, count, skip, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<Treatment?> GetTreatmentByIdAsync(
         string id, CancellationToken cancellationToken = default)
     {
         return await _store.GetByIdAsync(id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IEnumerable<Treatment>> GetTreatmentsWithAdvancedFilterAsync(
         int count, int skip, string? findQuery, bool reverseResults,
         CancellationToken cancellationToken = default)
@@ -94,12 +129,21 @@ public class TreatmentService : ITreatmentService
         return await _store.QueryAsync(query, cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<IEnumerable<Treatment>> GetTreatmentsModifiedSinceAsync(
         long lastModifiedMills, int limit = 500, CancellationToken cancellationToken = default)
     {
         return await _store.GetModifiedSinceAsync(lastModifiedMills, limit, cancellationToken);
     }
 
+    /// <inheritdoc />
+    /// <remarks>
+    /// Before persisting, each treatment is enriched with <see cref="TreatmentInsulinContext"/>
+    /// via <see cref="PopulateInsulinContextAsync"/> if its <see cref="Treatment.EventType"/>
+    /// matches a known bolus or basal type and no context is already set. After creation,
+    /// the <see cref="ITreatmentCache"/> is invalidated and events are fired via
+    /// <see cref="IDataEventSink{T}.OnCreatedAsync"/>.
+    /// </remarks>
     public async Task<IEnumerable<Treatment>> CreateTreatmentsAsync(
         IEnumerable<Treatment> treatments, CancellationToken cancellationToken = default)
     {
@@ -115,6 +159,8 @@ public class TreatmentService : ITreatmentService
         return created;
     }
 
+    /// <inheritdoc />
+    /// <returns>The updated <see cref="Treatment"/>, or <see langword="null"/> if not found.</returns>
     public async Task<Treatment?> UpdateTreatmentAsync(
         string id, Treatment treatment, CancellationToken cancellationToken = default)
     {
@@ -127,6 +173,8 @@ public class TreatmentService : ITreatmentService
         return updated;
     }
 
+    /// <inheritdoc />
+    /// <returns>The patched <see cref="Treatment"/>, or <see langword="null"/> if not found.</returns>
     public async Task<Treatment?> PatchTreatmentAsync(
         string id, JsonElement patchData, CancellationToken cancellationToken = default)
     {
@@ -139,6 +187,7 @@ public class TreatmentService : ITreatmentService
         return patched;
     }
 
+    /// <inheritdoc />
     public async Task<bool> DeleteTreatmentAsync(
         string id, CancellationToken cancellationToken = default)
     {
@@ -155,6 +204,8 @@ public class TreatmentService : ITreatmentService
         return deleted;
     }
 
+    /// <inheritdoc />
+    /// <returns>The number of treatments deleted.</returns>
     public async Task<long> DeleteTreatmentsAsync(
         string? find = null, CancellationToken cancellationToken = default)
     {
@@ -164,6 +215,18 @@ public class TreatmentService : ITreatmentService
         return count;
     }
 
+    /// <summary>
+    /// Enriches treatments with <see cref="TreatmentInsulinContext"/> from the patient's
+    /// configured <see cref="PatientInsulin"/> records. Only treatments whose
+    /// <see cref="Treatment.InsulinContext"/> is <see langword="null"/> and whose
+    /// <see cref="Treatment.EventType"/> matches a known bolus or basal type are enriched.
+    /// </summary>
+    /// <remarks>
+    /// Performs at most two repository lookups (one for bolus insulin, one for basal insulin)
+    /// regardless of the number of treatments, then stamps each qualifying treatment in-place.
+    /// </remarks>
+    /// <param name="treatments">The treatments to enrich.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     private async Task PopulateInsulinContextAsync(
         List<Treatment> treatments, CancellationToken cancellationToken)
     {

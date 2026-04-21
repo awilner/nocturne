@@ -4,6 +4,11 @@ using Nocturne.Core.Contracts.Repositories;
 
 namespace Nocturne.API.Controllers.V1;
 
+/// <summary>
+/// V1 debug controller for development and diagnostics.
+/// Provides basic database connectivity tests against the PostgreSQL data store.
+/// </summary>
+/// <seealso cref="IEntryRepository"/>
 [ApiController]
 [Route("api/v1/[controller]")]
 public class DebugController : ControllerBase

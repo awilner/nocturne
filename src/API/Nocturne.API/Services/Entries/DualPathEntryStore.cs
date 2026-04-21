@@ -7,9 +7,20 @@ using Nocturne.Core.Models.Entries;
 namespace Nocturne.API.Services.Entries;
 
 /// <summary>
-/// Read-only entry store that merges legacy entries with V4-projected entries.
-/// Handles demo mode filtering, dual-path merge, and projection decisions for reads.
+/// Read-only <see cref="IEntryStore"/> that merges legacy <see cref="Entry"/> records with
+/// V4-projected entries from <see cref="IV4ToLegacyProjectionService"/>.
+/// Handles demo mode filtering via <see cref="IDemoModeService"/>, dual-path merge and
+/// deduplication via <see cref="EntryDomainLogic"/>, and per-query projection decisions.
 /// </summary>
+/// <remarks>
+/// For queries without date-string or reverse-result requirements, the store fetches
+/// <c>count + skip</c> records from both paths, merges them by timestamp, deduplicates
+/// by ID, then applies the final skip and take. This ensures correct pagination across sources.
+/// </remarks>
+/// <seealso cref="IEntryStore"/>
+/// <seealso cref="IV4ToLegacyProjectionService"/>
+/// <seealso cref="IDemoModeService"/>
+/// <seealso cref="EntryService"/>
 public class DualPathEntryStore : IEntryStore
 {
     private readonly IEntryRepository _entryRepository;
@@ -17,6 +28,13 @@ public class DualPathEntryStore : IEntryStore
     private readonly IDemoModeService _demoMode;
     private readonly ILogger<DualPathEntryStore> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DualPathEntryStore"/>.
+    /// </summary>
+    /// <param name="entryRepository">The legacy entry repository for data access.</param>
+    /// <param name="projection">Service for projecting V4 typed records back to legacy <see cref="Entry"/> shape.</param>
+    /// <param name="demoMode">Demo mode service that injects synthetic data filters when enabled.</param>
+    /// <param name="logger">The logger instance.</param>
     public DualPathEntryStore(
         IEntryRepository entryRepository,
         IV4ToLegacyProjectionService projection,

@@ -10,9 +10,12 @@ using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Controllers.V3;
 
 /// <summary>
-/// V3 Food controller that provides full V3 API compatibility with Nightscout food endpoints
-/// Implements the /api/v3/food endpoints with pagination, field selection, sorting, and advanced filtering
+/// V3 Food controller that provides full V3 API compatibility with Nightscout food endpoints.
+/// Implements the /api/v3/food endpoints with pagination, field selection, sorting, and advanced filtering.
 /// </summary>
+/// <seealso cref="IFoodRepository"/>
+/// <seealso cref="Food"/>
+/// <seealso cref="BaseV3Controller{T}"/>
 [ApiController]
 [Route("api/v3/[controller]")]
 [Authorize(Policy = PolicyNames.HasPermissions)]

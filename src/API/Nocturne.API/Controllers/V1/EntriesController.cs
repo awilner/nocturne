@@ -13,9 +13,13 @@ using Nocturne.Core.Models.Extensions;
 namespace Nocturne.API.Controllers.V1;
 
 /// <summary>
-/// Entries controller that provides 1:1 compatibility with Nightscout entries endpoints
-/// Implements the /api/v1/entries/* endpoints from the legacy JavaScript implementation
+/// Entries controller that provides 1:1 compatibility with Nightscout entries endpoints.
+/// Implements the /api/v1/entries/* endpoints from the legacy JavaScript implementation.
 /// </summary>
+/// <seealso cref="IEntryService"/>
+/// <seealso cref="IDocumentProcessingService"/>
+/// <seealso cref="IProcessingStatusService"/>
+/// <seealso cref="IAlertOrchestrator"/>
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize(Policy = PolicyNames.HasPermissions)]
@@ -27,6 +31,14 @@ public class EntriesController : ControllerBase
     private readonly IAlertOrchestrator _alertOrchestrator;
     private readonly ILogger<EntriesController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="EntriesController"/>.
+    /// </summary>
+    /// <param name="entryService">Service handling glucose entry operations.</param>
+    /// <param name="documentProcessingService">Service for async document processing and ingestion.</param>
+    /// <param name="processingStatusService">Service for querying async processing status.</param>
+    /// <param name="alertOrchestrator">Orchestrator for evaluating and dispatching alerts.</param>
+    /// <param name="logger">Logger instance.</param>
     public EntriesController(
         IEntryService entryService,
         IDocumentProcessingService documentProcessingService,

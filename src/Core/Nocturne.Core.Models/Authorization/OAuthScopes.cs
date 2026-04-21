@@ -5,6 +5,9 @@ namespace Nocturne.Core.Models.Authorization;
 /// Three tiers: read, readwrite, and full access (*).
 /// Delete is intentionally restricted to * only.
 /// </summary>
+/// <seealso cref="OAuthScope"/>
+/// <seealso cref="ScopeTranslator"/>
+/// <seealso cref="TenantPermissions"/>
 public static class OAuthScopes
 {
     // Grant types
@@ -16,33 +19,58 @@ public static class OAuthScopes
     public const string GrantTypeDirect = "direct";
 
     // Core health data scopes
+
+    /// <summary>Read-only access to glucose entries.</summary>
     public const string EntriesRead = "entries.read";
+    /// <summary>Read and write access to glucose entries.</summary>
     public const string EntriesReadWrite = "entries.readwrite";
+    /// <summary>Read-only access to treatments (boluses, carbs, temp basals, etc.).</summary>
     public const string TreatmentsRead = "treatments.read";
+    /// <summary>Read and write access to treatments.</summary>
     public const string TreatmentsReadWrite = "treatments.readwrite";
+    /// <summary>Read-only access to device status records.</summary>
     public const string DeviceStatusRead = "devicestatus.read";
+    /// <summary>Read and write access to device status records.</summary>
     public const string DeviceStatusReadWrite = "devicestatus.readwrite";
+    /// <summary>Read-only access to user profiles (therapy settings).</summary>
     public const string ProfileRead = "profile.read";
+    /// <summary>Read and write access to user profiles.</summary>
     public const string ProfileReadWrite = "profile.readwrite";
+    /// <summary>Read-only access to heart rate data.</summary>
     public const string HeartRateRead = "heartrate.read";
+    /// <summary>Read and write access to heart rate data.</summary>
     public const string HeartRateReadWrite = "heartrate.readwrite";
+    /// <summary>Read-only access to step count data.</summary>
     public const string StepCountRead = "stepcount.read";
+    /// <summary>Read and write access to step count data.</summary>
     public const string StepCountReadWrite = "stepcount.readwrite";
 
     // Platform feature scopes
+
+    /// <summary>Read-only access to notification settings and history.</summary>
     public const string NotificationsRead = "notifications.read";
+    /// <summary>Read and write access to notification settings.</summary>
     public const string NotificationsReadWrite = "notifications.readwrite";
+    /// <summary>Read-only access to generated reports.</summary>
     public const string ReportsRead = "reports.read";
 
     // Account-level scopes
+
+    /// <summary>Read-only access to the user's identity information.</summary>
     public const string IdentityRead = "identity.read";
+    /// <summary>Read and write access to sharing/follower configuration.</summary>
     public const string SharingReadWrite = "sharing.readwrite";
 
     // Full access (includes delete)
+
+    /// <summary>Superuser scope granting all permissions including delete.</summary>
     public const string FullAccess = "*";
 
     // Convenience aliases
+
+    /// <summary>Convenience alias that expands to read scopes for all core health data types.</summary>
     public const string HealthRead = "health.read";
+    /// <summary>Convenience alias that expands to read-write scopes for all core health data types.</summary>
     public const string HealthReadWrite = "health.readwrite";
 
     /// <summary>

@@ -6,11 +6,16 @@ using Nocturne.Connectors.FreeStyle.Services;
 namespace Nocturne.API.Services.BackgroundServices;
 
 /// <summary>
-/// Background service for FreeStyle LibreLinkUp connector
+/// Background service that periodically syncs CGM data from Abbott FreeStyle LibreLinkUp via
+/// <see cref="LibreConnectorService"/>.
 /// </summary>
+/// <seealso cref="ConnectorBackgroundService{TConfig}"/>
 public class FreeStyleConnectorBackgroundService
     : ConnectorBackgroundService<LibreLinkUpConnectorConfiguration>
 {
+    /// <param name="serviceProvider">Service provider used to create a DI scope per sync cycle.</param>
+    /// <param name="config">LibreLinkUp connector configuration (credentials, region, polling interval, etc.).</param>
+    /// <param name="logger">Logger instance for this background service.</param>
     public FreeStyleConnectorBackgroundService(
         IServiceProvider serviceProvider,
         LibreLinkUpConnectorConfiguration config,

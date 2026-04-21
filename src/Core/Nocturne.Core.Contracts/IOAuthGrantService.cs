@@ -5,6 +5,8 @@ namespace Nocturne.Core.Contracts;
 /// <summary>
 /// Service for managing OAuth authorization grants.
 /// </summary>
+/// <seealso cref="IOAuthClientService"/>
+/// <seealso cref="IOAuthTokenService"/>
 public interface IOAuthGrantService
 {
     /// <summary>
@@ -80,21 +82,54 @@ public interface IOAuthGrantService
 /// </summary>
 public class OAuthGrantInfo
 {
+    /// <summary>Internal grant entity ID.</summary>
     public Guid Id { get; set; }
+
+    /// <summary>Tenant this grant belongs to.</summary>
     public Guid TenantId { get; set; }
+
+    /// <summary>Internal entity ID of the OAuth client, or null for follower grants without a registered client.</summary>
     public Guid? ClientEntityId { get; set; }
+
+    /// <summary>The OAuth client_id string.</summary>
     public string ClientId { get; set; } = string.Empty;
+
+    /// <summary>Display name of the client shown on the consent screen, if any.</summary>
     public string? ClientDisplayName { get; set; }
+
+    /// <summary>Homepage URI of the client, if any.</summary>
     public string? ClientUri { get; set; }
+
+    /// <summary>Logo URI of the client, if any.</summary>
     public string? LogoUri { get; set; }
+
+    /// <summary>Whether the client comes from the bundled known-app directory.</summary>
     public bool IsKnownClient { get; set; }
+
+    /// <summary>The subject (user) who granted access.</summary>
     public Guid SubjectId { get; set; }
+
+    /// <summary>Grant type: "app" for standard OAuth apps, "follower" for follower access.</summary>
     public string GrantType { get; set; } = OAuthScopes.GrantTypeApp;
+
+    /// <summary>OAuth scopes granted.</summary>
     public List<string> Scopes { get; set; } = new();
+
+    /// <summary>User-friendly label for the grant, if any.</summary>
     public string? Label { get; set; }
+
+    /// <summary>When the grant was created.</summary>
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>When the grant was last used to exchange or refresh a token, if ever.</summary>
     public DateTime? LastUsedAt { get; set; }
+
+    /// <summary>IP address of the most recent token exchange, if any.</summary>
     public string? LastUsedIp { get; set; }
+
+    /// <summary>User-agent of the most recent token exchange, if any.</summary>
     public string? LastUsedUserAgent { get; set; }
+
+    /// <summary>Whether the grant has been revoked.</summary>
     public bool IsRevoked { get; set; }
 }

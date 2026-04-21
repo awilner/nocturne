@@ -4,8 +4,11 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services.NotificationActionHandlers;
 
 /// <summary>
-/// Handles actions on suggested tracker match notifications.
+/// Handles user actions (accept/dismiss) on <c>tracker.suggested_match</c> in-app notifications
+/// produced by the tracker subsystem. Accept delegates to <see cref="ITrackerSuggestionService"/>
+/// to complete the current tracker instance and start a new one.
 /// </summary>
+/// <seealso cref="INotificationActionHandler"/>
 public class TrackerSuggestionActionHandler(
     ITrackerSuggestionService trackerSuggestionService,
     ILogger<TrackerSuggestionActionHandler> logger

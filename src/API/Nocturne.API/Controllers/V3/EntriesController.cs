@@ -13,9 +13,14 @@ using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Controllers.V3;
 
 /// <summary>
-/// V3 Entries controller that provides full V3 API compatibility with Nightscout entries endpoints
-/// Implements the /api/v3/entries endpoints with pagination, field selection, sorting, and advanced filtering
+/// V3 Entries controller that provides full V3 API compatibility with Nightscout entries endpoints.
+/// Implements the /api/v3/entries endpoints with pagination, field selection, sorting, and advanced filtering.
 /// </summary>
+/// <seealso cref="IEntryService"/>
+/// <seealso cref="IEntryRepository"/>
+/// <seealso cref="IAlertOrchestrator"/>
+/// <seealso cref="Entry"/>
+/// <seealso cref="BaseV3Controller{T}"/>
 [ApiController]
 [Route("api/v3/[controller]")]
 [Authorize(Policy = PolicyNames.HasPermissions)]
@@ -40,9 +45,23 @@ public class EntriesController : BaseV3Controller<Entry>
     }
 
     /// <summary>
-    /// Get entries with V3 API features including pagination, field selection, and advanced filtering
+    /// Get entries with V3 API features including pagination, field selection, and advanced filtering.
     /// </summary>
-    /// <returns>V3 entries collection response</returns>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>
+    /// A Nightscout V3-compatible response containing <see cref="Entry"/> objects
+    /// wrapped in <c>{"status": 200, "result": [...]}</c>.
+    /// </returns>
+    /// <remarks>
+    /// Supports the full V3 query parameter set: limit, offset, fields, sort, sort$desc, filter,
+    /// and <see cref="V3FilterCriteria"/>-based filtering (e.g., <c>type$eq=sgv</c>).
+    /// Conditional requests via If-None-Match and If-Modified-Since are honored, returning 304 when appropriate.
+    /// Entries are transformed to the V3 response format via <c>ToV3Responses()</c> before being returned.
+    /// </remarks>
+    /// <response code="200">V3 collection of entries.</response>
+    /// <response code="304">Not modified (conditional request matched).</response>
+    /// <response code="400">Invalid request parameters.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet]
     [NightscoutEndpoint("/api/v3/entries")]
     [ProducesResponseType(typeof(V3CollectionResponse<object>), 200)]
@@ -165,11 +184,21 @@ public class EntriesController : BaseV3Controller<Entry>
     }
 
     /// <summary>
-    /// Create a new entry via V3 API
+    /// Create a new entry via V3 API.
     /// </summary>
-    /// <param name="entry">Entry to create</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Created entry</returns>
+    /// <param name="entry">The <see cref="Entry"/> to create.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The created <see cref="Entry"/> in V3 format.</returns>
+    /// <remarks>
+    /// Supports AAPS deduplication: if an entry with the same device, type, SGV value,
+    /// and timestamp (within a 1-minute window) already exists, returns a 200 response
+    /// with <c>isDeduplication: true</c> instead of creating a duplicate.
+    /// After creation, alerts are evaluated via <see cref="IAlertOrchestrator"/> for the new reading.
+    /// </remarks>
+    /// <response code="201">Entry created successfully.</response>
+    /// <response code="200">Duplicate entry detected (deduplication response for AAPS).</response>
+    /// <response code="400">Invalid entry data.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpPost]
     [Authorize]
     [NightscoutEndpoint("/api/v3/entries")]
@@ -451,8 +480,14 @@ public class EntriesController : BaseV3Controller<Entry>
     }
 
     /// <summary>
-    /// Get entries modified since a given timestamp (for AAPS incremental sync)
+    /// Get entries modified since a given timestamp (for AAPS incremental sync).
     /// </summary>
+    /// <param name="lastModified">Unix timestamp in milliseconds. Only entries modified after this time are returned.</param>
+    /// <param name="limit">Maximum number of entries to return (1-1000, default 1000).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>V3 collection of <see cref="Entry"/> objects modified since the given timestamp.</returns>
+    /// <response code="200">Entries modified since the given timestamp.</response>
+    /// <response code="500">Internal server error.</response>
     [HttpGet("history/{lastModified:long}")]
     [NightscoutEndpoint("/api/v3/entries/history/{lastModified}")]
     [ProducesResponseType(typeof(object), 200)]

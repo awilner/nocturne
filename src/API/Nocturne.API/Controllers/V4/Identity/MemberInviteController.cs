@@ -15,6 +15,9 @@ namespace Nocturne.API.Controllers.V4.Identity;
 /// Public-facing member invite endpoints for accepting invites and listing members.
 /// Also provides member role/permission management endpoints.
 /// </summary>
+/// <seealso cref="IMemberInviteService"/>
+/// <seealso cref="ITenantService"/>
+/// <seealso cref="ITenantRoleService"/>
 [ApiController]
 [Route("api/v4/member-invites")]
 [Produces("application/json")]
@@ -26,6 +29,14 @@ public class MemberInviteController : ControllerBase
     private readonly ITenantAccessor _tenantAccessor;
     private readonly NocturneDbContext _dbContext;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="MemberInviteController"/>.
+    /// </summary>
+    /// <param name="memberInviteService">Service for invite token lifecycle management.</param>
+    /// <param name="tenantService">Service for tenant membership operations.</param>
+    /// <param name="tenantRoleService">Service for member role assignment.</param>
+    /// <param name="tenantAccessor">Accessor for the current request tenant context.</param>
+    /// <param name="dbContext">Database context for direct entity access.</param>
     public MemberInviteController(
         IMemberInviteService memberInviteService,
         ITenantService tenantService,

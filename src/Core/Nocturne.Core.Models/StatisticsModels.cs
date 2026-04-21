@@ -956,9 +956,11 @@ public class ClinicalTargets
     public double TargetHigh { get; set; }
 
     /// <summary>
-    /// Get clinical targets for a specific diabetes population
-    /// Based on International Consensus on Time in Range (2019) and subsequent updates
+    /// Returns the evidence-based clinical targets for the specified <see cref="DiabetesPopulation"/>.
+    /// Based on International Consensus on Time in Range (2019) and subsequent updates.
     /// </summary>
+    /// <param name="population">The diabetes population for which to retrieve targets</param>
+    /// <returns>A <see cref="ClinicalTargets"/> instance with population-appropriate thresholds</returns>
     public static ClinicalTargets ForPopulation(DiabetesPopulation population)
     {
         return population switch
@@ -1042,8 +1044,11 @@ public class GlucoseManagementIndicator
     public StatisticReliability? Reliability { get; set; }
 
     /// <summary>
-    /// GMI interpretation categories based on ADA Standards
+    /// Returns the <see cref="GlucoseManagementIndicatorLevel"/> category for a given GMI value
+    /// based on ADA Standards of Care.
     /// </summary>
+    /// <param name="gmi">GMI percentage value (e.g., 7.0 for 7.0%)</param>
+    /// <returns>The corresponding <see cref="GlucoseManagementIndicatorLevel"/></returns>
     public static GlucoseManagementIndicatorLevel GetInterpretation(double gmi)
     {
         return gmi switch

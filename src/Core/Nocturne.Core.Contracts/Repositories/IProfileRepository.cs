@@ -3,8 +3,9 @@ using Nocturne.Core.Models;
 namespace Nocturne.Core.Contracts.Repositories;
 
 /// <summary>
-/// Repository port for Profile domain operations
+/// Repository port for <see cref="Profile"/> domain operations.
 /// </summary>
+/// <seealso cref="Profile"/>
 public interface IProfileRepository
 {
     /// <summary>

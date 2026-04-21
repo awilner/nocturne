@@ -7,9 +7,12 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Controllers.V1;
 
 /// <summary>
-/// IOB (Insulin on Board) controller providing calculation endpoints
-/// Implements IOB calculation endpoints compatible with Nightscout legacy behavior
+/// IOB (Insulin on Board) controller providing calculation endpoints.
+/// Implements IOB calculation endpoints compatible with Nightscout legacy behavior.
 /// </summary>
+/// <seealso cref="IIobService"/>
+/// <seealso cref="ITreatmentService"/>
+/// <seealso cref="IDeviceStatusService"/>
 [ApiController]
 [Route("api/v1/[controller]")]
 [Produces("application/json")]
@@ -21,6 +24,13 @@ public class IobController : ControllerBase
     private readonly IDeviceStatusService _deviceStatusService;
     private readonly ILogger<IobController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="IobController"/>.
+    /// </summary>
+    /// <param name="iobService">Service for insulin-on-board calculations.</param>
+    /// <param name="treatmentService">Service for treatment data retrieval.</param>
+    /// <param name="deviceStatusService">Service for device status data retrieval.</param>
+    /// <param name="logger">Logger instance.</param>
     public IobController(
         IIobService iobService,
         ITreatmentService treatmentService,

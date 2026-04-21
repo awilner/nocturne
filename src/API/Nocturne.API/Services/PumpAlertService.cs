@@ -4,9 +4,11 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for monitoring pump status and generating alerts
-/// Implements legacy Nightscout pump.js plugin functionality with 1:1 API compatibility
+/// Monitors insulin pump status (reservoir, battery, clock, bolusing, suspended) and generates
+/// severity-levelled alerts. Implements the legacy Nightscout <c>pump.js</c> plugin with 1:1 API
+/// compatibility, delegating APS data retrieval to <see cref="IOpenApsService"/>.
 /// </summary>
+/// <seealso cref="IPumpAlertService"/>
 public class PumpAlertService : IPumpAlertService
 {
     private static readonly string[] AllStatusFields =

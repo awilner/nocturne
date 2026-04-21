@@ -9,8 +9,14 @@ using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Domain service implementation for food operations with WebSocket broadcasting
+/// Domain service implementation for <see cref="Food"/> operations with WebSocket broadcasting.
+/// Sanitizes food records via <see cref="IDocumentProcessingService"/> on creation and deduplicates
+/// by a composite key built from all food properties.
 /// </summary>
+/// <seealso cref="IFoodService"/>
+/// <seealso cref="IFoodRepository"/>
+/// <seealso cref="IWriteSideEffects"/>
+/// <seealso cref="IDocumentProcessingService"/>
 public class FoodService : IFoodService
 {
     private readonly IFoodRepository _food;
@@ -20,6 +26,15 @@ public class FoodService : IFoodService
     private readonly ILogger<FoodService> _logger;
     private const string CollectionName = "food";
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="FoodService"/>.
+    /// </summary>
+    /// <param name="food">The food repository for data access.</param>
+    /// <param name="documentProcessingService">Service for HTML sanitization of food fields.</param>
+    /// <param name="sideEffects">Handles cache invalidation, SignalR broadcasting, and V4 decomposition on writes.</param>
+    /// <param name="events">The event sink for broadcasting create/update/delete events.</param>
+    /// <param name="logger">The logger instance.</param>
+    /// <exception cref="ArgumentNullException">Thrown when any required parameter is <see langword="null"/>.</exception>
     public FoodService(
         IFoodRepository food,
         IDocumentProcessingService documentProcessingService,

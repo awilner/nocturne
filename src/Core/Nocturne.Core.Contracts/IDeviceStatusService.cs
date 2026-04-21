@@ -3,8 +3,9 @@ using Nocturne.Core.Models;
 namespace Nocturne.Core.Contracts;
 
 /// <summary>
-/// Domain service for device status operations with WebSocket broadcasting
+/// Domain service for <see cref="DeviceStatus"/> operations with WebSocket broadcasting.
 /// </summary>
+/// <seealso cref="DeviceStatus"/>
 public interface IDeviceStatusService
 {
     /// <summary>

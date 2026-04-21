@@ -10,9 +10,10 @@ using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Controllers.V1;
 
 /// <summary>
-/// Food controller that provides 1:1 compatibility with Nightscout food endpoints
-/// Implements the /api/v1/food/* endpoints from the legacy JavaScript implementation
+/// Food controller that provides 1:1 compatibility with Nightscout food endpoints.
+/// Implements the /api/v1/food/* endpoints from the legacy JavaScript implementation.
 /// </summary>
+/// <seealso cref="IFoodRepository"/>
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize(Policy = PolicyNames.HasPermissions)]
@@ -21,6 +22,11 @@ public class FoodController : ControllerBase
     private readonly IFoodRepository _foodRepository;
     private readonly ILogger<FoodController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="FoodController"/>.
+    /// </summary>
+    /// <param name="foodRepository">Repository for food records.</param>
+    /// <param name="logger">Logger instance.</param>
     public FoodController(IFoodRepository foodRepository, ILogger<FoodController> logger)
     {
         _foodRepository = foodRepository;

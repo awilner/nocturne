@@ -5,9 +5,12 @@ namespace Nocturne.Core.Contracts.V4;
 
 /// <summary>
 /// Decomposes legacy Treatment records into v4 granular models (Bolus, CarbIntake, BGCheck, Note, BolusCalculation)
-/// and delegates StateSpan-backed types (TempBasal, ProfileSwitch) to IStateSpanService.
+/// and delegates StateSpan-backed types (TempBasal, ProfileSwitch) to <see cref="IStateSpanService"/>.
 /// Handles idempotent create-or-update based on LegacyId matching.
 /// </summary>
+/// <seealso cref="IDecompositionPipeline"/>
+/// <seealso cref="IEntryDecomposer"/>
+/// <seealso cref="IStateSpanService"/>
 public interface ITreatmentDecomposer
 {
     /// <summary>

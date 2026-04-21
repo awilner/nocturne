@@ -6,9 +6,14 @@ using Nocturne.Core.Models.V4;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Comprehensive glucose and treatment statistics calculations service
-/// Provides 1:1 functionality with the TypeScript utilities for complete API parity
+/// Comprehensive glucose and treatment statistics calculations service.
+/// Provides 1:1 functionality with the TypeScript utilities for complete API parity.
+/// Computes Time in Range (TIR), glucose distributions, A1C estimates, and treatment metrics
+/// from <see cref="Entry"/> and <see cref="Treatment"/> collections.
 /// </summary>
+/// <seealso cref="IStatisticsService"/>
+/// <seealso cref="Entry"/>
+/// <seealso cref="Treatment"/>
 public class StatisticsService : IStatisticsService
 {
     private static readonly string[] BolusTreatmentTypes = new[]

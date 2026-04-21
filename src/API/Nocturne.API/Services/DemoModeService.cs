@@ -20,10 +20,27 @@ public interface IDemoModeService
 }
 
 /// <summary>
-/// Service that provides demo mode status information.
-/// This service reads the DemoService configuration passed from Aspire
-/// and provides a unified way to check if demo mode is active.
+/// Reads demo mode status from the two independent configuration sources and exposes a unified flag.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Demo mode can be enabled by either of:
+/// <list type="bullet">
+///   <item>The <c>DemoService:Enabled</c> configuration key — set by Aspire via environment variables
+///         when the demo data service project is included in the Aspire app host.</item>
+///   <item>The <c>Parameters:DemoMode:Enabled</c> key — used in <c>appsettings.json</c> for
+///         local development without Aspire.</item>
+/// </list>
+/// </para>
+/// <para>
+/// <see cref="IDemoModeService.IsConfigured"/> is only <see langword="true"/> when enabled AND
+/// a non-empty <c>DemoService:Url</c> is present, indicating the external demo data service is
+/// reachable. A true <c>IsEnabled</c> with false <c>IsConfigured</c> means demo mode was
+/// requested but the service URL was not injected (startup misconfiguration).
+/// </para>
+/// </remarks>
+/// <seealso cref="IDemoModeService"/>
+/// <seealso cref="BackgroundServices.DemoServiceConfiguration"/>
 public class DemoModeService : IDemoModeService
 {
     private readonly bool _isEnabled;

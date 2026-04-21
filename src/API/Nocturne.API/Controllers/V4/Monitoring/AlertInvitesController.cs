@@ -12,6 +12,7 @@ namespace Nocturne.API.Controllers.V4.Monitoring;
 /// <summary>
 /// Controller for managing alert invite links (create, validate, redeem, revoke).
 /// </summary>
+/// <seealso cref="NocturneDbContext"/>
 [ApiController]
 [Route("api/v4/alert-invites")]
 public class AlertInvitesController : ControllerBase
@@ -19,6 +20,11 @@ public class AlertInvitesController : ControllerBase
     private readonly IDbContextFactory<NocturneDbContext> _contextFactory;
     private readonly ILogger<AlertInvitesController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AlertInvitesController"/>.
+    /// </summary>
+    /// <param name="contextFactory">Factory for creating <see cref="NocturneDbContext"/> instances.</param>
+    /// <param name="logger">Logger instance.</param>
     public AlertInvitesController(
         IDbContextFactory<NocturneDbContext> contextFactory,
         ILogger<AlertInvitesController> logger)

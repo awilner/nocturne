@@ -8,10 +8,15 @@ using V4Models = Nocturne.Core.Models.V4;
 namespace Nocturne.API.Services.V4;
 
 /// <summary>
-/// Decomposes legacy Profile records into V4 granular models.
-/// Iterates through the Profile.Store dictionary, producing one set of 5 V4 records per named profile.
-/// Supports idempotent create-or-update via composite LegacyId matching ("{profileId}:{storeName}").
+/// Decomposes legacy <see cref="Profile"/> records into five v4 granular models per named store entry:
+/// <see cref="V4Models.TherapySettings"/>, <see cref="V4Models.BasalSchedule"/>,
+/// <see cref="V4Models.CarbRatioSchedule"/>, <see cref="V4Models.SensitivitySchedule"/>, and
+/// <see cref="V4Models.TargetRangeSchedule"/>.
+/// Iterates through the <see cref="Profile.Store"/> dictionary and uses a composite
+/// <c>LegacyId</c> of the form <c>"{profileId}:{storeName}"</c> for idempotent upserts.
 /// </summary>
+/// <seealso cref="IProfileDecomposer"/>
+/// <seealso cref="IDecomposer{T}"/>
 public class ProfileDecomposer : IProfileDecomposer, IDecomposer<Profile>
 {
     private readonly ITherapySettingsRepository _therapySettingsRepo;
@@ -21,6 +26,12 @@ public class ProfileDecomposer : IProfileDecomposer, IDecomposer<Profile>
     private readonly ITargetRangeScheduleRepository _targetRangeScheduleRepo;
     private readonly ILogger<ProfileDecomposer> _logger;
 
+    /// <param name="therapySettingsRepo">Repository for <see cref="V4Models.TherapySettings"/> records.</param>
+    /// <param name="basalScheduleRepo">Repository for <see cref="V4Models.BasalSchedule"/> records.</param>
+    /// <param name="carbRatioScheduleRepo">Repository for <see cref="V4Models.CarbRatioSchedule"/> records.</param>
+    /// <param name="sensitivityScheduleRepo">Repository for <see cref="V4Models.SensitivitySchedule"/> records.</param>
+    /// <param name="targetRangeScheduleRepo">Repository for <see cref="V4Models.TargetRangeSchedule"/> records.</param>
+    /// <param name="logger">Logger instance for this decomposer.</param>
     public ProfileDecomposer(
         ITherapySettingsRepository therapySettingsRepo,
         IBasalScheduleRepository basalScheduleRepo,
@@ -314,6 +325,12 @@ public class ProfileDecomposer : IProfileDecomposer, IDecomposer<Profile>
 
     #region Conversion Helpers
 
+    /// <summary>
+    /// Converts a list of legacy <see cref="TimeValue"/> entries into v4 <see cref="V4Models.ScheduleEntry"/> records,
+    /// normalising each value's time representation via <see cref="TimeValue.EnsureTimeAsSeconds"/>.
+    /// </summary>
+    /// <param name="timeValues">The legacy time-value list (e.g. basal, carb-ratio, or sensitivity entries).</param>
+    /// <returns>A list of <see cref="V4Models.ScheduleEntry"/> with <c>Time</c>, <c>Value</c>, and <c>TimeAsSeconds</c> populated.</returns>
     internal static List<V4Models.ScheduleEntry> ConvertTimeValues(List<TimeValue> timeValues)
     {
         return timeValues.Select(tv =>
@@ -328,6 +345,14 @@ public class ProfileDecomposer : IProfileDecomposer, IDecomposer<Profile>
         }).ToList();
     }
 
+    /// <summary>
+    /// Merges separate low- and high-target <see cref="TimeValue"/> lists into a single list of
+    /// <see cref="V4Models.TargetRangeEntry"/> records. When a matching high entry is not found for a
+    /// given time slot, the low value is used as the high value as a safe fallback.
+    /// </summary>
+    /// <param name="lows">The low-target time-value entries from the profile store.</param>
+    /// <param name="highs">The high-target time-value entries from the profile store.</param>
+    /// <returns>A merged list of <see cref="V4Models.TargetRangeEntry"/> with <c>Low</c> and <c>High</c> fields set.</returns>
     internal static List<V4Models.TargetRangeEntry> MergeTargets(List<TimeValue> lows, List<TimeValue> highs)
     {
         var highLookup = highs.ToDictionary(h => h.Time, h => h.Value);

@@ -8,9 +8,10 @@ using Nocturne.Core.Contracts;
 namespace Nocturne.API.Controllers.V2;
 
 /// <summary>
-/// V2 Properties controller providing client properties and settings endpoints
-/// Implements the legacy /api/v2/properties endpoints with 1:1 backwards compatibility
+/// V2 Properties controller providing client properties and settings endpoints.
+/// Implements the legacy /api/v2/properties endpoints with 1:1 backwards compatibility.
 /// </summary>
+/// <seealso cref="IPropertiesService"/>
 [ApiController]
 [Route("api/v2/properties")]
 [Produces("application/json")]
@@ -21,6 +22,11 @@ public class PropertiesController : ControllerBase
     private readonly IPropertiesService _propertiesService;
     private readonly ILogger<PropertiesController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="PropertiesController"/>.
+    /// </summary>
+    /// <param name="propertiesService">Service for assembling client properties and plugin data.</param>
+    /// <param name="logger">Logger instance.</param>
     public PropertiesController(
         IPropertiesService propertiesService,
         ILogger<PropertiesController> logger

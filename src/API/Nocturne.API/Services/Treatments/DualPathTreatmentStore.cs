@@ -10,11 +10,21 @@ using Nocturne.Infrastructure.Data.Mappers;
 namespace Nocturne.API.Services.Treatments;
 
 /// <summary>
-/// Dual-path treatment store that handles reads with merged legacy + V4 data,
-/// and writes that need dual-path awareness (create, update, delete).
-/// Pure pass-through writes (patch, bulk delete) bypass this store entirely
-/// and go directly to ITreatmentRepository via TreatmentService.
+/// Dual-path <see cref="ITreatmentStore"/> that handles reads by merging legacy <see cref="Treatment"/>
+/// records with V4-projected <see cref="Nocturne.Core.Models.V4.TempBasal"/> records, and writes
+/// that require dual-path awareness (create, update, delete with V4 decomposition).
 /// </summary>
+/// <remarks>
+/// Pure pass-through writes (patch, bulk delete) bypass this store entirely and go directly to
+/// <see cref="ITreatmentRepository"/> via <see cref="TreatmentService"/>.
+/// On creation, new treatments are decomposed into V4 typed records via <see cref="IDecompositionPipeline"/>.
+/// On deletion, the corresponding V4 record is cleaned up first via <see cref="ITreatmentDecomposer"/>.
+/// </remarks>
+/// <seealso cref="ITreatmentStore"/>
+/// <seealso cref="IDecompositionPipeline"/>
+/// <seealso cref="ITreatmentDecomposer"/>
+/// <seealso cref="IV4ToLegacyProjectionService"/>
+/// <seealso cref="TreatmentService"/>
 public class DualPathTreatmentStore : ITreatmentStore
 {
     private readonly ITreatmentRepository _treatmentRepository;
@@ -24,6 +34,15 @@ public class DualPathTreatmentStore : ITreatmentStore
     private readonly ITempBasalRepository _tempBasalRepo;
     private readonly ILogger<DualPathTreatmentStore> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DualPathTreatmentStore"/>.
+    /// </summary>
+    /// <param name="treatmentRepository">The legacy treatment repository for data access and writes.</param>
+    /// <param name="decomposer">Decomposer for cleaning up V4 records linked to a legacy treatment ID before deletion.</param>
+    /// <param name="pipeline">Pipeline for projecting newly created treatments into V4 typed records.</param>
+    /// <param name="projection">Service for projecting V4 temp basals back to the legacy <see cref="Treatment"/> shape.</param>
+    /// <param name="tempBasalRepo">Repository for V4 <see cref="Nocturne.Core.Models.V4.TempBasal"/> records.</param>
+    /// <param name="logger">The logger instance.</param>
     public DualPathTreatmentStore(
         ITreatmentRepository treatmentRepository,
         ITreatmentDecomposer decomposer,

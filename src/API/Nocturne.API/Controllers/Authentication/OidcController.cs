@@ -16,9 +16,23 @@ using SameSiteMode = Nocturne.Core.Models.Configuration.SameSiteMode;
 namespace Nocturne.API.Controllers.Authentication;
 
 /// <summary>
-/// Controller for OIDC authentication flows
-/// Handles login initiation, OAuth callback, logout, and session management
+/// Controller for OIDC authentication flows.
+/// Handles login initiation, OAuth callback, logout, session management, and identity linking.
 /// </summary>
+/// <remarks>
+/// This controller orchestrates the full OIDC lifecycle:
+/// <list type="bullet">
+///   <item><description>Login: Redirects to the IdP, handles the callback, issues session cookies.</description></item>
+///   <item><description>Link/Unlink: Attaches or detaches external identities to an existing subject.</description></item>
+///   <item><description>Refresh: Rotates access/refresh tokens via cookie-based refresh.</description></item>
+///   <item><description>Logout: Revokes the session and optionally initiates RP-initiated logout.</description></item>
+/// </list>
+/// </remarks>
+/// <seealso cref="IOidcAuthService"/>
+/// <seealso cref="IOidcProviderService"/>
+/// <seealso cref="ISubjectService"/>
+/// <seealso cref="IAuthAuditService"/>
+/// <seealso cref="OidcOptions"/>
 [ApiController]
 [Route("api/v4/oidc")]
 [Tags("Authentication")]
@@ -55,9 +69,10 @@ public class OidcController : ControllerBase
     }
 
     /// <summary>
-    /// Get available OIDC providers for login
+    /// Get available OIDC providers for login.
     /// </summary>
-    /// <returns>List of enabled providers</returns>
+    /// <returns>List of enabled <see cref="OidcProviderInfo"/> for display on the login page.</returns>
+    /// <response code="200">List of enabled OIDC providers.</response>
     [HttpGet("providers")]
     [AllowAnonymous]
     [AllowDuringSetup]
@@ -125,14 +140,22 @@ public class OidcController : ControllerBase
     }
 
     /// <summary>
-    /// Handle OIDC callback from provider
-    /// Exchanges authorization code for tokens and creates session
+    /// Handle OIDC callback from provider.
+    /// Exchanges authorization code for tokens and creates session.
     /// </summary>
-    /// <param name="code">Authorization code from provider</param>
-    /// <param name="state">State parameter for CSRF verification</param>
-    /// <param name="error">Error code from provider (if any)</param>
-    /// <param name="error_description">Error description from provider</param>
-    /// <returns>Redirect to return URL with session cookie set</returns>
+    /// <param name="code">Authorization code from provider.</param>
+    /// <param name="state">State parameter for CSRF verification.</param>
+    /// <param name="error">Error code from provider (if any).</param>
+    /// <param name="error_description">Error description from provider.</param>
+    /// <returns>Redirect to return URL with session cookie set.</returns>
+    /// <remarks>
+    /// Flow: verifies state cookie against the state parameter, exchanges code for tokens
+    /// via <see cref="IOidcAuthService.HandleCallbackAsync"/>, sets session cookies, and
+    /// logs an <see cref="AuthAuditEventType.Login"/> audit event.
+    /// On failure, logs <see cref="AuthAuditEventType.FailedAuth"/> and redirects to the error page.
+    /// </remarks>
+    /// <response code="302">Redirect to return URL on success, or error page on failure.</response>
+    /// <response code="400">Missing code or state parameters.</response>
     [HttpGet("callback")]
     [AllowAnonymous]
     [AllowDuringSetup]
@@ -369,6 +392,17 @@ public class OidcController : ControllerBase
     /// Unlink an OIDC identity from the currently-authenticated subject.
     /// Blocked if this would leave the subject with zero primary auth factors.
     /// </summary>
+    /// <param name="identityId">The unique identifier of the OIDC identity to unlink.</param>
+    /// <returns>204 on success, 404 if not found, 409 if this is the last primary factor.</returns>
+    /// <remarks>
+    /// Factor-count enforcement is handled atomically inside <see cref="ISubjectService.TryRemoveOidcIdentityAsync"/>
+    /// using a serializable transaction to prevent TOCTOU races between concurrent removals.
+    /// Returns <see cref="FactorRemovalResult"/> to distinguish between not-found, last-factor, and success.
+    /// </remarks>
+    /// <response code="204">Identity unlinked successfully.</response>
+    /// <response code="401">Not authenticated.</response>
+    /// <response code="404">Identity not found.</response>
+    /// <response code="409">Cannot remove the last primary sign-in method.</response>
     [HttpDelete("link/identities/{identityId:guid}")]
     [RemoteCommand]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -410,10 +444,17 @@ public class OidcController : ControllerBase
     }
 
     /// <summary>
-    /// Refresh the session tokens
-    /// Uses the refresh token to get a new access token
+    /// Refresh the session tokens.
+    /// Uses the refresh token to get a new access token.
     /// </summary>
-    /// <returns>New token response</returns>
+    /// <returns>A new <see cref="OidcTokenResponse"/> with rotated tokens.</returns>
+    /// <remarks>
+    /// The refresh token is read from the cookie or the <c>Refresh</c> Authorization header (for API clients).
+    /// On failure, all session cookies are cleared to force re-authentication.
+    /// Logs <see cref="AuthAuditEventType.TokenRefreshed"/> on success.
+    /// </remarks>
+    /// <response code="200">Tokens refreshed successfully.</response>
+    /// <response code="401">No refresh token found, or refresh token is invalid/expired.</response>
     [HttpPost("refresh")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(OidcTokenResponse), StatusCodes.Status200OK)]
@@ -458,10 +499,17 @@ public class OidcController : ControllerBase
     }
 
     /// <summary>
-    /// Logout and revoke the session
+    /// Logout and revoke the session.
     /// </summary>
-    /// <param name="providerId">Provider ID for RP-initiated logout (optional)</param>
-    /// <returns>Logout result with optional provider logout URL</returns>
+    /// <param name="providerId">Provider ID for RP-initiated logout (optional).</param>
+    /// <returns>A <see cref="LogoutResponse"/> indicating success and an optional provider logout URL.</returns>
+    /// <remarks>
+    /// Clears all session cookies (access token, refresh token, IsAuthenticated).
+    /// If a refresh token is present, revokes it via <see cref="IOidcAuthService.LogoutAsync"/>.
+    /// When <paramref name="providerId"/> is supplied and the provider supports RP-initiated logout,
+    /// the response includes a <c>ProviderLogoutUrl</c> for the frontend to redirect to.
+    /// </remarks>
+    /// <response code="200">Logout successful.</response>
     [HttpPost("logout")]
     [RemoteCommand]
     [ProducesResponseType(typeof(LogoutResponse), StatusCodes.Status200OK)]
@@ -499,9 +547,11 @@ public class OidcController : ControllerBase
     }
 
     /// <summary>
-    /// Get current user information
+    /// Get current user information.
     /// </summary>
-    /// <returns>User information from the current session</returns>
+    /// <returns>An <see cref="OidcUserInfo"/> with the user's profile from the current session.</returns>
+    /// <response code="200">User information retrieved.</response>
+    /// <response code="401">Not authenticated or user not found.</response>
     [HttpGet("userinfo")]
     [ProducesResponseType(typeof(OidcUserInfo), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -523,9 +573,14 @@ public class OidcController : ControllerBase
     }
 
     /// <summary>
-    /// Get current session information
+    /// Get current session information including authentication status, roles, and permissions.
     /// </summary>
-    /// <returns>Session status</returns>
+    /// <returns>A <see cref="SessionInfo"/> describing the current session state.</returns>
+    /// <remarks>
+    /// Returns <c>IsAuthenticated = false</c> for unauthenticated requests (does not return 401).
+    /// This allows the frontend to check auth status without triggering redirect logic.
+    /// </remarks>
+    /// <response code="200">Session information (always returns 200).</response>
     [HttpGet("session")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(SessionInfo), StatusCodes.Status200OK)]

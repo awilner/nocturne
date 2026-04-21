@@ -6,11 +6,15 @@ using Nocturne.Infrastructure.Data;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Abstract base for simple entity CRUD services that use DbContext directly
-/// with document processing and SignalR broadcasting.
-/// Eliminates boilerplate for services like HeartRateService and StepCountService
+/// Abstract base for simple entity CRUD services that use <see cref="NocturneDbContext"/> directly
+/// with document processing and SignalR broadcasting via <see cref="ISignalRBroadcastService"/>.
+/// Eliminates boilerplate for services like <see cref="HeartRateService"/> and <see cref="StepCountService"/>
 /// that follow the same get/create/update/delete + broadcast pattern.
 /// </summary>
+/// <typeparam name="TDomain">The domain model type (must implement <see cref="IProcessableDocument"/>).</typeparam>
+/// <typeparam name="TEntity">The EF Core entity type stored in the database.</typeparam>
+/// <seealso cref="ISignalRBroadcastService"/>
+/// <seealso cref="IDocumentProcessingService"/>
 public abstract class SimpleEntityService<TDomain, TEntity>
     where TDomain : class, IProcessableDocument
     where TEntity : class
@@ -20,6 +24,14 @@ public abstract class SimpleEntityService<TDomain, TEntity>
     protected readonly ISignalRBroadcastService SignalRBroadcastService;
     protected readonly ILogger Logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="SimpleEntityService{TDomain,TEntity}"/>.
+    /// </summary>
+    /// <param name="dbContext">The EF Core database context for entity access.</param>
+    /// <param name="documentProcessingService">Service for HTML sanitization and document preprocessing.</param>
+    /// <param name="signalRBroadcastService">Service for broadcasting storage events to connected clients.</param>
+    /// <param name="logger">The logger instance.</param>
+    /// <exception cref="ArgumentNullException">Thrown when any required parameter is <see langword="null"/>.</exception>
     protected SimpleEntityService(
         NocturneDbContext dbContext,
         IDocumentProcessingService documentProcessingService,
@@ -37,24 +49,51 @@ public abstract class SimpleEntityService<TDomain, TEntity>
         Logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    /// <summary>The DbSet for this entity type</summary>
+    /// <summary>The <see cref="Microsoft.EntityFrameworkCore.DbSet{TEntity}"/> for this entity type.</summary>
     protected abstract DbSet<TEntity> EntitySet { get; }
 
-    /// <summary>The collection name for SignalR broadcasts (e.g., "heartrate")</summary>
+    /// <summary>The collection name used for <see cref="ISignalRBroadcastService"/> broadcasts (e.g., <c>"heartrate"</c>).</summary>
     protected abstract string CollectionName { get; }
 
-    /// <summary>The entity type name for log messages (e.g., "heart rate")</summary>
+    /// <summary>The entity type name used in log messages (e.g., <c>"heart rate"</c>).</summary>
     protected abstract string EntityTypeName { get; }
 
+    /// <summary>Maps a database entity to its corresponding domain model.</summary>
+    /// <param name="entity">The entity to map.</param>
+    /// <returns>The corresponding <typeparamref name="TDomain"/> instance.</returns>
     protected abstract TDomain ToDomainModel(TEntity entity);
+
+    /// <summary>Maps a domain model to its corresponding database entity for insertion.</summary>
+    /// <param name="model">The domain model to map.</param>
+    /// <returns>The corresponding <typeparamref name="TEntity"/> instance.</returns>
     protected abstract TEntity ToEntity(TDomain model);
+
+    /// <summary>Applies updated values from a domain model onto an existing tracked entity.</summary>
+    /// <param name="entity">The tracked entity to update in place.</param>
+    /// <param name="model">The domain model carrying the new values.</param>
     protected abstract void UpdateEntity(TEntity entity, TDomain model);
+
+    /// <summary>Returns an ordered queryable sorted by the entity's primary timestamp (descending).</summary>
+    /// <param name="query">The base queryable to order.</param>
+    /// <returns>An <see cref="IOrderedQueryable{TEntity}"/> sorted by timestamp descending.</returns>
     protected abstract IOrderedQueryable<TEntity> OrderByTimestamp(IQueryable<TEntity> query);
+
+    /// <summary>Finds a single entity by its string ID, returning <see langword="null"/> if not found.</summary>
+    /// <param name="id">The string ID to look up.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The matching entity, or <see langword="null"/>.</returns>
     protected abstract Task<TEntity?> FindByIdAsync(
         string id,
         CancellationToken cancellationToken
     );
 
+    /// <summary>
+    /// Retrieves a page of entities ordered by timestamp descending.
+    /// </summary>
+    /// <param name="count">Maximum number of records to return.</param>
+    /// <param name="skip">Number of records to skip for pagination.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An enumerable of <typeparamref name="TDomain"/> domain models.</returns>
     protected async Task<IEnumerable<TDomain>> GetAllAsync(
         int count = 10,
         int skip = 0,
@@ -84,6 +123,12 @@ public abstract class SimpleEntityService<TDomain, TEntity>
         }
     }
 
+    /// <summary>
+    /// Retrieves a single entity by its ID.
+    /// </summary>
+    /// <param name="id">The entity ID to look up.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The domain model, or <see langword="null"/> if not found.</returns>
     protected async Task<TDomain?> GetByIdAsync(
         string id,
         CancellationToken cancellationToken = default
@@ -108,6 +153,17 @@ public abstract class SimpleEntityService<TDomain, TEntity>
         }
     }
 
+    /// <summary>
+    /// Processes, saves, and broadcasts the creation of multiple domain records.
+    /// </summary>
+    /// <remarks>
+    /// Each item is passed through <see cref="IDocumentProcessingService.ProcessDocuments{T}"/> for
+    /// sanitization before insertion. After saving, a <c>create</c> event is broadcast via
+    /// <see cref="ISignalRBroadcastService.BroadcastStorageCreateAsync"/>.
+    /// </remarks>
+    /// <param name="items">The domain models to create.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The created domain models with server-assigned IDs.</returns>
     protected async Task<IEnumerable<TDomain>> CreateManyAsync(
         IEnumerable<TDomain> items,
         CancellationToken cancellationToken = default
@@ -148,6 +204,13 @@ public abstract class SimpleEntityService<TDomain, TEntity>
         }
     }
 
+    /// <summary>
+    /// Updates an existing entity and broadcasts the change.
+    /// </summary>
+    /// <param name="id">The ID of the entity to update.</param>
+    /// <param name="item">The domain model carrying the updated values.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The updated domain model, or <see langword="null"/> if no entity with the given <paramref name="id"/> exists.</returns>
     protected async Task<TDomain?> UpdateOneAsync(
         string id,
         TDomain item,
@@ -198,6 +261,12 @@ public abstract class SimpleEntityService<TDomain, TEntity>
         }
     }
 
+    /// <summary>
+    /// Deletes an entity by ID and broadcasts the deletion.
+    /// </summary>
+    /// <param name="id">The ID of the entity to delete.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns><see langword="true"/> if the entity was found and deleted; <see langword="false"/> if not found.</returns>
     protected async Task<bool> DeleteOneAsync(
         string id,
         CancellationToken cancellationToken = default

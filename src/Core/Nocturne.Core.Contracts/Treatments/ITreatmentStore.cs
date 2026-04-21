@@ -7,14 +7,62 @@ namespace Nocturne.Core.Contracts.Treatments;
 /// (legacy treatments table + V4 granular tables) behind a single interface.
 /// The adapter handles write routing for operations that need dual-path awareness
 /// (create, update, delete), plus read-time merging, decomposition, and projection.
-/// Pure pass-through writes (patch, bulk delete) go directly to ITreatmentRepository.
+/// Pure pass-through writes (patch, bulk delete) go directly to <see cref="Nocturne.Core.Contracts.Repositories.ITreatmentRepository"/>.
 /// </summary>
+/// <seealso cref="ITreatmentCache"/>
+/// <seealso cref="TreatmentQuery"/>
+/// <seealso cref="Nocturne.Core.Contracts.Repositories.ITreatmentRepository"/>
 public interface ITreatmentStore
 {
+    /// <summary>
+    /// Queries treatments using the specified <see cref="TreatmentQuery"/> parameters,
+    /// merging legacy and V4-projected treatments behind the scenes.
+    /// </summary>
+    /// <param name="query">The <see cref="TreatmentQuery"/> filter and pagination parameters.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A read-only list of <see cref="Treatment"/> records matching the query.</returns>
     Task<IReadOnlyList<Treatment>> QueryAsync(TreatmentQuery query, CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns a single treatment by its identifier.
+    /// </summary>
+    /// <param name="id">The treatment identifier (GUID or legacy MongoDB ObjectId).</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The <see cref="Treatment"/> if found, or <c>null</c>.</returns>
     Task<Treatment?> GetByIdAsync(string id, CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns treatments modified after the given timestamp, for incremental sync (v3 API).
+    /// </summary>
+    /// <param name="lastModifiedMills">The Unix-millisecond cutoff; only treatments modified after this are returned.</param>
+    /// <param name="limit">Maximum number of records to return.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A read-only list of recently modified <see cref="Treatment"/> records.</returns>
     Task<IReadOnlyList<Treatment>> GetModifiedSinceAsync(long lastModifiedMills, int limit, CancellationToken ct = default);
+
+    /// <summary>
+    /// Creates one or more treatments, routing writes to both the legacy table and V4
+    /// granular tables via the decomposition pipeline.
+    /// </summary>
+    /// <param name="treatments">The treatments to create.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A read-only list of the created <see cref="Treatment"/> records.</returns>
     Task<IReadOnlyList<Treatment>> CreateAsync(IReadOnlyList<Treatment> treatments, CancellationToken ct = default);
+
+    /// <summary>
+    /// Updates an existing treatment by ID, propagating changes to V4 tables.
+    /// </summary>
+    /// <param name="id">The treatment identifier.</param>
+    /// <param name="treatment">The updated <see cref="Treatment"/> data.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>The updated <see cref="Treatment"/>, or <c>null</c> if not found.</returns>
     Task<Treatment?> UpdateAsync(string id, Treatment treatment, CancellationToken ct = default);
+
+    /// <summary>
+    /// Deletes a treatment by ID, removing corresponding V4 decomposed records.
+    /// </summary>
+    /// <param name="id">The treatment identifier.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns><c>true</c> if the treatment was deleted; <c>false</c> if not found.</returns>
     Task<bool> DeleteAsync(string id, CancellationToken ct = default);
 }

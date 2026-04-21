@@ -7,10 +7,17 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Domain service implementation for activity operations with WebSocket broadcasting.
-/// Regular activities are stored as StateSpans. Heart rate and step count sensor data
-/// is routed to dedicated tables via the ActivityDecomposer.
+/// Domain service implementation for <see cref="Activity"/> operations with WebSocket broadcasting.
+/// Regular activities are stored as <see cref="StateSpan"/> records via <see cref="IStateSpanService"/>.
+/// Heart rate and step count sensor data is routed to dedicated tables via <see cref="IActivityDecomposer"/>.
+/// On create, all sources are merged, sorted by <see cref="Activity.Mills"/> descending, and re-paginated.
 /// </summary>
+/// <seealso cref="IActivityService"/>
+/// <seealso cref="IStateSpanService"/>
+/// <seealso cref="IActivityDecomposer"/>
+/// <seealso cref="IHeartRateService"/>
+/// <seealso cref="IStepCountService"/>
+/// <seealso cref="ISignalRBroadcastService"/>
 public class ActivityService : IActivityService
 {
     private readonly IStateSpanService _stateSpanService;
@@ -22,6 +29,18 @@ public class ActivityService : IActivityService
     private readonly IStepCountService _stepCountService;
     private readonly ILogger<ActivityService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ActivityService"/>.
+    /// </summary>
+    /// <param name="stateSpanService">Service for persisting regular activities as <see cref="StateSpan"/> records.</param>
+    /// <param name="documentProcessingService">Service for HTML sanitization of activity fields.</param>
+    /// <param name="signalRBroadcastService">Service for broadcasting real-time updates to connected clients.</param>
+    /// <param name="events">The event sink for broadcasting create/update/delete events.</param>
+    /// <param name="activityDecomposer">Decomposes sensor data activities into heart rate and step count records.</param>
+    /// <param name="heartRateService">Service for reading and resolving heart rate records as activities.</param>
+    /// <param name="stepCountService">Service for reading and resolving step count records as activities.</param>
+    /// <param name="logger">The logger instance.</param>
+    /// <exception cref="ArgumentNullException">Thrown when any required parameter is <see langword="null"/>.</exception>
     public ActivityService(
         IStateSpanService stateSpanService,
         IDocumentProcessingService documentProcessingService,

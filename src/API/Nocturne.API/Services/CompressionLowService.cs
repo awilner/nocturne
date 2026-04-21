@@ -5,8 +5,12 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for managing compression low suggestions
+/// Domain service for compression low suggestion management. Provides retrieval, review, and
+/// dismissal of <see cref="CompressionLowSuggestion"/> records detected by
+/// <see cref="BackgroundServices.CompressionLowDetectionService"/>, including enrichment of
+/// suggestions with surrounding CGM entries for user review.
 /// </summary>
+/// <seealso cref="ICompressionLowService"/>
 public class CompressionLowService : ICompressionLowService
 {
     private readonly ICompressionLowRepository _repository;

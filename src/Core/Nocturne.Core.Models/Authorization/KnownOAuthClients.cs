@@ -5,6 +5,8 @@ namespace Nocturne.Core.Models.Authorization;
 /// with releases. Provides identity metadata for consent screens and for
 /// seeding pre-verified OAuth client rows per tenant via DCR.
 /// </summary>
+/// <seealso cref="KnownClientEntry"/>
+/// <seealso cref="OAuthScopes"/>
 public static class KnownOAuthClients
 {
     /// <summary>
@@ -152,6 +154,8 @@ public static class KnownOAuthClients
     /// <summary>
     /// Look up a known app entry by its RFC 7591 software_id (reverse-DNS).
     /// </summary>
+    /// <param name="softwareId">The reverse-DNS software_id to look up (e.g., <c>org.trio.diabetes</c>).</param>
+    /// <returns>The matching <see cref="KnownClientEntry"/>, or <c>null</c> if not found.</returns>
     public static KnownClientEntry? MatchBySoftwareId(string softwareId) =>
         Entries.FirstOrDefault(e => string.Equals(e.SoftwareId, softwareId, StringComparison.Ordinal));
 }
@@ -159,6 +163,8 @@ public static class KnownOAuthClients
 /// <summary>
 /// Entry in the known OAuth client directory.
 /// </summary>
+/// <seealso cref="KnownOAuthClients"/>
+/// <seealso cref="OAuthScopes"/>
 public class KnownClientEntry
 {
     /// <summary>

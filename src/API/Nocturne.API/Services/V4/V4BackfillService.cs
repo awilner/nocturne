@@ -7,11 +7,17 @@ using Nocturne.Infrastructure.Data.Mappers;
 namespace Nocturne.API.Services.V4;
 
 /// <summary>
-/// Service for backfilling existing legacy entries and treatments into v4 granular tables.
-/// Reads from the legacy entries/treatments tables, converts to domain models,
-/// and decomposes them into the appropriate v4 records.
-/// The decomposers are idempotent via LegacyId, so re-running is safe.
+/// Backfills existing legacy entries and treatments into v4 granular tables by streaming records
+/// in batches via a composite cursor (<c>Mills</c>, <c>Id</c>) and delegating each batch to
+/// <see cref="IDecompositionPipeline"/>.
 /// </summary>
+/// <remarks>
+/// Because the underlying decomposers use <c>LegacyId</c> for idempotent create-or-update,
+/// re-running the backfill is safe — existing v4 records are updated rather than duplicated.
+/// Temp-basal and profile-switch treatments are intentionally skipped during backfill because they
+/// are already represented as <see cref="StateSpan"/> records written by the live decomposer.
+/// </remarks>
+/// <seealso cref="IDecompositionPipeline"/>
 public class V4BackfillService
 {
     private readonly IDecompositionPipeline _pipeline;
@@ -32,6 +38,9 @@ public class V4BackfillService
         "Profile Switch",
     ];
 
+    /// <param name="pipeline">Decomposition pipeline that dispatches records to the appropriate decomposer.</param>
+    /// <param name="context">EF Core context used to read from the legacy entries and treatments tables.</param>
+    /// <param name="logger">Logger instance for this service.</param>
     public V4BackfillService(
         IDecompositionPipeline pipeline,
         NocturneDbContext context,

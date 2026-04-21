@@ -8,12 +8,26 @@ namespace Nocturne.API.Services.Alerts;
 /// Acknowledges ALL active excursions for a tenant. Acknowledgement halts
 /// escalation but does not close the excursion — hysteresis still runs.
 /// </summary>
+/// <seealso cref="IAlertAcknowledgementService"/>
+/// <seealso cref="ISignalRBroadcastService"/>
 internal sealed class AlertAcknowledgementService(
     IDbContextFactory<NocturneDbContext> contextFactory,
     ISignalRBroadcastService broadcastService,
     ILogger<AlertAcknowledgementService> logger)
     : IAlertAcknowledgementService
 {
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Loads all open excursions (where <c>EndedAt IS NULL</c>), stamps
+    /// <c>AcknowledgedAt</c>/<c>AcknowledgedBy</c>, sets every unresolved
+    /// <see cref="Nocturne.Infrastructure.Data.Entities.AlertInstanceEntity"/> to <c>acknowledged</c>,
+    /// clears <c>NextEscalationAt</c>, and broadcasts an <c>alert_acknowledged</c> event
+    /// via <see cref="ISignalRBroadcastService"/>. Broadcast failures are swallowed and logged
+    /// as warnings so the acknowledgement itself is not rolled back.
+    /// </remarks>
+    /// <param name="tenantId">The tenant whose active excursions should be acknowledged.</param>
+    /// <param name="acknowledgedBy">Identifier of the user or system performing the acknowledgement.</param>
+    /// <param name="ct">Cancellation token.</param>
     public async Task AcknowledgeAllAsync(Guid tenantId, string acknowledgedBy, CancellationToken ct)
     {
         await using var db = await contextFactory.CreateDbContextAsync(ct);

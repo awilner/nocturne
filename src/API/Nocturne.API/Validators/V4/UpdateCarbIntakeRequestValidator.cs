@@ -3,8 +3,27 @@ using Nocturne.API.Models.Requests.V4;
 
 namespace Nocturne.API.Validators.V4;
 
+/// <summary>
+/// Validates <see cref="UpdateCarbIntakeRequest"/> for the V4 carb intake update endpoint.
+/// </summary>
+/// <remarks>
+/// <list type="bullet">
+/// <item><description>Timestamp must be a valid non-default <see cref="DateTimeOffset"/>.</description></item>
+/// <item><description>Device, App, DataSource, SyncIdentifier capped at 500 characters.</description></item>
+/// <item><description>Carbs must be non-negative.</description></item>
+/// <item><description>AbsorptionTime, when provided, must be non-negative.</description></item>
+/// <item><description>DataSource is required when SyncIdentifier is supplied (composite key constraint).</description></item>
+/// <item><description>CorrelationId, when supplied, must be a non-empty GUID.</description></item>
+/// </list>
+/// </remarks>
+/// <seealso cref="UpdateCarbIntakeRequest"/>
+/// <seealso cref="Controllers.V4.Treatments.NutritionController"/>
 public class UpdateCarbIntakeRequestValidator : AbstractValidator<UpdateCarbIntakeRequest>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UpdateCarbIntakeRequestValidator"/> class
+    /// and configures all validation rules for carb intake updates.
+    /// </summary>
     public UpdateCarbIntakeRequestValidator()
     {
         RuleFor(x => x.Timestamp).NotEqual(default(DateTimeOffset)).WithMessage("Timestamp is required");

@@ -9,8 +9,13 @@ namespace Nocturne.API.Services;
 
 /// <summary>
 /// Service for aggregating data overview statistics across all data types.
-/// Provides year-level availability and day-level record counts for heatmap visualization.
+/// Provides year-level availability and day-level <see cref="Entry"/> and <see cref="Treatment"/>
+/// record counts for heatmap and calendar visualization in the dashboard.
+/// All timestamps are resolved to the user's timezone via <see cref="IProfileService.GetTimezone"/>.
 /// </summary>
+/// <seealso cref="IDataOverviewService"/>
+/// <seealso cref="IStatisticsService"/>
+/// <seealso cref="IProfileService"/>
 public class DataOverviewService : IDataOverviewService
 {
     private readonly NocturneDbContext _context;
@@ -18,6 +23,13 @@ public class DataOverviewService : IDataOverviewService
     private readonly IStatisticsService _statisticsService;
     private readonly ILogger<DataOverviewService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="DataOverviewService"/>.
+    /// </summary>
+    /// <param name="context">The EF Core database context for direct query access.</param>
+    /// <param name="profileService">Profile service for resolving the user's active timezone.</param>
+    /// <param name="statisticsService">Statistics service for per-day metric aggregation.</param>
+    /// <param name="logger">The logger instance.</param>
     public DataOverviewService(
         NocturneDbContext context,
         IProfileService profileService,

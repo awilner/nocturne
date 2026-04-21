@@ -5,7 +5,7 @@ using Nocturne.Infrastructure.Data.Entities;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Alert generated from a tracker threshold
+/// Represents an alert fired when a tracker crosses a configured threshold.
 /// </summary>
 public record TrackerAlert(
     Guid InstanceId,
@@ -18,7 +18,7 @@ public record TrackerAlert(
 );
 
 /// <summary>
-/// Alert configuration for a tracker notification threshold
+/// Notification delivery configuration for a tracker alert threshold (push, audio, vibration, repeat settings).
 /// </summary>
 public record TrackerAlertConfig(
     bool PushEnabled,

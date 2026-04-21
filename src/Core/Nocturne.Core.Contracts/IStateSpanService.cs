@@ -3,8 +3,20 @@ using Nocturne.Core.Models;
 namespace Nocturne.Core.Contracts;
 
 /// <summary>
-/// Domain service for StateSpan operations
+/// Domain service for <see cref="StateSpan"/> lifecycle operations.
+/// State spans represent time-bounded device or therapy states such as temp basals,
+/// profile switches, exercise sessions, and sensor data exclusions.
 /// </summary>
+/// <remarks>
+/// The legacy Activity collection is stored as <see cref="StateSpan"/> records internally.
+/// The <c>GetActivitiesAsync</c>, <c>GetActivityByIdAsync</c>, <c>CreateActivitiesAsync</c>,
+/// <c>UpdateActivityAsync</c>, and <c>DeleteActivityAsync</c> overloads provide backward-compatible
+/// access for callers that work with the v1 activities API.
+/// </remarks>
+/// <seealso cref="StateSpan"/>
+/// <seealso cref="StateSpanCategory"/>
+/// <seealso cref="IActivityService"/>
+/// <seealso cref="Nocturne.Core.Contracts.Repositories.IStateSpanRepository"/>
 public interface IStateSpanService
 {
     /// <summary>

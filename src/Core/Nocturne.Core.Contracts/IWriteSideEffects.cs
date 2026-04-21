@@ -11,6 +11,11 @@ public interface IWriteSideEffects
     /// Run all post-create side effects: invalidate cache, broadcast storage-create,
     /// optionally broadcast data-update, and decompose into V4 tables.
     /// </summary>
+    /// <typeparam name="T">The domain record type that was created.</typeparam>
+    /// <param name="collectionName">Nightscout collection name (e.g., "entries", "treatments").</param>
+    /// <param name="records">The newly created records.</param>
+    /// <param name="options">Optional effect configuration; defaults to no extra effects.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task OnCreatedAsync<T>(
         string collectionName,
         IReadOnlyList<T> records,
@@ -22,6 +27,11 @@ public interface IWriteSideEffects
     /// Run all post-update side effects: invalidate cache, broadcast storage-update,
     /// and re-decompose into V4 tables.
     /// </summary>
+    /// <typeparam name="T">The domain record type that was updated.</typeparam>
+    /// <param name="collectionName">Nightscout collection name.</param>
+    /// <param name="record">The updated record.</param>
+    /// <param name="options">Optional effect configuration.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task OnUpdatedAsync<T>(
         string collectionName,
         T record,
@@ -33,6 +43,10 @@ public interface IWriteSideEffects
     /// Run pre-delete cleanup: remove V4 records by legacy ID before the DB delete.
     /// Call this BEFORE the repository delete.
     /// </summary>
+    /// <typeparam name="T">The domain record type about to be deleted.</typeparam>
+    /// <param name="legacyId">The legacy record identifier used to locate V4 records for cleanup.</param>
+    /// <param name="options">Optional effect configuration.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task BeforeDeleteAsync<T>(
         string legacyId,
         WriteEffectOptions? options = null,
@@ -43,6 +57,11 @@ public interface IWriteSideEffects
     /// Run all post-delete side effects: invalidate cache and broadcast storage-delete.
     /// Call this AFTER the repository delete succeeds.
     /// </summary>
+    /// <typeparam name="T">The domain record type that was deleted.</typeparam>
+    /// <param name="collectionName">Nightscout collection name.</param>
+    /// <param name="deletedRecord">The deleted record, or <c>null</c> if it was not available.</param>
+    /// <param name="options">Optional effect configuration.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task OnDeletedAsync<T>(
         string collectionName,
         T? deletedRecord,
@@ -53,6 +72,10 @@ public interface IWriteSideEffects
     /// <summary>
     /// Run post-bulk-delete side effects: invalidate cache and broadcast aggregate delete count.
     /// </summary>
+    /// <param name="collectionName">Nightscout collection name.</param>
+    /// <param name="deletedCount">Number of records that were deleted.</param>
+    /// <param name="options">Optional effect configuration.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     Task OnBulkDeletedAsync(
         string collectionName,
         long deletedCount,

@@ -3,8 +3,14 @@ using Nocturne.Core.Models;
 namespace Nocturne.Core.Contracts;
 
 /// <summary>
-/// Domain service for entry operations with WebSocket broadcasting
+/// Domain service for <see cref="Entry"/> operations with WebSocket broadcasting.
 /// </summary>
+/// <remarks>
+/// Entries represent continuous glucose monitor (CGM) readings, meter blood glucose checks, and calibrations.
+/// The <see cref="Entry.Mills"/> field (Unix milliseconds) is the source-of-truth timestamp;
+/// <see cref="Entry.Date"/> and <c>DateString</c> are computed from it.
+/// </remarks>
+/// <seealso cref="Entry"/>
 public interface IEntryService
 {
     /// <summary>

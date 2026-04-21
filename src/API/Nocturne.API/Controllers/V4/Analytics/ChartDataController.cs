@@ -11,6 +11,12 @@ namespace Nocturne.API.Controllers.V4.Analytics;
 /// glucose readings, IOB/COB series, basal delivery, treatment markers,
 /// state spans, system events, and tracker markers.
 /// </summary>
+/// <remarks>
+/// Responses are cached for 60 seconds, varying by query keys,
+/// to avoid redundant recalculation when the browser reconnects.
+/// </remarks>
+/// <seealso cref="IChartDataService"/>
+/// <seealso cref="DashboardChartData"/>
 [ApiController]
 [Route("api/v4/[controller]")]
 [Produces("application/json")]
@@ -29,10 +35,17 @@ public class ChartDataController : ControllerBase
     }
 
     /// <summary>
-    /// Get complete dashboard chart data in a single call.
+    /// Gets complete dashboard chart data in a single call.
     /// Returns pre-calculated IOB, COB, basal series, categorized treatment markers,
     /// state spans, system events, tracker markers, and glucose readings.
     /// </summary>
+    /// <param name="startTime">Start of the requested window as a Unix timestamp in milliseconds.</param>
+    /// <param name="endTime">End of the requested window as a Unix timestamp in milliseconds.
+    /// Must be greater than <paramref name="startTime"/>.</param>
+    /// <param name="intervalMinutes">Granularity of the returned series in minutes (1–60, default 5).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A fully populated <see cref="DashboardChartData"/> object.</returns>
+    /// <exception cref="Exception">Returns HTTP 500 if chart data calculation fails.</exception>
     [HttpGet("dashboard")]
     [RemoteQuery]
     [ResponseCache(Duration = 60, VaryByQueryKeys = new[] { "*" })]

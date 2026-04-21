@@ -5,6 +5,8 @@ namespace Nocturne.Core.Contracts;
 /// <summary>
 /// Service interface for connector food entry imports.
 /// </summary>
+/// <seealso cref="IMealMatchingService"/>
+/// <seealso cref="IConnectorFoodEntryRepository"/>
 public interface IConnectorFoodEntryService
 {
     /// <summary>

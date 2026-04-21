@@ -5,7 +5,7 @@ using Nocturne.Core.Contracts;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Configuration options for the oref WASM service.
+/// Configuration options for the oref WASM service registered via <see cref="OrefServiceExtensions.AddOrefService"/>.
 /// </summary>
 public class OrefServiceOptions
 {
@@ -23,16 +23,21 @@ public class OrefServiceOptions
 }
 
 /// <summary>
-/// Extension methods for registering oref services with dependency injection.
+/// DI registration helpers for the <see cref="OrefWasmService"/>.
 /// </summary>
 public static class OrefServiceExtensions
 {
     /// <summary>
-    /// Adds the oref WASM service to the service collection.
+    /// Registers <see cref="OrefWasmService"/> as a singleton <see cref="Core.Contracts.IOrefService"/>
+    /// after resolving the WASM binary path from a prioritised search list.
     /// </summary>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configure">Optional configuration action.</param>
-    /// <returns>The service collection for chaining.</returns>
+    /// <remarks>
+    /// When <see cref="OrefServiceOptions.Enabled"/> is <see langword="false"/> no
+    /// <see cref="Core.Contracts.IOrefService"/> registration is made and the calling code is
+    /// responsible for providing an alternative implementation or handling the missing service.
+    /// WASM path resolution order: absolute path → current directory → AppContext.BaseDirectory →
+    /// relative Rust build output path (for local development) → <c>wasm/</c> subdirectory.
+    /// </remarks>
     public static IServiceCollection AddOrefService(
         this IServiceCollection services,
         Action<OrefServiceOptions>? configure = null

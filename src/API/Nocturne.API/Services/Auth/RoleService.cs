@@ -7,8 +7,10 @@ using Nocturne.Infrastructure.Data.Entities;
 namespace Nocturne.API.Services.Auth;
 
 /// <summary>
-/// Service for managing authorization roles
+/// Manages authorisation roles and their permission assignments for tenants.
+/// Responsible for seeding default system roles on first run.
 /// </summary>
+/// <seealso cref="IRoleService"/>
 public class RoleService : IRoleService
 {
     private readonly NocturneDbContext _dbContext;

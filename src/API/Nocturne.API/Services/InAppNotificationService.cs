@@ -8,8 +8,13 @@ using Nocturne.Infrastructure.Data.Repositories;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service implementation for managing in-app notifications
+/// Service implementation for managing in-app notifications. Persists notifications via
+/// <see cref="IInAppNotificationRepository"/>, broadcasts changes over SignalR via
+/// <see cref="ISignalRBroadcastService"/>, applies type-specific defaults from
+/// <see cref="INotificationTemplateRegistry"/>, and delegates action handling to registered
+/// <see cref="INotificationActionHandler"/> implementations.
 /// </summary>
+/// <seealso cref="IInAppNotificationService"/>
 public class InAppNotificationService : IInAppNotificationService
 {
     private readonly IInAppNotificationRepository _repository;

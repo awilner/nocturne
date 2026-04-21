@@ -9,7 +9,9 @@ using Nocturne.Infrastructure.Data.Repositories;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Background service that evaluates pending notifications and auto-resolves them based on their conditions.
+/// Background service that periodically evaluates pending in-app notifications and auto-resolves
+/// those whose resolution conditions have been met (e.g. a suggested meal match was accepted
+/// elsewhere). Runs every 30 seconds (<see cref="CheckInterval"/>).
 /// </summary>
 public class NotificationResolutionService : BackgroundService
 {

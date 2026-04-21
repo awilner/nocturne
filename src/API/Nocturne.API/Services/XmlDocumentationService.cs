@@ -6,7 +6,9 @@ using Nocturne.Core.Contracts;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for extracting XML documentation comments from methods
+/// Extracts XML documentation comment summaries from compiled assemblies. Used to surface
+/// controller action descriptions in the Nocturne developer portal without requiring a live
+/// OpenAPI spec.
 /// </summary>
 public interface IXmlDocumentationService
 {
@@ -19,10 +21,11 @@ public interface IXmlDocumentationService
 }
 
 /// <summary>
-/// Implementation of XML documentation service with lazy loading.
-/// XML documentation is only loaded when first requested for a specific assembly,
-/// reducing startup memory overhead.
+/// Implements <see cref="IXmlDocumentationService"/> with per-assembly lazy loading: the XML
+/// documentation file for each assembly is parsed from disk only on first access and cached in a
+/// thread-safe <see cref="ConcurrentDictionary{TKey,TValue}"/>, reducing startup memory overhead.
 /// </summary>
+/// <seealso cref="IXmlDocumentationService"/>
 public class XmlDocumentationService : IXmlDocumentationService
 {
     // Use ConcurrentDictionary for thread-safe lazy loading

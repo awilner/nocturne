@@ -3,9 +3,12 @@ using Nocturne.Core.Models;
 namespace Nocturne.Core.Contracts;
 
 /// <summary>
-/// Service interface for summary operations with 1:1 legacy JavaScript compatibility
-/// Provides summary data aggregation and processing functionality
+/// Service interface for summary operations with 1:1 legacy JavaScript compatibility.
+/// Provides summary data aggregation and processing functionality.
 /// </summary>
+/// <seealso cref="IWidgetSummaryService"/>
+/// <seealso cref="IChartDataService"/>
+/// <seealso cref="IEntryService"/>
 public interface ISummaryService
 {
     /// <summary>

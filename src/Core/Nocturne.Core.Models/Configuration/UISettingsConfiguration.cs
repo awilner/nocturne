@@ -76,6 +76,9 @@ public class DeviceSettings
     public CgmConfiguration CgmConfiguration { get; set; } = new();
 }
 
+/// <summary>
+/// Represents a device connected to the user's diabetes management system.
+/// </summary>
 public class ConnectedDevice
 {
     [JsonPropertyName("id")]
@@ -100,6 +103,9 @@ public class ConnectedDevice
     public string? SerialNumber { get; set; }
 }
 
+/// <summary>
+/// Configuration for CGM (Continuous Glucose Monitor) data handling preferences.
+/// </summary>
 public class CgmConfiguration
 {
     [JsonPropertyName("dataSourcePriority")]
@@ -134,6 +140,9 @@ public class AlgorithmSettings
     public SafetyLimits SafetyLimits { get; set; } = new();
 }
 
+/// <summary>
+/// Settings for glucose prediction algorithms.
+/// </summary>
 public class PredictionSettings
 {
     [JsonPropertyName("enabled")]
@@ -146,6 +155,9 @@ public class PredictionSettings
     public string Model { get; set; } = "ar2"; // "ar2", "linear", "iob", "cob", "uam"
 }
 
+/// <summary>
+/// Autosensitivity detection settings controlling the allowed adjustment range.
+/// </summary>
 public class AutosensSettings
 {
     [JsonPropertyName("enabled")]
@@ -158,6 +170,9 @@ public class AutosensSettings
     public double Max { get; set; } = 1.2;
 }
 
+/// <summary>
+/// Carbohydrate absorption model settings.
+/// </summary>
 public class CarbAbsorptionSettings
 {
     [JsonPropertyName("defaultMinutes")]
@@ -167,6 +182,9 @@ public class CarbAbsorptionSettings
     public int MinRateGramsPerHour { get; set; } = 4;
 }
 
+/// <summary>
+/// Closed-loop / automated insulin delivery settings.
+/// </summary>
 public class LoopSettings
 {
     [JsonPropertyName("enabled")]
@@ -188,6 +206,9 @@ public class LoopSettings
     public bool UamEnabled { get; set; }
 }
 
+/// <summary>
+/// Safety limit settings for automated insulin delivery.
+/// </summary>
 public class SafetyLimits
 {
     [JsonPropertyName("maxIOB")]
@@ -248,6 +269,9 @@ public class FeatureSettings
     ];
 }
 
+/// <summary>
+/// Display preferences for the dashboard UI including theme, units, and time format.
+/// </summary>
 public class DisplaySettings
 {
     [JsonPropertyName("nightMode")]
@@ -440,6 +464,9 @@ public class BatteryDisplaySettings
     public bool ShowStatistics { get; set; } = true;
 }
 
+/// <summary>
+/// Configuration for a Nightscout-compatible plugin.
+/// </summary>
 public class PluginSettings
 {
     [JsonPropertyName("enabled")]
@@ -506,6 +533,9 @@ public class ServicesSettings
     public SyncSettings SyncSettings { get; set; } = new();
 }
 
+/// <summary>
+/// Represents a service currently connected to the user's Nocturne instance.
+/// </summary>
 public class ConnectedService
 {
     [JsonPropertyName("id")]
@@ -536,6 +566,9 @@ public class ConnectedService
     public bool Enabled { get; set; }
 }
 
+/// <summary>
+/// Represents a service that can be connected to Nocturne but is not yet configured.
+/// </summary>
 public class AvailableService
 {
     [JsonPropertyName("id")]
@@ -554,6 +587,9 @@ public class AvailableService
     public string Icon { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Synchronization preferences for data fetching and background refresh.
+/// </summary>
 public class SyncSettings
 {
     [JsonPropertyName("autoSync")]

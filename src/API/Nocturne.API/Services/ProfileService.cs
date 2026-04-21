@@ -12,9 +12,21 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Full 1:1 legacy-compatible implementation of profile functions
-/// Based on ClientApp/lib/profilefunctions.js with exact algorithm matching
+/// Full 1:1 legacy-compatible implementation of profile functions for the <see cref="Profile"/> domain model.
+/// Based on ClientApp/lib/profilefunctions.js with exact algorithm matching.
 /// </summary>
+/// <remarks>
+/// Profile values (DIA, sensitivity, carb ratio, basal rate, targets) are resolved from time-based
+/// schedules within a <see cref="ProfileData"/> store. Supports CircadianPercentageProfile adjustments
+/// and caches resolved values via <see cref="IMemoryCache"/> with a 5-second TTL.
+/// When a <see cref="PatientInsulin"/> with a primary bolus configuration exists, its DIA overrides
+/// the profile-level DIA value.
+/// </remarks>
+/// <seealso cref="IProfileService"/>
+/// <seealso cref="ProfileDataService"/>
+/// <seealso cref="IobService"/>
+/// <seealso cref="CobService"/>
+/// <seealso cref="PatientInsulin"/>
 public class ProfileService : IProfileService
 {
     private readonly IMemoryCache _cache;
@@ -39,6 +51,13 @@ public class ProfileService : IProfileService
     private double? _primaryBolusInsulinDia;
     private bool _primaryBolusInsulinDiaLoaded;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ProfileService"/>.
+    /// </summary>
+    /// <param name="cache">In-memory cache for resolved profile values.</param>
+    /// <param name="tenantAccessor">Provides the current tenant context for cache key scoping.</param>
+    /// <param name="insulinRepository">Optional repository for loading the patient's primary bolus insulin DIA.</param>
+    /// <param name="logger">Optional logger instance.</param>
     public ProfileService(
         IMemoryCache cache,
         ITenantAccessor tenantAccessor,
@@ -51,6 +70,10 @@ public class ProfileService : IProfileService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Clears all cached profile data and resets the primary bolus insulin DIA state.
+    /// Individual <see cref="IMemoryCache"/> entries expire based on TTL.
+    /// </summary>
     public void Clear()
     {
         // Note: IMemoryCache doesn't have a Clear method in .NET
@@ -64,6 +87,12 @@ public class ProfileService : IProfileService
         _comboBolusTreatments.Clear();
     }
 
+    /// <summary>
+    /// Loads profile data, converts legacy formats via <see cref="ConvertToProfileStore"/>,
+    /// preprocesses time-based schedules, and eagerly loads the primary bolus insulin DIA
+    /// from <see cref="IPatientInsulinRepository"/>.
+    /// </summary>
+    /// <param name="profileData">The list of <see cref="Profile"/> records to load.</param>
     public void LoadData(List<Profile> profileData)
     {
         if (profileData?.Any() == true)
@@ -88,8 +117,16 @@ public class ProfileService : IProfileService
         LoadPrimaryBolusInsulinDia();
     }
 
+    /// <inheritdoc />
     public bool HasData() => _profileData?.Any() == true;
 
+    /// <summary>
+    /// Gets the active <see cref="Profile"/> for the given time, resolving profile switches from
+    /// <see cref="Treatment"/> records and CircadianPercentageProfile overrides.
+    /// </summary>
+    /// <param name="time">Unix millisecond timestamp; defaults to now.</param>
+    /// <param name="specProfile">Optional specific profile name to resolve.</param>
+    /// <returns>A <see cref="Profile"/> wrapping the resolved <see cref="ProfileData"/>.</returns>
     public Profile? GetCurrentProfile(long? time = null, string? specProfile = null)
     {
         time ??= DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -117,6 +154,7 @@ public class ProfileService : IProfileService
         return CreateProfileFromData(returnValue);
     }
 
+    /// <inheritdoc />
     public string? GetActiveProfileName(long? time = null)
     {
         if (!HasData())
@@ -136,6 +174,7 @@ public class ProfileService : IProfileService
         return timeProfile;
     }
 
+    /// <inheritdoc />
     public List<string> ListBasalProfiles()
     {
         var profiles = new List<string>();
@@ -164,6 +203,7 @@ public class ProfileService : IProfileService
         return profiles;
     }
 
+    /// <inheritdoc />
     public string? GetUnits(string? specProfile = null)
     {
         var currentProfile = GetCurrentProfile(null, specProfile);
@@ -172,6 +212,7 @@ public class ProfileService : IProfileService
         return units.ToLowerInvariant().Contains("mmol") ? "mmol" : "mg/dl";
     }
 
+    /// <inheritdoc />
     public string? GetTimezone(string? specProfile = null)
     {
         var currentProfile = GetCurrentProfile(null, specProfile);
@@ -186,6 +227,17 @@ public class ProfileService : IProfileService
         return timezone;
     }
 
+    /// <summary>
+    /// Resolves a time-scheduled profile value (basal, sens, carbratio, etc.) at the given
+    /// Unix millisecond timestamp. Applies CircadianPercentageProfile adjustments when active.
+    /// </summary>
+    /// <param name="time">Unix millisecond timestamp.</param>
+    /// <param name="valueType">
+    /// The profile value type key: <c>"dia"</c>, <c>"sens"</c>, <c>"carbratio"</c>,
+    /// <c>"carbs_hr"</c>, <c>"target_low"</c>, <c>"target_high"</c>, or <c>"basal"</c>.
+    /// </param>
+    /// <param name="specProfile">Optional specific profile name.</param>
+    /// <returns>The resolved value, or a sensible default if the profile data is missing.</returns>
     public double GetValueByTime(long time, string valueType, string? specProfile = null)
     {
         // Round to the minute for better caching
@@ -269,7 +321,20 @@ public class ProfileService : IProfileService
         return returnValue;
     }
 
-    // Specific profile value methods
+    /// <summary>
+    /// Gets the Duration of Insulin Action (DIA) in hours at the given time.
+    /// </summary>
+    /// <remarks>
+    /// Resolution priority:
+    /// <list type="number">
+    ///   <item>If the profile is externally managed (e.g. Loop, Glooko), the profile's own DIA is used.</item>
+    ///   <item>If a primary bolus <see cref="PatientInsulin"/> is configured, its DIA is used.</item>
+    ///   <item>Falls back to the profile-level DIA schedule.</item>
+    /// </list>
+    /// </remarks>
+    /// <param name="time">Unix millisecond timestamp.</param>
+    /// <param name="specProfile">Optional specific profile name.</param>
+    /// <returns>DIA in hours (default 3.0).</returns>
     public double GetDIA(long time, string? specProfile = null)
     {
         // If the current profile is externally managed (e.g. Loop, Glooko),
@@ -290,24 +355,38 @@ public class ProfileService : IProfileService
         return GetValueByTime(time, "dia", specProfile);
     }
 
+    /// <inheritdoc />
     public double GetSensitivity(long time, string? specProfile = null) =>
         GetValueByTime(time, "sens", specProfile);
 
+    /// <inheritdoc />
     public double GetCarbRatio(long time, string? specProfile = null) =>
         GetValueByTime(time, "carbratio", specProfile);
 
+    /// <inheritdoc />
     public double GetCarbAbsorptionRate(long time, string? specProfile = null) =>
         GetValueByTime(time, "carbs_hr", specProfile);
 
+    /// <inheritdoc />
     public double GetLowBGTarget(long time, string? specProfile = null) =>
         GetValueByTime(time, "target_low", specProfile);
 
+    /// <inheritdoc />
     public double GetHighBGTarget(long time, string? specProfile = null) =>
         GetValueByTime(time, "target_high", specProfile);
 
+    /// <inheritdoc />
     public double GetBasalRate(long time, string? specProfile = null) =>
         GetValueByTime(time, "basal", specProfile);
 
+    /// <summary>
+    /// Updates the treatment lists used for profile switch, temp basal, and combo bolus resolution.
+    /// Deduplicates temp basals by <see cref="Treatment.Mills"/>, computes
+    /// <see cref="Treatment.EndMills"/>, and sorts by time.
+    /// </summary>
+    /// <param name="profileTreatments">Profile switch treatments.</param>
+    /// <param name="tempBasalTreatments">Temporary basal treatments.</param>
+    /// <param name="comboBolusTreatments">Combo bolus treatments.</param>
     public void UpdateTreatments(
         List<Treatment>? profileTreatments = null,
         List<Treatment>? tempBasalTreatments = null,
@@ -338,6 +417,12 @@ public class ProfileService : IProfileService
         // In practice, individual cache entries will expire naturally
     }
 
+    /// <summary>
+    /// Gets the active profile switch <see cref="Treatment"/> at the given time.
+    /// Handles CircadianPercentageProfile treatments and inline profile JSON.
+    /// </summary>
+    /// <param name="time">Unix millisecond timestamp.</param>
+    /// <returns>The active profile switch treatment, or <see langword="null"/> if none.</returns>
     public Treatment? GetActiveProfileTreatment(long time)
     {
         var minuteTime = (long)(Math.Round(time / 60000.0) * 60000);
@@ -378,6 +463,12 @@ public class ProfileService : IProfileService
         return treatment;
     }
 
+    /// <summary>
+    /// Gets the active temp basal <see cref="Treatment"/> at the given time using O(log n) binary search.
+    /// Caches the previous result for sequential access optimization.
+    /// </summary>
+    /// <param name="time">Unix millisecond timestamp.</param>
+    /// <returns>The active temp basal treatment, or <see langword="null"/> if none.</returns>
     public Treatment? GetTempBasalTreatment(long time)
     {
         // Most queries will match the latest found value, caching improves performance
@@ -418,6 +509,11 @@ public class ProfileService : IProfileService
         return null;
     }
 
+    /// <summary>
+    /// Gets the active combo bolus <see cref="Treatment"/> at the given time via linear scan.
+    /// </summary>
+    /// <param name="time">Unix millisecond timestamp.</param>
+    /// <returns>The active combo bolus treatment, or <see langword="null"/> if none.</returns>
     public Treatment? GetComboBolusTreatment(long time)
     {
         foreach (var t in _comboBolusTreatments)
@@ -431,6 +527,13 @@ public class ProfileService : IProfileService
         return null;
     }
 
+    /// <summary>
+    /// Computes the effective basal rate at the given time, combining the scheduled basal rate
+    /// with any active temp basal and combo bolus treatments.
+    /// </summary>
+    /// <param name="time">Unix millisecond timestamp.</param>
+    /// <param name="specProfile">Optional specific profile name.</param>
+    /// <returns>A <see cref="TempBasalResult"/> containing basal, temp basal, combo bolus, and total rates.</returns>
     public TempBasalResult GetTempBasal(long time, string? specProfile = null)
     {
         var minuteTime = (long)(Math.Round(time / 60000.0) * 60000);

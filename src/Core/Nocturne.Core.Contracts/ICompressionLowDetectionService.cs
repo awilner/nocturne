@@ -1,8 +1,9 @@
 namespace Nocturne.Core.Contracts;
 
 /// <summary>
-/// Service for detecting compression lows in overnight glucose data
+/// Service for detecting compression lows in overnight glucose data.
 /// </summary>
+/// <seealso cref="ICompressionLowService"/>
 public interface ICompressionLowDetectionService
 {
     /// <summary>

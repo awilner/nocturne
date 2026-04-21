@@ -6,10 +6,15 @@ using Nocturne.Connectors.MyLife.Services;
 namespace Nocturne.API.Services.BackgroundServices;
 
 /// <summary>
-/// Background service for MyLife connector
+/// Background service that periodically syncs CGM and therapy data from the MyLife DiabetesApp via
+/// <see cref="MyLifeConnectorService"/>.
 /// </summary>
+/// <seealso cref="ConnectorBackgroundService{TConfig}"/>
 public class MyLifeConnectorBackgroundService : ConnectorBackgroundService<MyLifeConnectorConfiguration>
 {
+    /// <param name="serviceProvider">Service provider used to create a DI scope per sync cycle.</param>
+    /// <param name="config">MyLife connector configuration (credentials, polling interval, etc.).</param>
+    /// <param name="logger">Logger instance for this background service.</param>
     public MyLifeConnectorBackgroundService(
         IServiceProvider serviceProvider,
         MyLifeConnectorConfiguration config,

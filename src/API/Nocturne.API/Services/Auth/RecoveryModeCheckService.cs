@@ -6,16 +6,19 @@ using Nocturne.Infrastructure.Data;
 namespace Nocturne.API.Services.Auth;
 
 /// <summary>
-/// Hosted service that runs on startup to determine whether the instance
-/// should enter recovery mode. Recovery mode is triggered when any active,
-/// non-system subject has neither a passkey credential nor an OIDC binding,
-/// or when the NOCTURNE_RECOVERY_MODE environment variable is set to "true".
-///
-/// In single-tenant mode, this also sets <see cref="RecoveryModeState.IsSetupRequired"/>
-/// when no non-system subjects exist (fresh database). In multi-tenant mode,
-/// per-tenant setup is handled by TenantSetupMiddleware instead, so the global
-/// setup flag is not used.
+/// Hosted service that runs on startup to determine whether the instance should enter recovery mode.
 /// </summary>
+/// <remarks>
+/// Recovery mode is triggered when:
+/// <list type="bullet">
+///   <item>The <c>NOCTURNE_RECOVERY_MODE</c> environment variable is set to <c>true</c>, or</item>
+///   <item>Any active non-system subject has neither a passkey credential nor an OIDC binding.</item>
+/// </list>
+/// In single-tenant mode this also sets <see cref="RecoveryModeState.IsSetupRequired"/> when no
+/// non-system subjects exist (fresh database). In multi-tenant mode, per-tenant setup is handled by
+/// <c>TenantSetupMiddleware</c> instead, so the global setup flag is not used.
+/// </remarks>
+/// <seealso cref="RecoveryModeState"/>
 public class RecoveryModeCheckService : IHostedService
 {
     private readonly IServiceProvider _serviceProvider;
@@ -23,6 +26,13 @@ public class RecoveryModeCheckService : IHostedService
     private readonly MultitenancyConfiguration _multitenancyConfig;
     private readonly ILogger<RecoveryModeCheckService> _logger;
 
+    /// <summary>
+    /// Initialises a new <see cref="RecoveryModeCheckService"/>.
+    /// </summary>
+    /// <param name="serviceProvider">Root service provider; a new scope is created for the startup check.</param>
+    /// <param name="state">Singleton <see cref="RecoveryModeState"/> that is mutated based on the check outcome.</param>
+    /// <param name="multitenancyConfig">Multitenancy configuration used to determine single- vs multi-tenant mode.</param>
+    /// <param name="logger">Logger instance.</param>
     public RecoveryModeCheckService(
         IServiceProvider serviceProvider,
         RecoveryModeState state,
@@ -38,6 +48,7 @@ public class RecoveryModeCheckService : IHostedService
 
     private bool IsMultiTenantMode => !string.IsNullOrEmpty(_multitenancyConfig.BaseDomain);
 
+    /// <inheritdoc/>
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         // Check environment variable override first
@@ -120,5 +131,6 @@ public class RecoveryModeCheckService : IHostedService
         }
     }
 
+    /// <inheritdoc/>
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

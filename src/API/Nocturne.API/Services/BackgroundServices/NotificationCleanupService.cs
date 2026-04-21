@@ -2,6 +2,14 @@ using Nocturne.Infrastructure.Data.Abstractions;
 
 namespace Nocturne.API.Services.BackgroundServices;
 
+/// <summary>
+/// Background service that purges archived in-app notifications older than 30 days.
+/// Runs once every 24 hours to prevent unbounded growth of the notifications table.
+/// </summary>
+/// <remarks>
+/// Only archived notifications (those already dismissed or actioned by the user) are eligible
+/// for deletion. Active or unread notifications are never touched.
+/// </remarks>
 public class NotificationCleanupService(
     IServiceProvider serviceProvider,
     ILogger<NotificationCleanupService> logger) : BackgroundService

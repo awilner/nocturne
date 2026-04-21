@@ -7,6 +7,10 @@ namespace Nocturne.Core.Contracts.V4;
 /// Decomposes legacy Entry records into v4 granular models (SensorGlucose, MeterGlucose, Calibration).
 /// Handles idempotent create-or-update based on LegacyId matching.
 /// </summary>
+/// <seealso cref="IDecompositionPipeline"/>
+/// <seealso cref="ITreatmentDecomposer"/>
+/// <seealso cref="IProfileDecomposer"/>
+/// <seealso cref="IDeviceStatusDecomposer"/>
 public interface IEntryDecomposer
 {
     /// <summary>

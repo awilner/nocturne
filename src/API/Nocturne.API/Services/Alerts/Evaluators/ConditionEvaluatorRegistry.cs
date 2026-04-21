@@ -11,11 +11,21 @@ public class ConditionEvaluatorRegistry
 {
     private readonly Dictionary<AlertConditionType, IConditionEvaluator> _evaluators;
 
+    /// <summary>
+    /// Initialises a new <see cref="ConditionEvaluatorRegistry"/> with all registered evaluators.
+    /// </summary>
+    /// <param name="evaluators">All <see cref="IConditionEvaluator"/> implementations registered in DI.</param>
     public ConditionEvaluatorRegistry(IEnumerable<IConditionEvaluator> evaluators)
     {
         _evaluators = evaluators.ToDictionary(e => e.ConditionType, e => e);
     }
 
+    /// <summary>
+    /// Returns the <see cref="IConditionEvaluator"/> for the specified <paramref name="conditionType"/>,
+    /// or <see langword="null"/> if no evaluator is registered for that type.
+    /// </summary>
+    /// <param name="conditionType">The <see cref="AlertConditionType"/> to look up.</param>
+    /// <returns>The matching evaluator, or <see langword="null"/>.</returns>
     public IConditionEvaluator? GetEvaluator(AlertConditionType conditionType)
     {
         _evaluators.TryGetValue(conditionType, out var evaluator);

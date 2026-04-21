@@ -6,6 +6,11 @@ using Nocturne.Core.Models.V4;
 
 namespace Nocturne.API.Services.ConnectorPublishing;
 
+/// <summary>
+/// Publishes device status and device event data received from connectors into
+/// the Nocturne domain via <see cref="IDeviceStatusService"/> and <see cref="IDeviceEventRepository"/>.
+/// </summary>
+/// <seealso cref="IDevicePublisher"/>
 internal sealed class DevicePublisher : IDevicePublisher
 {
     private readonly IDeviceStatusService _deviceStatusService;

@@ -10,11 +10,22 @@ using V4Models = Nocturne.Core.Models.V4;
 namespace Nocturne.API.Services.V4;
 
 /// <summary>
-/// Decomposes legacy Treatment records into v4 granular models.
-/// Maps EventType to the appropriate v4 model(s) and delegates StateSpan-backed
-/// types (TempBasal, ProfileSwitch) to IStateSpanService.
-/// Supports idempotent create-or-update via LegacyId matching.
+/// Decomposes legacy <see cref="Treatment"/> records into v4 granular models based on
+/// <see cref="Treatment.EventType"/>.
+/// <list type="bullet">
+///   <item><description>Bolus/Meal/Correction → <see cref="V4Models.Bolus"/></description></item>
+///   <item><description>Carb Correction/Meal → <see cref="V4Models.CarbIntake"/></description></item>
+///   <item><description>BG Check → <see cref="V4Models.BGCheck"/></description></item>
+///   <item><description>Bolus Wizard → <see cref="V4Models.BolusCalculation"/> (+ optional <see cref="V4Models.Bolus"/>)</description></item>
+///   <item><description>Note/Announcement → <see cref="V4Models.Note"/></description></item>
+///   <item><description>Device events → <see cref="V4Models.DeviceEvent"/></description></item>
+///   <item><description>TempBasal, ProfileSwitch, Override, Temporary Target → delegated to <see cref="IStateSpanService"/></description></item>
+/// </list>
+/// Supports idempotent create-or-update via <c>LegacyId</c> matching.
 /// </summary>
+/// <seealso cref="ITreatmentDecomposer"/>
+/// <seealso cref="IDecomposer{T}"/>
+/// <seealso cref="IStateSpanService"/>
 public class TreatmentDecomposer : ITreatmentDecomposer, IDecomposer<Treatment>
 {
     private readonly IBolusRepository _bolusRepository;
@@ -39,6 +50,17 @@ public class TreatmentDecomposer : ITreatmentDecomposer, IDecomposer<Treatment>
         "TempBasal"
     ];
 
+    /// <param name="bolusRepository">Repository for <see cref="V4Models.Bolus"/> records.</param>
+    /// <param name="tempBasalRepository">Repository for <see cref="V4Models.TempBasal"/> records.</param>
+    /// <param name="carbIntakeRepository">Repository for <see cref="V4Models.CarbIntake"/> records.</param>
+    /// <param name="bgCheckRepository">Repository for <see cref="V4Models.BGCheck"/> records.</param>
+    /// <param name="noteRepository">Repository for <see cref="V4Models.Note"/> records.</param>
+    /// <param name="deviceEventRepository">Repository for <see cref="V4Models.DeviceEvent"/> records.</param>
+    /// <param name="bolusCalculationRepository">Repository for <see cref="V4Models.BolusCalculation"/> records.</param>
+    /// <param name="stateSpanService">Service used to upsert state spans for TempBasal, ProfileSwitch, Override, and TemporaryTarget treatments.</param>
+    /// <param name="treatmentFoodService">Service for preserving legacy <see cref="Treatment.FoodType"/> as a <see cref="TreatmentFood"/> entry.</param>
+    /// <param name="deviceService">Service that resolves or creates canonical device references.</param>
+    /// <param name="logger">Logger instance for this decomposer.</param>
     public TreatmentDecomposer(
         IBolusRepository bolusRepository,
         ITempBasalRepository tempBasalRepository,

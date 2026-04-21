@@ -10,9 +10,20 @@ using Nocturne.Core.Constants;
 namespace Nocturne.API.Controllers;
 
 /// <summary>
-/// OIDC well-known endpoints for the built-in local identity provider
-/// Makes Nocturne act as its own OAuth2/OIDC issuer
+/// OIDC well-known endpoints for the built-in local identity provider.
+/// Makes Nocturne act as its own OAuth 2.0 / OIDC issuer.
 /// </summary>
+/// <remarks>
+/// Implements the OpenID Connect Discovery 1.0 specification:
+/// <list type="bullet">
+///   <item><description><c>GET /.well-known/openid-configuration</c> — provider metadata document.</description></item>
+///   <item><description><c>GET /.well-known/jwks.json</c> — JSON Web Key Set used to verify JWT signatures.</description></item>
+/// </list>
+///
+/// Both endpoints are <see cref="AllowAnonymousAttribute"/> and are consumed by OAuth clients during
+/// the dynamic discovery phase. The issuer URL and signing key are derived from <see cref="JwtOptions"/>.
+/// </remarks>
+/// <seealso cref="JwtOptions"/>
 [ApiController]
 [Route(".well-known")]
 [Tags("OIDC Discovery")]

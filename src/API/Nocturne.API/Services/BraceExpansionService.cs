@@ -4,14 +4,19 @@ using Nocturne.Core.Contracts;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Implementation of bash-style brace expansion for time pattern matching
-/// Replicates the functionality of the legacy JavaScript braces.expand() library
+/// Implements bash-style brace expansion for time-pattern matching,
+/// replicating the behaviour of the legacy JavaScript <c>braces.expand()</c> library.
 /// </summary>
+/// <seealso cref="IBraceExpansionService"/>
 public class BraceExpansionService : IBraceExpansionService
 {
-    /// <summary>
-    /// Expand bash-style brace patterns into a list of concrete strings
-    /// </summary>
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Supports numeric ranges (e.g. <c>{14..16}</c>) and comma-separated alternatives
+    /// (e.g. <c>{foo,bar}</c>). Nested braces and leading-zero padding are also handled.
+    /// </remarks>
+    /// <param name="pattern">The brace-expansion pattern to expand.</param>
+    /// <returns>An enumerable of the concrete strings produced by the expansion.</returns>
     public IEnumerable<string> ExpandBraces(string pattern)
     {
         if (string.IsNullOrEmpty(pattern))

@@ -4,6 +4,18 @@ using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.API.Services.Alerts;
 
+/// <summary>
+/// Advances an alert instance to its next escalation step, dispatching delivery
+/// via <see cref="IAlertDeliveryService"/> and persisting the updated step order
+/// through <see cref="IAlertRepository"/>.
+/// </summary>
+/// <remarks>
+/// When no further escalation steps exist the instance status is set to
+/// <c>triggered</c> and <c>NextEscalationAt</c> is cleared (set to
+/// <see cref="DateTime.MinValue"/>), preventing further escalation attempts.
+/// </remarks>
+/// <seealso cref="IEscalationAdvancer"/>
+/// <seealso cref="IAlertDeliveryService"/>
 public class EscalationAdvancer : IEscalationAdvancer
 {
     private readonly IAlertRepository _repository;
@@ -11,6 +23,13 @@ public class EscalationAdvancer : IEscalationAdvancer
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<EscalationAdvancer> _logger;
 
+    /// <summary>
+    /// Initialises a new <see cref="EscalationAdvancer"/>.
+    /// </summary>
+    /// <param name="repository">Repository used to read escalation steps and persist instance state.</param>
+    /// <param name="deliveryService">Service that dispatches the escalated alert payload.</param>
+    /// <param name="timeProvider">Abstraction for the current UTC time, enabling deterministic testing.</param>
+    /// <param name="logger">Logger instance.</param>
     public EscalationAdvancer(
         IAlertRepository repository,
         IAlertDeliveryService deliveryService,
@@ -23,6 +42,9 @@ public class EscalationAdvancer : IEscalationAdvancer
         _logger = logger;
     }
 
+    /// <inheritdoc/>
+    /// <param name="instance">Snapshot of the alert instance to escalate.</param>
+    /// <param name="ct">Cancellation token.</param>
     public async Task AdvanceAsync(AlertInstanceSnapshot instance, CancellationToken ct)
     {
         var steps = await _repository.GetEscalationStepsAsync(instance.AlertScheduleId, ct);

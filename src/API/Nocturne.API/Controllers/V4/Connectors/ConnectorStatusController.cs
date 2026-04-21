@@ -6,6 +6,15 @@ using OpenApi.Remote.Attributes;
 
 namespace Nocturne.API.Controllers.V4;
 
+/// <summary>
+/// Controller for querying the health and status of registered data connectors.
+/// </summary>
+/// <remarks>
+/// Connector status is maintained by <see cref="IConnectorHealthService"/>, which tracks
+/// the last-seen timestamp and error state for each connector (Dexcom, Glooko, Libre, etc.).
+/// This endpoint is used by the frontend dashboard to display connector health indicators.
+/// </remarks>
+/// <seealso cref="IConnectorHealthService"/>
 [Authorize]
 [ApiController]
 [Route("api/v4/connectors")]

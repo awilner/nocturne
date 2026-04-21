@@ -3,8 +3,9 @@ using Nocturne.Core.Models;
 namespace Nocturne.Core.Contracts;
 
 /// <summary>
-/// Domain service for food operations with WebSocket broadcasting
+/// Domain service for <see cref="Food"/> operations with WebSocket broadcasting.
 /// </summary>
+/// <seealso cref="Food"/>
 public interface IFoodService
 {
     /// <summary>

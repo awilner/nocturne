@@ -7,10 +7,15 @@ using Nocturne.Core.Contracts.V4.Repositories;
 namespace Nocturne.API.Services.V4;
 
 /// <summary>
-/// Decomposes legacy Entry records into v4 granular models.
-/// Maps Entry.Type "sgv" -> SensorGlucose, "mbg" -> MeterGlucose, "cal" -> Calibration.
-/// Supports idempotent create-or-update via LegacyId matching.
+/// Decomposes legacy <see cref="Entry"/> records into v4 granular models.
+/// Maps <see cref="Entry.Type"/> to the appropriate v4 type:
+/// <c>sgv</c> → <see cref="SensorGlucose"/>,
+/// <c>mbg</c> → <see cref="MeterGlucose"/>,
+/// <c>cal</c> → <see cref="Calibration"/>.
+/// Supports idempotent create-or-update via <c>LegacyId</c> matching.
 /// </summary>
+/// <seealso cref="IEntryDecomposer"/>
+/// <seealso cref="IDecomposer{T}"/>
 public class EntryDecomposer : IEntryDecomposer, IDecomposer<Entry>
 {
     private readonly ISensorGlucoseRepository _sensorGlucoseRepository;
@@ -18,6 +23,10 @@ public class EntryDecomposer : IEntryDecomposer, IDecomposer<Entry>
     private readonly ICalibrationRepository _calibrationRepository;
     private readonly ILogger<EntryDecomposer> _logger;
 
+    /// <param name="sensorGlucoseRepository">Repository for <see cref="SensorGlucose"/> records.</param>
+    /// <param name="meterGlucoseRepository">Repository for <see cref="MeterGlucose"/> records.</param>
+    /// <param name="calibrationRepository">Repository for <see cref="Calibration"/> records.</param>
+    /// <param name="logger">Logger instance for this decomposer.</param>
     public EntryDecomposer(
         ISensorGlucoseRepository sensorGlucoseRepository,
         IMeterGlucoseRepository meterGlucoseRepository,
@@ -142,6 +151,10 @@ public class EntryDecomposer : IEntryDecomposer, IDecomposer<Entry>
         return deleted;
     }
 
+    /// <summary>Maps a legacy <see cref="Entry"/> of type <c>sgv</c> to a <see cref="SensorGlucose"/> model.</summary>
+    /// <param name="entry">The legacy entry to map.</param>
+    /// <param name="correlationId">Optional correlation identifier linking records created in the same decomposition pass.</param>
+    /// <returns>A new <see cref="SensorGlucose"/> populated from the entry.</returns>
     internal static SensorGlucose MapToSensorGlucose(Entry entry, Guid? correlationId)
     {
         return new SensorGlucose
@@ -160,6 +173,10 @@ public class EntryDecomposer : IEntryDecomposer, IDecomposer<Entry>
         };
     }
 
+    /// <summary>Maps a legacy <see cref="Entry"/> of type <c>mbg</c> to a <see cref="MeterGlucose"/> model.</summary>
+    /// <param name="entry">The legacy entry to map.</param>
+    /// <param name="correlationId">Optional correlation identifier linking records created in the same decomposition pass.</param>
+    /// <returns>A new <see cref="MeterGlucose"/> populated from the entry.</returns>
     internal static MeterGlucose MapToMeterGlucose(Entry entry, Guid? correlationId)
     {
         return new MeterGlucose
@@ -175,6 +192,10 @@ public class EntryDecomposer : IEntryDecomposer, IDecomposer<Entry>
         };
     }
 
+    /// <summary>Maps a legacy <see cref="Entry"/> of type <c>cal</c> to a <see cref="Calibration"/> model.</summary>
+    /// <param name="entry">The legacy entry to map.</param>
+    /// <param name="correlationId">Optional correlation identifier linking records created in the same decomposition pass.</param>
+    /// <returns>A new <see cref="Calibration"/> populated from the entry.</returns>
     internal static Calibration MapToCalibration(Entry entry, Guid? correlationId)
     {
         return new Calibration
@@ -192,6 +213,12 @@ public class EntryDecomposer : IEntryDecomposer, IDecomposer<Entry>
         };
     }
 
+    /// <summary>
+    /// Converts a Nightscout direction string (e.g. <c>"SingleUp"</c>, <c>"Flat"</c>) to the typed
+    /// <see cref="GlucoseDirection"/> enum. Returns <see langword="null"/> for unknown or empty values.
+    /// </summary>
+    /// <param name="direction">The raw direction string from the legacy entry.</param>
+    /// <returns>The corresponding <see cref="GlucoseDirection"/> value, or <see langword="null"/> if unrecognised.</returns>
     internal static GlucoseDirection? MapDirection(string? direction)
     {
         if (string.IsNullOrEmpty(direction))

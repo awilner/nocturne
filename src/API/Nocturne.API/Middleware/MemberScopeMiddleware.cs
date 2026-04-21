@@ -12,20 +12,49 @@ namespace Nocturne.API.Middleware;
 /// Middleware that resolves the authenticated user's tenant membership and applies
 /// RBAC-based permission restrictions. Effective permissions are the union of all
 /// role permissions + direct permissions. For non-superusers, effective permissions
-/// are intersected with the auth token's granted scopes.
-/// Must run after AuthenticationMiddleware.
+/// are intersected with the auth token's granted scopes via <see cref="OAuthScopes"/>.
+/// Must run after <see cref="AuthenticationMiddleware"/>.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Pipeline order (position 7 of 8 custom middleware):
+/// <see cref="JsonExtensionMiddleware"/>, <see cref="RecoveryModeMiddleware"/>,
+/// <see cref="OidcCallbackRedirectMiddleware"/>, <see cref="Multitenancy.TenantResolutionMiddleware"/>,
+/// <see cref="TenantSetupMiddleware"/>, <see cref="AuthenticationMiddleware"/>,
+/// <b>MemberScopeMiddleware</b>, <see cref="SiteSecurityMiddleware"/>.
+/// </para>
+/// <para>
+/// Reads the <see cref="AuthContext"/> set by <see cref="AuthenticationMiddleware"/> and
+/// replaces <c>HttpContext.Items["GrantedScopes"]</c> and <c>HttpContext.Items["PermissionTrie"]</c>
+/// with membership-scoped values. Uses <see cref="ScopeTranslator"/> to convert between
+/// Shiro-style permissions and OAuth scopes.
+/// </para>
+/// </remarks>
+/// <seealso cref="AuthenticationMiddleware"/>
+/// <seealso cref="SiteSecurityMiddleware"/>
+/// <seealso cref="PermissionTrie"/>
 public class MemberScopeMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<MemberScopeMiddleware> _logger;
 
+    /// <summary>
+    /// Creates a new instance of <see cref="MemberScopeMiddleware"/>.
+    /// </summary>
+    /// <param name="next">The next middleware in the pipeline.</param>
+    /// <param name="logger">Logger for membership resolution diagnostics.</param>
     public MemberScopeMiddleware(RequestDelegate next, ILogger<MemberScopeMiddleware> logger)
     {
         _next = next;
         _logger = logger;
     }
 
+    /// <summary>
+    /// Resolves the authenticated user's tenant membership, computes effective permissions,
+    /// and restricts granted scopes accordingly.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
+    /// <returns>A task that completes when the middleware has finished processing.</returns>
     public async Task InvokeAsync(HttpContext context)
     {
         var authContext = context.GetAuthContext();

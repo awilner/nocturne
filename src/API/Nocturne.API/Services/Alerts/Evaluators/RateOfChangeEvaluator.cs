@@ -5,6 +5,16 @@ using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.API.Services.Alerts.Evaluators;
 
+/// <summary>
+/// Evaluates a rate-of-change alert condition against the current glucose trend rate
+/// supplied in the <see cref="SensorContext"/>.
+/// </summary>
+/// <remarks>
+/// A "falling" condition triggers when <see cref="SensorContext.TrendRate"/> is at or below
+/// the negated threshold; a "rising" condition triggers when the rate is at or above the threshold.
+/// Returns <see langword="false"/> when <see cref="SensorContext.TrendRate"/> is <see langword="null"/>.
+/// </remarks>
+/// <seealso cref="IConditionEvaluator"/>
 public class RateOfChangeEvaluator : IConditionEvaluator
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -13,8 +23,15 @@ public class RateOfChangeEvaluator : IConditionEvaluator
         PropertyNameCaseInsensitive = true
     };
 
+    /// <inheritdoc/>
     public AlertConditionType ConditionType => AlertConditionType.RateOfChange;
 
+    /// <inheritdoc/>
+    /// <param name="conditionParamsJson">JSON representation of a <see cref="RateOfChangeCondition"/>.</param>
+    /// <param name="context">Current sensor reading context containing <see cref="SensorContext.TrendRate"/>.</param>
+    /// <returns>
+    /// <see langword="true"/> when the current trend rate satisfies the configured direction and magnitude.
+    /// </returns>
     public bool Evaluate(string conditionParamsJson, SensorContext context)
     {
         if (context.TrendRate is null)

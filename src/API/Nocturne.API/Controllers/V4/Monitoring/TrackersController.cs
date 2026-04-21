@@ -12,8 +12,10 @@ using Nocturne.Infrastructure.Data.Abstractions;
 namespace Nocturne.API.Controllers.V4.Monitoring;
 
 /// <summary>
-/// Controller for flexible tracker management (consumables, appointments, reminders)
+/// Controller for flexible tracker management (consumables, appointments, reminders).
 /// </summary>
+/// <seealso cref="ITrackerRepository"/>
+/// <seealso cref="ISignalRBroadcastService"/>
 [ApiController]
 [Route("api/v4/trackers")]
 public class TrackersController : ControllerBase
@@ -22,6 +24,12 @@ public class TrackersController : ControllerBase
     private readonly ISignalRBroadcastService _broadcast;
     private readonly ILogger<TrackersController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="TrackersController"/>.
+    /// </summary>
+    /// <param name="repository">Repository for tracker definition and log persistence.</param>
+    /// <param name="broadcast">Service for broadcasting real-time tracker updates via SignalR.</param>
+    /// <param name="logger">Logger instance.</param>
     public TrackersController(
         ITrackerRepository repository,
         ISignalRBroadcastService broadcast,

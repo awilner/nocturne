@@ -6,9 +6,15 @@ using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Controllers.V1;
 
 /// <summary>
-/// Count controller that provides 1:1 compatibility with Nightscout count endpoints
-/// Implements the /api/v1/count/* endpoints from the legacy JavaScript implementation
+/// Count controller that provides 1:1 compatibility with Nightscout count endpoints.
+/// Implements the /api/v1/count/* endpoints from the legacy JavaScript implementation.
 /// </summary>
+/// <seealso cref="IEntryRepository"/>
+/// <seealso cref="ITreatmentRepository"/>
+/// <seealso cref="IDeviceStatusRepository"/>
+/// <seealso cref="IProfileRepository"/>
+/// <seealso cref="IFoodRepository"/>
+/// <seealso cref="IActivityRepository"/>
 [ApiController]
 [Route("api/v1/[controller]")]
 public class CountController : ControllerBase
@@ -21,6 +27,16 @@ public class CountController : ControllerBase
     private readonly IActivityRepository _activityRepository;
     private readonly ILogger<CountController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="CountController"/>.
+    /// </summary>
+    /// <param name="entryRepository">Repository for glucose entry records.</param>
+    /// <param name="treatmentRepository">Repository for treatment records.</param>
+    /// <param name="deviceStatusRepository">Repository for device status records.</param>
+    /// <param name="profileRepository">Repository for profile records.</param>
+    /// <param name="foodRepository">Repository for food records.</param>
+    /// <param name="activityRepository">Repository for activity records.</param>
+    /// <param name="logger">Logger instance.</param>
     public CountController(
         IEntryRepository entryRepository,
         ITreatmentRepository treatmentRepository,

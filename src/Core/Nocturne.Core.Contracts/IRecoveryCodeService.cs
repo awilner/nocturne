@@ -3,6 +3,8 @@ namespace Nocturne.Core.Contracts;
 /// <summary>
 /// Service for managing single-use recovery codes for break-glass account access.
 /// </summary>
+/// <seealso cref="IPasskeyService"/>
+/// <seealso cref="ITotpService"/>
 public interface IRecoveryCodeService
 {
     /// <summary>Generates a fresh set of recovery codes, replacing any existing ones.</summary>

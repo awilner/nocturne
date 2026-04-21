@@ -5,6 +5,15 @@ using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.API.Services.Alerts.Evaluators;
 
+/// <summary>
+/// Evaluates a glucose threshold condition, triggering when the latest CGM reading
+/// is strictly above or below a configured value.
+/// </summary>
+/// <remarks>
+/// Returns <see langword="false"/> when <see cref="SensorContext.LatestValue"/> is
+/// <see langword="null"/> (no current reading available).
+/// </remarks>
+/// <seealso cref="IConditionEvaluator"/>
 public class ThresholdEvaluator : IConditionEvaluator
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -13,9 +22,16 @@ public class ThresholdEvaluator : IConditionEvaluator
         PropertyNameCaseInsensitive = true
     };
 
+    /// <inheritdoc/>
     public AlertConditionType ConditionType => AlertConditionType.Threshold;
 
-
+    /// <inheritdoc/>
+    /// <param name="conditionParamsJson">JSON representation of a <see cref="ThresholdCondition"/>.</param>
+    /// <param name="context">Current sensor context containing <see cref="SensorContext.LatestValue"/>.</param>
+    /// <returns>
+    /// <see langword="true"/> when the latest glucose value satisfies the configured
+    /// direction (<c>above</c> or <c>below</c>) and threshold value.
+    /// </returns>
     public bool Evaluate(string conditionParamsJson, SensorContext context)
     {
         if (context.LatestValue is null)

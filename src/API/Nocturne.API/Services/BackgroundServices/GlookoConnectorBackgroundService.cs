@@ -7,11 +7,16 @@ using Nocturne.Connectors.Glooko.Services;
 namespace Nocturne.API.Services.BackgroundServices;
 
 /// <summary>
-/// Background service for Glooko connector
+/// Background service that periodically syncs diabetes management data from Glooko via
+/// <see cref="GlookoConnectorService"/>.
 /// </summary>
+/// <seealso cref="ConnectorBackgroundService{TConfig}"/>
 public class GlookoConnectorBackgroundService
     : ConnectorBackgroundService<GlookoConnectorConfiguration>
 {
+    /// <param name="serviceProvider">Service provider used to create a DI scope per sync cycle.</param>
+    /// <param name="config">Glooko connector configuration (credentials, polling interval, etc.).</param>
+    /// <param name="logger">Logger instance for this background service.</param>
     public GlookoConnectorBackgroundService(
         IServiceProvider serviceProvider,
         GlookoConnectorConfiguration config,

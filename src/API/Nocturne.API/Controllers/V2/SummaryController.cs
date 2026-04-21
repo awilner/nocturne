@@ -8,9 +8,11 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Controllers.V2;
 
 /// <summary>
-/// V2 Summary controller providing aggregated data endpoints
-/// Implements the legacy /api/v2/summary endpoints with 1:1 backwards compatibility
+/// V2 Summary controller providing aggregated data endpoints.
+/// Implements the legacy /api/v2/summary endpoints with 1:1 backwards compatibility.
 /// </summary>
+/// <seealso cref="ISummaryService"/>
+/// <seealso cref="SummaryResponse"/>
 [ApiController]
 [Route("api/v2/summary")]
 [Produces("application/json")]
@@ -23,6 +25,11 @@ public class SummaryController : ControllerBase
 
     private const int DefaultHours = 6;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="SummaryController"/>.
+    /// </summary>
+    /// <param name="summaryService">Service for assembling summary data for a time window.</param>
+    /// <param name="logger">Logger instance.</param>
     public SummaryController(ISummaryService summaryService, ILogger<SummaryController> logger)
     {
         _summaryService = summaryService;

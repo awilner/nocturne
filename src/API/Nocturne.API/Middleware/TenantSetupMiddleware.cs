@@ -10,15 +10,36 @@ namespace Nocturne.API.Middleware;
 /// credentials) or tenants in recovery mode (orphaned subjects with no
 /// passkey and no OIDC binding). Allows passkey setup, admin, and metadata
 /// endpoints through so setup/recovery flows can complete.
-///
-/// Only active in multi-tenant mode (runs after TenantResolutionMiddleware).
-/// Single-tenant setup/recovery is handled by RecoveryModeMiddleware.
+/// Only active in multi-tenant mode (runs after <see cref="Multitenancy.TenantResolutionMiddleware"/>).
+/// Single-tenant setup/recovery is handled by <see cref="RecoveryModeMiddleware"/>.
 /// </summary>
+/// <remarks>
+/// <para>
+/// Pipeline order (position 4 of 8 custom middleware):
+/// <see cref="JsonExtensionMiddleware"/>, <see cref="RecoveryModeMiddleware"/>,
+/// <see cref="OidcCallbackRedirectMiddleware"/>, <see cref="Multitenancy.TenantResolutionMiddleware"/>,
+/// <b>TenantSetupMiddleware</b>, <see cref="AuthenticationMiddleware"/>,
+/// <see cref="MemberScopeMiddleware"/>, <see cref="SiteSecurityMiddleware"/>.
+/// </para>
+/// <para>
+/// Endpoints decorated with <see cref="AllowDuringSetupAttribute"/> bypass both the
+/// setup check and the recovery check. Depends on <see cref="ITenantAccessor"/> to
+/// determine whether a tenant has been resolved.
+/// </para>
+/// </remarks>
+/// <seealso cref="AllowDuringSetupAttribute"/>
+/// <seealso cref="RecoveryModeMiddleware"/>
+/// <seealso cref="Multitenancy.TenantResolutionMiddleware"/>
 public class TenantSetupMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<TenantSetupMiddleware> _logger;
 
+    /// <summary>
+    /// Creates a new instance of <see cref="TenantSetupMiddleware"/>.
+    /// </summary>
+    /// <param name="next">The next middleware in the pipeline.</param>
+    /// <param name="logger">Logger for setup/recovery diagnostics.</param>
     public TenantSetupMiddleware(
         RequestDelegate next,
         ILogger<TenantSetupMiddleware> logger)
@@ -27,6 +48,14 @@ public class TenantSetupMiddleware
         _logger = logger;
     }
 
+    /// <summary>
+    /// Checks whether the resolved tenant requires initial setup or is in recovery mode,
+    /// returning 503 if API traffic should be blocked.
+    /// </summary>
+    /// <param name="context">The current HTTP context.</param>
+    /// <param name="tenantAccessor">Accessor for the resolved tenant identity.</param>
+    /// <param name="db">Database context for querying passkey credentials and orphaned subjects.</param>
+    /// <returns>A task that completes when the middleware has finished processing.</returns>
     public async Task InvokeAsync(
         HttpContext context,
         ITenantAccessor tenantAccessor,

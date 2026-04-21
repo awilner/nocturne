@@ -6,8 +6,10 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Controllers.V3;
 
 /// <summary>
-/// Version controller that provides 1:1 compatibility with Nightscout v3 version endpoint
+/// Version controller that provides 1:1 compatibility with the Nightscout v3 version endpoint.
 /// </summary>
+/// <seealso cref="IVersionService"/>
+/// <seealso cref="VersionResponse"/>
 [ApiController]
 [Route("api/v3/[controller]")]
 public class VersionController : ControllerBase
@@ -22,9 +24,14 @@ public class VersionController : ControllerBase
     }
 
     /// <summary>
-    /// Get the current system version information
+    /// Get the current system version information.
     /// </summary>
-    /// <returns>Version information</returns>
+    /// <returns>A <see cref="VersionResponse"/> containing version, name, server time, and git HEAD.</returns>
+    /// <remarks>
+    /// On error, returns a minimal <see cref="VersionResponse"/> with <c>Version = "unknown"</c>
+    /// to maintain compatibility with clients that depend on this endpoint always returning 200.
+    /// </remarks>
+    /// <response code="200">Version information (always returns 200).</response>
     [HttpGet]
     [NightscoutEndpoint("/api/v3/version")]
     [ProducesResponseType(typeof(VersionResponse), 200)]

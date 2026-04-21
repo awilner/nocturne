@@ -1,18 +1,27 @@
 namespace Nocturne.Core.Contracts;
 
 /// <summary>
-/// Service for matching connector food entries to treatments
+/// Service for matching connector food entries to treatments.
 /// </summary>
+/// <seealso cref="IConnectorFoodEntryService"/>
+/// <seealso cref="ITreatmentFoodService"/>
+/// <seealso cref="IInAppNotificationService"/>
 public interface IMealMatchingService
 {
     /// <summary>
-    /// Process newly imported food entries and create match notifications
+    /// Process newly imported food entries and create match notifications.
     /// </summary>
+    /// <param name="userId">The user ID for notification delivery.</param>
+    /// <param name="foodEntryIds">IDs of the newly imported food entries to evaluate.</param>
+    /// <param name="ct">Cancellation token.</param>
     Task ProcessNewFoodEntriesAsync(string userId, IEnumerable<Guid> foodEntryIds, CancellationToken ct = default);
 
     /// <summary>
-    /// Process a newly created treatment and create match notifications for pending food entries
+    /// Process a newly created treatment and create match notifications for pending food entries.
     /// </summary>
+    /// <param name="userId">The user ID for notification delivery.</param>
+    /// <param name="treatmentId">ID of the newly created treatment to evaluate against pending food entries.</param>
+    /// <param name="ct">Cancellation token.</param>
     Task ProcessNewTreatmentAsync(string userId, Guid treatmentId, CancellationToken ct = default);
 
     /// <summary>
@@ -40,8 +49,17 @@ public interface IMealMatchingService
 }
 
 /// <summary>
-/// A suggested meal match result
+/// A suggested meal match pairing a connector food entry with a treatment.
 /// </summary>
+/// <param name="FoodEntryId">The ID of the pending <see cref="ConnectorFoodEntry"/>.</param>
+/// <param name="FoodName">Individual food item name, if available.</param>
+/// <param name="MealName">Meal name from the connector, if available.</param>
+/// <param name="Carbs">Carbohydrate amount in grams from the food entry.</param>
+/// <param name="ConsumedAt">When the food was consumed according to the connector.</param>
+/// <param name="TreatmentId">The ID of the candidate matching treatment.</param>
+/// <param name="TreatmentCarbs">Carbohydrate amount in grams recorded on the treatment.</param>
+/// <param name="TreatmentMills">Treatment timestamp in Unix milliseconds.</param>
+/// <param name="MatchScore">Computed match score (higher is a better match).</param>
 public record SuggestedMealMatchResult(
     Guid FoodEntryId,
     string? FoodName,

@@ -2,16 +2,56 @@ using System.Collections.Generic;
 
 namespace Nocturne.API.Models;
 
+/// <summary>
+/// DTO representing the current operational status of a data source connector
+/// (e.g. Dexcom, Glooko, Libre). Returned by the admin connector status endpoints.
+/// </summary>
 public class ConnectorStatusDto
 {
+    /// <summary>
+    /// Unique identifier of the connector configuration.
+    /// </summary>
     public required string Id { get; set; }
+
+    /// <summary>
+    /// Human-readable connector name (e.g. "Dexcom Share", "LibreLink").
+    /// </summary>
     public required string Name { get; set; }
+
+    /// <summary>
+    /// High-level status label (e.g. "Active", "Error", "Disabled").
+    /// </summary>
     public required string Status { get; set; }
+
+    /// <summary>
+    /// Total number of entries imported by this connector over its lifetime.
+    /// </summary>
     public long TotalEntries { get; set; }
+
+    /// <summary>
+    /// Timestamp of the most recent entry imported by this connector.
+    /// </summary>
     public DateTime? LastEntryTime { get; set; }
+
+    /// <summary>
+    /// Number of entries imported in the last 24 hours.
+    /// </summary>
     public int EntriesLast24Hours { get; set; }
+
+    /// <summary>
+    /// Current operational state of the connector.
+    /// </summary>
+    /// <value>Defaults to "Idle".</value>
     public string State { get; set; } = "Idle";
+
+    /// <summary>
+    /// Optional message providing detail about the current state (e.g. error description).
+    /// </summary>
     public string? StateMessage { get; set; }
+
+    /// <summary>
+    /// Whether the connector is considered healthy based on recent sync activity.
+    /// </summary>
     public bool IsHealthy { get; set; }
 
     /// <summary>

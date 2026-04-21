@@ -6,9 +6,10 @@ using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for handling Alexa Skills Kit requests
-/// Provides voice assistant integration for Nightscout data with 1:1 legacy compatibility
+/// Handles Alexa Skills Kit requests, providing voice-assistant integration for
+/// Nightscout data with 1:1 legacy compatibility.
 /// </summary>
+/// <seealso cref="IAlexaService"/>
 public class AlexaService : IAlexaService
 {
     private readonly IEntryRepository _entries;
@@ -52,10 +53,11 @@ public class AlexaService : IAlexaService
         _logger = logger;
     }
 
-    /// <summary>
-    /// Process an Alexa request and generate appropriate response
-    /// Maintains 1:1 compatibility with legacy Nightscout Alexa implementation
-    /// </summary>
+    /// <inheritdoc/>
+    /// <remarks>Maintains 1:1 compatibility with the legacy Nightscout Alexa implementation.</remarks>
+    /// <param name="request">The incoming <see cref="AlexaRequest"/> from the Alexa Skills Kit.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="AlexaResponse"/> appropriate for the request type.</returns>
     public async Task<AlexaResponse> ProcessRequestAsync(
         AlexaRequest request,
         CancellationToken cancellationToken = default
@@ -82,9 +84,11 @@ public class AlexaService : IAlexaService
     }
 
     /// <summary>
-    /// Handle launch request when user opens the skill
-    /// Replicates legacy onLaunch behavior
+    /// Handles a launch request when the user opens the skill without a specific intent.
     /// </summary>
+    /// <remarks>Replicates the legacy <c>onLaunch</c> behaviour.</remarks>
+    /// <param name="locale">Two-character locale code (e.g. <c>en</c>, <c>es</c>).</param>
+    /// <returns>A greeting <see cref="AlexaResponse"/> that keeps the session open.</returns>
     public async Task<AlexaResponse> HandleLaunchRequestAsync(string locale)
     {
         _logger.LogDebug("Session launched");
@@ -100,9 +104,10 @@ public class AlexaService : IAlexaService
     }
 
     /// <summary>
-    /// Handle session ended request
-    /// Replicates legacy onSessionEnded behavior
+    /// Handles a session-ended notification from the Alexa service.
     /// </summary>
+    /// <remarks>Replicates the legacy <c>onSessionEnded</c> behaviour. No async work is performed.</remarks>
+    /// <returns>An empty <see cref="AlexaResponse"/> with <c>ShouldEndSession = true</c>.</returns>
     public async Task<AlexaResponse> HandleSessionEndedRequestAsync()
     {
         _logger.LogDebug("Session ended");
@@ -118,9 +123,17 @@ public class AlexaService : IAlexaService
     }
 
     /// <summary>
-    /// Handle intent request with user's specific intent
-    /// Replicates legacy handleIntent behavior with slot processing
+    /// Handles a specific intent request, resolving the metric slot and dispatching to the
+    /// appropriate intent handler.
     /// </summary>
+    /// <remarks>Replicates the legacy <c>handleIntent</c> behaviour with slot processing.</remarks>
+    /// <param name="intent">The resolved <see cref="AlexaIntent"/> from the Alexa Skills Kit.</param>
+    /// <param name="locale">Two-character locale code used for response localisation.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>
+    /// An <see cref="AlexaResponse"/> from the matched intent handler, or an unknown-intent
+    /// response when no handler is registered for the intent name.
+    /// </returns>
     public async Task<AlexaResponse> HandleIntentRequestAsync(
         AlexaIntent intent,
         string locale,
@@ -189,8 +202,13 @@ public class AlexaService : IAlexaService
     }
 
     /// <summary>
-    /// Build speechlet response matching legacy buildSpeechletResponse format
+    /// Builds an <see cref="AlexaResponse"/> in the legacy <c>buildSpeechletResponse</c> format.
     /// </summary>
+    /// <param name="title">Card title displayed in the Alexa app.</param>
+    /// <param name="output">Plain-text speech output.</param>
+    /// <param name="repromptText">Reprompt text spoken if the user does not respond; ignored when <paramref name="shouldEndSession"/> is <see langword="true"/> or when empty.</param>
+    /// <param name="shouldEndSession">Whether the session should be closed after this response.</param>
+    /// <returns>A fully formed <see cref="AlexaResponse"/>.</returns>
     public AlexaResponse BuildSpeechletResponse(
         string title,
         string output,

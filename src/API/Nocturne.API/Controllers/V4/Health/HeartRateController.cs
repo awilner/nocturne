@@ -10,8 +10,15 @@ using OpenApi.Remote.Attributes;
 namespace Nocturne.API.Controllers.V4.Health;
 
 /// <summary>
-/// Heart rate controller for xDrip heart rate data
+/// Controller for heart rate data recorded by xDrip and compatible apps.
 /// </summary>
+/// <remarks>
+/// Heart rate readings are ingested from xDrip's heart rate logging feature
+/// and stored as time-series observations. All operations delegate to
+/// <see cref="IHeartRateService"/>. Callers must hold the <c>read:health</c>
+/// or <c>write:health</c> scope as appropriate.
+/// </remarks>
+/// <seealso cref="IHeartRateService"/>
 [ApiController]
 [Route("api/v4/[controller]")]
 [Authorize]

@@ -5,9 +5,17 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// AR2 forecasting service with 1:1 legacy JavaScript compatibility
-/// Implements the exact algorithm from ClientApp/lib/plugins/ar2.js
+/// AR2 forecasting service with 1:1 legacy JavaScript compatibility.
+/// Implements the exact algorithm from <c>ClientApp/lib/plugins/ar2.js</c>.
 /// </summary>
+/// <remarks>
+/// Uses an autoregressive model of order 2 (AR2) to predict future glucose values.
+/// The forecast cone is generated using pre-computed step factors (<see cref="CONE_STEPS"/>)
+/// that widen with each 5-minute interval into the future.
+/// Alarm thresholds (<see cref="WARN_THRESHOLD"/> and <see cref="URGENT_THRESHOLD"/>) are
+/// derived from the average log-loss across the prediction window.
+/// </remarks>
+/// <seealso cref="IAr2Service"/>
 public class Ar2Service : IAr2Service
 {
     private readonly ILogger<Ar2Service> _logger;
@@ -46,9 +54,15 @@ public class Ar2Service : IAr2Service
         _logger = logger;
     }
 
-    /// <summary>
-    /// Calculate AR2 forecast with exact legacy algorithm
-    /// </summary>
+    /// <inheritdoc/>
+    /// <remarks>Uses the exact legacy AR2 algorithm. Returns an empty forecast when
+    /// <see cref="CanForecast"/> is <see langword="false"/>.</remarks>
+    /// <param name="ddata">Domain data context (currently unused; retained for interface compatibility).</param>
+    /// <param name="bgNowProperties">Properties map containing <c>mean</c> (current BG) and <c>mills</c>.</param>
+    /// <param name="deltaProperties">Properties map containing <c>mean5MinsAgo</c>.</param>
+    /// <param name="settings">Settings map with <c>bgTargetTop</c>, <c>bgTargetBottom</c>, <c>alarmHigh</c>, and <c>alarmLow</c>.</param>
+    /// <param name="cancellationToken">Cancellation token (not used; retained for interface compatibility).</param>
+    /// <returns>An <see cref="Ar2Properties"/> with the predicted forecast and optional alarm level.</returns>
     public async Task<Ar2Properties> CalculateForecastAsync(
         DData ddata,
         Dictionary<string, object> bgNowProperties,
@@ -87,9 +101,13 @@ public class Ar2Service : IAr2Service
         return result;
     }
 
-    /// <summary>
-    /// Generate forecast cone for visualization
-    /// </summary>
+    /// <inheritdoc/>
+    /// <param name="ddata">Domain data context (currently unused; retained for interface compatibility).</param>
+    /// <param name="bgNowProperties">Properties map containing current BG statistics.</param>
+    /// <param name="deltaProperties">Properties map containing <c>mean5MinsAgo</c>.</param>
+    /// <param name="coneFactor">Cone width multiplier (default: <c>2.0</c>). Pass <c>0</c> to suppress negative cone points.</param>
+    /// <param name="cancellationToken">Cancellation token (not used; retained for interface compatibility).</param>
+    /// <returns>A list of <see cref="ForecastPoint"/> objects forming the upper and lower cone bounds.</returns>
     public async Task<List<ForecastPoint>> GenerateForecastConeAsync(
         DData ddata,
         Dictionary<string, object> bgNowProperties,
@@ -146,9 +164,17 @@ public class Ar2Service : IAr2Service
         return conePoints;
     }
 
-    /// <summary>
-    /// Check if forecasting is possible - exact legacy conditions
-    /// </summary>
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Requires a valid numeric <c>mean</c> in <paramref name="bgNowProperties"/> that is at
+    /// least <see cref="BG_MIN"/>, and a finite numeric <c>mean5MinsAgo</c> in
+    /// <paramref name="deltaProperties"/>.
+    /// </remarks>
+    /// <param name="bgNowProperties">Properties map containing <c>mean</c> (current BG).</param>
+    /// <param name="deltaProperties">Properties map containing <c>mean5MinsAgo</c>.</param>
+    /// <returns>
+    /// <see langword="true"/> when sufficient data is available to generate a forecast.
+    /// </returns>
     public bool CanForecast(
         Dictionary<string, object> bgNowProperties,
         Dictionary<string, object> deltaProperties
@@ -384,11 +410,16 @@ public class Ar2Service : IAr2Service
 }
 
 /// <summary>
-/// Options for generating AR2 points
+/// Options that control the position and shape of a single AR2 forecast or cone point.
 /// </summary>
 public class Ar2PointOptions
 {
+    /// <summary>Gets or sets the cone step factor from <see cref="Ar2Service.CONE_STEPS"/> for this point.</summary>
     public double Step { get; set; } = 0;
+
+    /// <summary>Gets or sets the cone width multiplier; negative values produce the lower cone bound.</summary>
     public double ConeFactor { get; set; } = 0;
+
+    /// <summary>Gets or sets the millisecond time offset added to the forecast state's timestamp for this point.</summary>
     public long Offset { get; set; } = 0;
 }

@@ -5,6 +5,14 @@ using Nocturne.Core.Models.Authorization;
 
 namespace Nocturne.API.Controllers.V4.Identity;
 
+/// <summary>
+/// Controller for querying and managing tenant-scoped roles.
+/// </summary>
+/// <remarks>
+/// Roles determine what permissions a tenant member holds. Role data is maintained by
+/// <see cref="ITenantRoleService"/> and scoped to the resolved tenant via <see cref="ITenantAccessor"/>.
+/// </remarks>
+/// <seealso cref="ITenantRoleService"/>
 [ApiController]
 [Route("api/v4/roles")]
 [Produces("application/json")]

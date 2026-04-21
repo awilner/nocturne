@@ -2,6 +2,12 @@ using Nocturne.Core.Models.V4;
 
 namespace Nocturne.Core.Contracts.V4.Repositories;
 
+/// <summary>
+/// Repository port for <see cref="PatientDevice"/> records that track which physical devices
+/// (pump, CGM, meter) are associated with the patient and the time ranges they were in use.
+/// </summary>
+/// <seealso cref="PatientDevice"/>
+/// <seealso cref="IDeviceRepository"/>
 public interface IPatientDeviceRepository
 {
     /// <summary>Returns all patient devices, including historical ones.</summary>

@@ -6,9 +6,12 @@ using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Implementation of time-based queries and advanced data slicing
-/// Replicates legacy JavaScript functionality for time pattern matching
+/// Implements time-based queries and advanced data slicing for the Nightscout
+/// <c>/api/v1/slice</c> endpoint. Supports brace-expanded time-pattern matching on entries,
+/// treatments, and device statuses, replicating the legacy JavaScript functionality.
 /// </summary>
+/// <seealso cref="ITimeQueryService"/>
+/// <seealso cref="IBraceExpansionService"/>
 public class TimeQueryService : ITimeQueryService
 {
     private readonly IEntryRepository _entries;

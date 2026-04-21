@@ -13,6 +13,13 @@ public interface INotificationActionHandler
     /// <summary>
     /// Handle an action on a notification of this type.
     /// </summary>
+    /// <param name="notificationId">The notification ID being acted on.</param>
+    /// <param name="actionId">The specific action to execute (e.g., "accept", "dismiss").</param>
+    /// <param name="userId">The user executing the action.</param>
+    /// <param name="sourceId">The source entity ID from the notification, if any.</param>
+    /// <param name="metadata">Notification-specific metadata, if any.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>True if the action was handled successfully, false otherwise.</returns>
     Task<bool> HandleAsync(
         Guid notificationId,
         string actionId,

@@ -6,9 +6,26 @@ using Nocturne.Core.Models;
 using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Controllers.V4.Analytics;
 /// <summary>
-/// Retrospective data controller for day-in-review functionality
-/// Provides combined IOB, COB, glucose, and basal data at specific points in time
+/// Controller providing retrospective (day-in-review) diabetes data.
+/// Combines IOB, COB, interpolated glucose, and basal rate at any historical point in time.
 /// </summary>
+/// <remarks>
+/// Three endpoints are exposed:
+/// <list type="bullet">
+///   <item><term>GET /at</term><description>Single point-in-time snapshot with IOB, COB, glucose, basal, and recent treatments.</description></item>
+///   <item><term>GET /timeline</term><description>Full-day timeline sampled at a configurable interval (1–60 minutes).</description></item>
+///   <item><term>GET /basal-timeline</term><description>Basal rate timeline showing scheduled vs. temp rates throughout a day.</description></item>
+/// </list>
+/// Glucose values are linearly interpolated from surrounding <see cref="Entry"/> records.
+/// IOB is calculated via <see cref="IIobService"/> and COB via <see cref="ICobService"/>.
+/// Scheduled basal falls back to <see cref="IProfileService.GetBasalRate"/> when no temp basal
+/// treatment is active.
+/// </remarks>
+/// <seealso cref="IIobService"/>
+/// <seealso cref="ICobService"/>
+/// <seealso cref="IEntryService"/>
+/// <seealso cref="ITreatmentService"/>
+/// <seealso cref="IProfileService"/>
 [ApiController]
 [Route("api/v4/[controller]")]
 [Produces("application/json")]

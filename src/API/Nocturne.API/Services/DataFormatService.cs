@@ -4,8 +4,8 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Static helpers for formatting data into different output formats (CSV, TSV, etc.).
-/// All methods are pure functions with no dependencies.
+/// Static helpers for formatting <see cref="Entry"/> and <see cref="Treatment"/> collections into
+/// plain-text export formats (CSV, TSV, TXT). All methods are pure functions with no external dependencies.
 /// </summary>
 public static class DataFormatService
 {

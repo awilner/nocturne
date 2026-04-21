@@ -1,7 +1,8 @@
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Configuration for the prediction service.
+/// Configuration for <see cref="IPredictionService"/>. Bound from the
+/// <c>Predictions</c> configuration section.
 /// </summary>
 public class PredictionOptions
 {
@@ -14,7 +15,7 @@ public class PredictionOptions
 }
 
 /// <summary>
-/// Available prediction data sources.
+/// Determines where <see cref="IPredictionService"/> reads glucose predictions from.
 /// </summary>
 public enum PredictionSource
 {

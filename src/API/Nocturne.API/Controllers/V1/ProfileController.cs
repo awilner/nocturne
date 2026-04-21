@@ -8,9 +8,10 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Controllers.V1;
 
 /// <summary>
-/// Profile controller that provides 1:1 compatibility with Nightscout profile endpoints
-/// Implements the /api/v1/profile/* endpoints from the legacy JavaScript implementation
+/// Profile controller that provides 1:1 compatibility with Nightscout profile endpoints.
+/// Implements the /api/v1/profile/* endpoints from the legacy JavaScript implementation.
 /// </summary>
+/// <seealso cref="IProfileDataService"/>
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize(Policy = PolicyNames.HasPermissions)]
@@ -19,6 +20,11 @@ public class ProfileController : ControllerBase
     private readonly IProfileDataService _profileDataService;
     private readonly ILogger<ProfileController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ProfileController"/>.
+    /// </summary>
+    /// <param name="profileDataService">Service for legacy V1 profile data operations.</param>
+    /// <param name="logger">Logger instance.</param>
     public ProfileController(
         IProfileDataService profileDataService,
         ILogger<ProfileController> logger

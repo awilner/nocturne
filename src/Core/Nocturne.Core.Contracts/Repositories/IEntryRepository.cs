@@ -3,8 +3,11 @@ using Nocturne.Core.Models;
 namespace Nocturne.Core.Contracts.Repositories;
 
 /// <summary>
-/// Repository port for Entry domain operations
+/// Repository port for <see cref="Entry"/> domain operations.
 /// </summary>
+/// <seealso cref="Entry"/>
+/// <seealso cref="Nocturne.Core.Contracts.Entries.IEntryStore"/>
+/// <seealso cref="DataSourceStats"/>
 public interface IEntryRepository
 {
     /// <summary>

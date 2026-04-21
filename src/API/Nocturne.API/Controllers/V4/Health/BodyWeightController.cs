@@ -6,8 +6,13 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Controllers.V4.Health;
 
 /// <summary>
-/// Body weight controller for weight tracking data
+/// Controller for body weight tracking data.
 /// </summary>
+/// <remarks>
+/// Provides time-series weight readings sourced from connected health apps.
+/// All read and write operations delegate to <see cref="IBodyWeightService"/>.
+/// </remarks>
+/// <seealso cref="IBodyWeightService"/>
 [ApiController]
 [Route("api/v4/body-weight")]
 public class BodyWeightController : ControllerBase

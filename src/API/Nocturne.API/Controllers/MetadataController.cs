@@ -15,8 +15,17 @@ using Nocturne.Core.Models.Services;
 namespace Nocturne.API.Controllers;
 
 /// <summary>
-/// Metadata controller that exposes type definitions for frontend clients
+/// Metadata controller that exposes type definitions for NSwag and the frontend client generation pipeline.
 /// </summary>
+/// <remarks>
+/// This controller exists solely to ensure NSwag generates TypeScript types for models that are not
+/// otherwise reachable through regular API endpoints (e.g., WebSocket event envelopes, connector
+/// configuration shapes, OAuth scope lists). It is excluded from the interactive API explorer via
+/// <see cref="ApiExplorerSettingsAttribute"/> with <c>IgnoreApi = true</c>.
+///
+/// None of the endpoints here perform real business logic — they return empty/stub responses.
+/// All endpoints are permitted during initial setup (<see cref="AllowDuringSetupAttribute"/>).
+/// </remarks>
 [ApiController]
 [ApiExplorerSettings(IgnoreApi = true)]
 [Route("api/[controller]")]

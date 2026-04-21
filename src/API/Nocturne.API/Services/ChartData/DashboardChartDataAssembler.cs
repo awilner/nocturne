@@ -2,6 +2,11 @@ using Nocturne.Core.Models;
 
 namespace Nocturne.API.Services.ChartData;
 
+/// <summary>
+/// Assembles a <see cref="DashboardChartData"/> DTO by copying fields from a fully-populated
+/// <see cref="ChartDataContext"/> after all pipeline stages have run.
+/// </summary>
+/// <seealso cref="IChartDataAssembler"/>
 internal sealed class DashboardChartDataAssembler : IChartDataAssembler
 {
     public DashboardChartData Assemble(ChartDataContext context)

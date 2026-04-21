@@ -10,8 +10,11 @@ using Nocturne.Infrastructure.Data.Repositories;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for creating tracker reset suggestions based on detected events
+/// Detects events that warrant a tracker reset (e.g. sensor warmup gaps) and creates in-app
+/// suggestion notifications that users can accept or dismiss. Also handles acceptance of those
+/// suggestions, completing the current tracker instance and optionally starting a new one.
 /// </summary>
+/// <seealso cref="ITrackerSuggestionService"/>
 public class TrackerSuggestionService : ITrackerSuggestionService
 {
     private readonly ITrackerRepository _trackerRepository;

@@ -6,6 +6,9 @@ namespace Nocturne.Core.Models.Authorization;
 /// requests using legacy api-secret or access tokens get translated to
 /// equivalent scopes so controllers only need to check scopes.
 /// </summary>
+/// <seealso cref="OAuthScopes"/>
+/// <seealso cref="TenantPermissions"/>
+/// <seealso cref="Role"/>
 public static class ScopeTranslator
 {
     /// <summary>

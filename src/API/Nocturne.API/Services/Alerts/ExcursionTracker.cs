@@ -7,16 +7,21 @@ namespace Nocturne.API.Services.Alerts;
 
 /// <summary>
 /// State machine that manages the lifecycle of alert excursions.
-///
-/// States: idle -> confirming -> active -> hysteresis -> idle
+/// </summary>
+/// <remarks>
+/// States: <c>idle</c> → <c>confirming</c> → <c>active</c> → <c>hysteresis</c> → <c>idle</c>.
 ///
 /// On each evaluation:
-///   1. Load or create tracker state for the rule.
-///   2. Load rule configuration (confirmation_readings, hysteresis_minutes).
-///   3. Apply state machine transitions.
-///   4. Persist updated state and any excursion changes.
-///   5. Return a transition describing what happened.
-/// </summary>
+/// <list type="number">
+///   <item>Load or create tracker state for the rule via <see cref="IAlertTrackerRepository"/>.</item>
+///   <item>Load rule configuration (<c>ConfirmationReadings</c>, <c>HysteresisMinutes</c>).</item>
+///   <item>Apply state machine transitions based on whether the alert condition is met.</item>
+///   <item>Persist updated state and any excursion changes.</item>
+///   <item>Return an <see cref="ExcursionTransition"/> describing what happened.</item>
+/// </list>
+/// </remarks>
+/// <seealso cref="IExcursionTracker"/>
+/// <seealso cref="IAlertTrackerRepository"/>
 public class ExcursionTracker(
     IAlertTrackerRepository repository,
     TimeProvider timeProvider,
@@ -28,6 +33,14 @@ public class ExcursionTracker(
     private const string StateActive = "active";
     private const string StateHysteresis = "hysteresis";
 
+    /// <inheritdoc/>
+    /// <param name="alertRuleId">The alert rule to evaluate.</param>
+    /// <param name="conditionMet">Whether the alert condition is currently satisfied.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>
+    /// An <see cref="ExcursionTransition"/> indicating the state change that occurred,
+    /// or <see cref="ExcursionTransitionType.None"/> when no transition was triggered.
+    /// </returns>
     public async Task<ExcursionTransition> ProcessEvaluationAsync(
         Guid alertRuleId,
         bool conditionMet,

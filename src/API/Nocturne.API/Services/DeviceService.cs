@@ -6,6 +6,12 @@ using Nocturne.Core.Models.V4;
 
 namespace Nocturne.API.Services;
 
+/// <summary>
+/// Resolves or creates canonical <see cref="Device"/> records by category, type, and serial number.
+/// Results are cached in a per-tenant in-memory <see cref="ConcurrentDictionary{TKey,TValue}"/> to
+/// avoid redundant database lookups during bulk decomposition.
+/// </summary>
+/// <seealso cref="IDeviceService"/>
 public class DeviceService : IDeviceService
 {
     private readonly IDeviceRepository _repository;

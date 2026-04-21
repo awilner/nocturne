@@ -10,6 +10,11 @@ internal sealed class WebPushProvider(
     ISignalRBroadcastService broadcastService,
     ILogger<WebPushProvider> logger)
 {
+    /// <summary>
+    /// Broadcasts an alert to all connected SignalR clients subscribed to the tenant's alert hub.
+    /// </summary>
+    /// <param name="payload">The <see cref="AlertPayload"/> to push.</param>
+    /// <param name="ct">Cancellation token (not forwarded to SignalR but required for interface compatibility).</param>
     public async Task SendAsync(AlertPayload payload, CancellationToken ct)
     {
         try

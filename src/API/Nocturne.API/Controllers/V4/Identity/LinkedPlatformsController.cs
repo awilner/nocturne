@@ -6,6 +6,16 @@ using Nocturne.Core.Contracts.Multitenancy;
 
 namespace Nocturne.API.Controllers.V4.Identity;
 
+/// <summary>
+/// Returns the set of chat platforms (Discord, Telegram, etc.) that are linked to the current tenant.
+/// </summary>
+/// <remarks>
+/// This endpoint is a thin read-only view over the <see cref="ChatIdentityDirectoryService"/> that
+/// reports which bot platforms have at least one registered identity within the resolved tenant,
+/// allowing the frontend to display "connected platform" status without requiring a per-platform API call.
+/// </remarks>
+/// <seealso cref="ChatIdentityDirectoryService"/>
+/// <seealso cref="ChatIdentityController"/>
 [ApiController]
 [Authorize]
 [Route("api/v4/chat-identity")]

@@ -8,8 +8,13 @@ using Nocturne.Infrastructure.Data.Entities;
 namespace Nocturne.API.Services.Auth;
 
 /// <summary>
-/// Service for managing refresh tokens stored in the database
+/// Service for creating, validating, rotating, and revoking refresh tokens stored in the database.
+/// Token values are never stored in plaintext — only the SHA-256 hash is persisted.
+/// Rotation on use prevents token replay attacks.
 /// </summary>
+/// <seealso cref="IRefreshTokenService"/>
+/// <seealso cref="IJwtService"/>
+/// <seealso cref="OAuthTokenService"/>
 public class RefreshTokenService : IRefreshTokenService
 {
     private readonly NocturneDbContext _dbContext;
@@ -18,8 +23,12 @@ public class RefreshTokenService : IRefreshTokenService
     private readonly ILogger<RefreshTokenService> _logger;
 
     /// <summary>
-    /// Creates a new instance of RefreshTokenService
+    /// Initializes a new instance of <see cref="RefreshTokenService"/>.
     /// </summary>
+    /// <param name="dbContext">The EF Core database context for refresh token entity persistence.</param>
+    /// <param name="jwtService">Service for generating crypto-random tokens and computing token hashes.</param>
+    /// <param name="options">JWT configuration options including refresh token lifetime settings.</param>
+    /// <param name="logger">The logger instance.</param>
     public RefreshTokenService(
         NocturneDbContext dbContext,
         IJwtService jwtService,

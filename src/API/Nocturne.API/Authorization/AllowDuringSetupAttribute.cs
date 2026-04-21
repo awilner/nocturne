@@ -9,10 +9,12 @@ namespace Nocturne.API.Authorization;
 /// short-circuit blocking behavior when this attribute is present.
 /// </para>
 /// <para>
-/// Apply sparingly — only to endpoints that must be reachable to bootstrap a tenant
+/// Apply sparingly -- only to endpoints that must be reachable to bootstrap a tenant
 /// (passkey/TOTP setup, OIDC bootstrap login, admin tenant provisioning, metadata).
 /// </para>
 /// </summary>
+/// <seealso cref="Middleware.TenantSetupMiddleware"/>
+/// <seealso cref="Middleware.RecoveryModeMiddleware"/>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 public sealed class AllowDuringSetupAttribute : Attribute
 {

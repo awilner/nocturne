@@ -126,8 +126,11 @@ public enum CompletionReason
 }
 
 /// <summary>
-/// Urgency level for tracker notification thresholds
+/// Urgency level for tracker notification thresholds and in-app notifications.
+/// Used by tracker definitions, <see cref="InAppNotificationDto"/>, and <see cref="NotificationTemplate"/>.
 /// </summary>
+/// <seealso cref="NotificationCategory"/>
+/// <seealso cref="InAppNotificationDto"/>
 [JsonConverter(typeof(JsonStringEnumConverter<NotificationUrgency>))]
 public enum NotificationUrgency
 {
@@ -259,6 +262,9 @@ public enum NotificationArchiveReason
 /// Broad rendering category for notifications. Determines visual treatment (icon shape,
 /// color palette, default sound) without coupling to a specific notification type.
 /// </summary>
+/// <seealso cref="NotificationUrgency"/>
+/// <seealso cref="InAppNotificationDto"/>
+/// <seealso cref="NotificationTemplate"/>
 [JsonConverter(typeof(JsonStringEnumConverter<NotificationCategory>))]
 public enum NotificationCategory
 {

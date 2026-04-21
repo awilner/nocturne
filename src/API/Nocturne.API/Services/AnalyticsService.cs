@@ -9,10 +9,28 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Local analytics service that collects anonymous usage data
-/// All data collected is anonymous and contains no medical or personal information
-/// Data is kept locally and not transmitted externally
+/// Local analytics service that collects anonymous usage telemetry entirely in-process.
+/// All counters are lock-free (<see cref="System.Collections.Concurrent.ConcurrentDictionary{TKey,TValue}"/>
+/// and <see cref="System.Threading.Interlocked"/>) so tracking calls never block the request thread.
 /// </summary>
+/// <remarks>
+/// <para>
+/// The installation ID is persisted to <c>%APPDATA%/nocturne/installation_id</c> so the same
+/// logical instance is recognised across restarts. If the file cannot be written (containerised
+/// read-only filesystem, etc.) a session-scoped UUID v7 is used as a transient fallback.
+/// </para>
+/// <para>
+/// Endpoint paths are normalised before storage: query strings are stripped, MongoDB ObjectIds
+/// are replaced with <c>[id]</c>, GUIDs with <c>[guid]</c>, and numeric segments with <c>[id]</c>.
+/// This prevents high-cardinality keys from flooding the dictionaries.
+/// </para>
+/// <para>
+/// Events are enqueued to an in-memory <see cref="System.Collections.Concurrent.ConcurrentQueue{T}"/>
+/// and are never transmitted externally; <see cref="GetPendingAnalyticsDataAsync"/> surfaces them
+/// for optional local consumption.
+/// </para>
+/// </remarks>
+/// <seealso cref="IAnalyticsService"/>
 public class AnalyticsService : IAnalyticsService
 {
     private readonly ILogger<AnalyticsService> _logger;
@@ -63,6 +81,12 @@ public class AnalyticsService : IAnalyticsService
         }
     }
 
+    /// <summary>
+    /// Records an API call. The endpoint is normalised to strip IDs and query strings before
+    /// being used as a dictionary key. Calls to paths listed in
+    /// <see cref="AnalyticsCollectionConfig.ExcludedEndpoints"/> are silently dropped.
+    /// Status codes ≥ 400 increment the total error counter.
+    /// </summary>
     public async Task TrackApiCallAsync(
         string endpoint,
         string method,
@@ -217,6 +241,11 @@ public class AnalyticsService : IAnalyticsService
         return _systemInfo;
     }
 
+    /// <summary>
+    /// Returns a snapshot of in-process performance counters. Average response time is computed
+    /// across all tracked endpoints using the running totals accumulated since service start
+    /// (or the last <see cref="ClearAnalyticsDataAsync"/> call).
+    /// </summary>
     public PerformanceMetrics GetPerformanceMetrics()
     {
         var uptime = DateTime.UtcNow - _startTime;

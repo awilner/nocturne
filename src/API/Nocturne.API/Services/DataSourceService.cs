@@ -10,8 +10,11 @@ using Nocturne.Core.Contracts.Repositories;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Service for managing and querying data sources connected to Nocturne
+/// Domain service for querying and managing the data sources (connectors and direct Nightscout uploads)
+/// connected to a Nocturne tenant. Aggregates connector metadata, last-seen timestamps from entries
+/// and treatments, and enabled/disabled state for display in the admin UI.
 /// </summary>
+/// <seealso cref="IDataSourceService"/>
 public class DataSourceService : IDataSourceService
 {
     private readonly NocturneDbContext _context;

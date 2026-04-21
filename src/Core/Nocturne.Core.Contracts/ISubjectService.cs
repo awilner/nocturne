@@ -3,8 +3,12 @@ using Nocturne.Core.Models.Authorization;
 namespace Nocturne.Core.Contracts;
 
 /// <summary>
-/// Service for managing authentication subjects (users, devices, API keys)
+/// Service for managing authentication subjects (users, devices, API keys).
 /// </summary>
+/// <seealso cref="IRoleService"/>
+/// <seealso cref="IPasskeyService"/>
+/// <seealso cref="ITotpService"/>
+/// <seealso cref="IOidcAuthService"/>
 public interface ISubjectService
 {
     /// <summary>
@@ -38,8 +42,22 @@ public interface ISubjectService
         string? name = null,
         IEnumerable<string>? defaultRoles = null);
 
+    /// <summary>Returns all OIDC identities linked to a subject.</summary>
+    /// <param name="subjectId">Subject identifier.</param>
     Task<IReadOnlyList<SubjectOidcIdentity>> GetLinkedOidcIdentitiesAsync(Guid subjectId);
+
+    /// <summary>Returns the OIDC identity most recently used to authenticate the subject, or null if none.</summary>
+    /// <param name="subjectId">Subject identifier.</param>
     Task<SubjectOidcIdentity?> GetMostRecentlyUsedIdentityAsync(Guid subjectId);
+
+    /// <summary>
+    /// Attaches an OIDC identity to an existing subject. Returns the outcome and the identity ID on success.
+    /// </summary>
+    /// <param name="subjectId">The subject to attach the identity to.</param>
+    /// <param name="providerId">The OIDC provider ID.</param>
+    /// <param name="oidcSubjectId">The subject identifier from the OIDC provider (sub claim).</param>
+    /// <param name="issuer">The OIDC issuer URL.</param>
+    /// <param name="email">The email from OIDC claims, if any.</param>
     Task<(OidcLinkOutcome Outcome, Guid? IdentityId)> AttachOidcIdentityAsync(
         Guid subjectId, Guid providerId, string oidcSubjectId, string issuer, string? email);
 
@@ -57,7 +75,12 @@ public interface ISubjectService
     /// </summary>
     Task<FactorRemovalResult> TryRemovePasskeyCredentialAsync(Guid subjectId, Guid credentialId);
 
+    /// <summary>Returns the total number of primary authentication factors (passkeys + OIDC identities) for a subject.</summary>
+    /// <param name="subjectId">Subject identifier.</param>
     Task<int> CountPrimaryAuthFactorsAsync(Guid subjectId);
+
+    /// <summary>Updates the last-used timestamp on an OIDC identity to track recent activity.</summary>
+    /// <param name="identityId">The OIDC identity ID to update.</param>
     Task UpdateOidcIdentityLastUsedAsync(Guid identityId);
 
     /// <summary>

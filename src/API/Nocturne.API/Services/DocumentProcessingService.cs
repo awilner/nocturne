@@ -5,8 +5,11 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// Generic service for processing documents with sanitization and timestamp conversion
+/// Processes incoming Nightscout documents before they are persisted. Responsibilities include
+/// HTML sanitization of free-text fields (using a Ganss.Xss allowlist that mirrors the legacy
+/// Nightscout purifier), mills/timestamp normalization, and identifier generation.
 /// </summary>
+/// <seealso cref="IDocumentProcessingService"/>
 public class DocumentProcessingService : IDocumentProcessingService
 {
     private readonly HtmlSanitizer _htmlSanitizer;

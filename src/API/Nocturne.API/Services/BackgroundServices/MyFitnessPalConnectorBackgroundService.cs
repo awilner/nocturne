@@ -6,10 +6,15 @@ using Nocturne.Connectors.MyFitnessPal.Services;
 namespace Nocturne.API.Services.BackgroundServices;
 
 /// <summary>
-/// Background service for MyFitnessPal connector
+/// Background service that periodically syncs food diary and nutrition data from MyFitnessPal via
+/// <see cref="MyFitnessPalConnectorService"/>.
 /// </summary>
+/// <seealso cref="ConnectorBackgroundService{TConfig}"/>
 public class MyFitnessPalConnectorBackgroundService : ConnectorBackgroundService<MyFitnessPalConnectorConfiguration>
 {
+    /// <param name="serviceProvider">Service provider used to create a DI scope per sync cycle.</param>
+    /// <param name="config">MyFitnessPal connector configuration (credentials, polling interval, etc.).</param>
+    /// <param name="logger">Logger instance for this background service.</param>
     public MyFitnessPalConnectorBackgroundService(
         IServiceProvider serviceProvider,
         MyFitnessPalConnectorConfiguration config,

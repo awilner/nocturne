@@ -6,8 +6,12 @@ namespace Nocturne.Core.Models.Serializers;
 /// <summary>
 /// JSON converter that handles flexible long (Int64) serialization for Nightscout compatibility.
 /// Nightscout may send numeric values as either numbers or strings depending on the context.
-/// This converter handles both cases gracefully.
 /// </summary>
+/// <remarks>
+/// Also handles string values containing decimal notation (e.g., "1234567890.0") by parsing
+/// as double and truncating. Returns 0 for null or unrecognized values.
+/// </remarks>
+/// <seealso cref="FlexibleNullableLongConverter"/>
 public class FlexibleLongConverter : JsonConverter<long>
 {
     public override long Read(
@@ -52,8 +56,8 @@ public class FlexibleLongConverter : JsonConverter<long>
 /// <summary>
 /// JSON converter that handles flexible nullable long (Int64?) serialization for Nightscout compatibility.
 /// Nightscout may send numeric values as either numbers or strings depending on the context.
-/// This converter handles both cases gracefully.
 /// </summary>
+/// <seealso cref="FlexibleLongConverter"/>
 public class FlexibleNullableLongConverter : JsonConverter<long?>
 {
     public override long? Read(

@@ -14,8 +14,24 @@ namespace Nocturne.API.Controllers.Authentication;
 
 /// <summary>
 /// Controller for managing direct grant tokens (programmatic API tokens without an OAuth client).
-/// These tokens use the "noc_" prefix and are validated by DirectGrantTokenHandler.
+/// These tokens use the <c>noc_</c> prefix and are validated by <see cref="DirectGrantTokenHandler"/>.
 /// </summary>
+/// <remarks>
+/// Direct grants are bearer tokens tied to a specific user but issued outside the standard
+/// OAuth 2.0 consent flow. They are intended for scripts, automation, and server-to-server
+/// integrations where launching an authorization-code flow is impractical.
+///
+/// Token generation uses <see cref="System.Security.Cryptography.RandomNumberGenerator"/> to produce
+/// 32 bytes of entropy encoded as a Base64-URL string. Only the SHA-256 hash of the token is stored
+/// (<see cref="DirectGrantTokenHandler.ComputeSha256Hex"/>); the plaintext is returned once at
+/// creation and cannot be retrieved again.
+///
+/// Scopes are validated and normalized via <see cref="OAuthScopes.Normalize"/> before storage.
+/// All mutations are audit-logged through <see cref="IAuthAuditService"/>.
+/// </remarks>
+/// <seealso cref="DirectGrantTokenHandler"/>
+/// <seealso cref="IAuthAuditService"/>
+/// <seealso cref="OAuthScopes"/>
 [ApiController]
 [Route("api/auth/direct-grants")]
 [Tags("Authentication")]
@@ -29,8 +45,11 @@ public class DirectGrantController : ControllerBase
     private readonly ILogger<DirectGrantController> _logger;
 
     /// <summary>
-    /// Creates a new instance of DirectGrantController
+    /// Initializes a new instance of the <see cref="DirectGrantController"/> class.
     /// </summary>
+    /// <param name="dbContext">The application database context used to read and write grant records.</param>
+    /// <param name="auditService">The audit service for recording token issuance and revocation events.</param>
+    /// <param name="logger">The logger.</param>
     public DirectGrantController(
         NocturneDbContext dbContext,
         IAuthAuditService auditService,
@@ -44,6 +63,8 @@ public class DirectGrantController : ControllerBase
     /// <summary>
     /// Create a new direct grant token. The plaintext token is returned once and cannot be retrieved again.
     /// </summary>
+    /// <param name="request">The create request containing the human-readable label, desired scopes, and optional expiry.</param>
+    /// <returns>A <see cref="CreateDirectGrantResponse"/> containing the grant ID and the single-use plaintext token.</returns>
     [HttpPost]
     [RemoteCommand(Invalidates = ["List"])]
     [ProducesResponseType(typeof(CreateDirectGrantResponse), StatusCodes.Status200OK)]
@@ -123,6 +144,7 @@ public class DirectGrantController : ControllerBase
     /// List all active direct grants for the authenticated user.
     /// Never returns the token itself.
     /// </summary>
+    /// <returns>A list of <see cref="DirectGrantDto"/> objects representing non-revoked grants for the current user.</returns>
     [HttpGet]
     [RemoteQuery]
     [ProducesResponseType(typeof(List<DirectGrantDto>), StatusCodes.Status200OK)]
@@ -155,8 +177,10 @@ public class DirectGrantController : ControllerBase
     }
 
     /// <summary>
-    /// Revoke a direct grant by setting its RevokedAt timestamp
+    /// Revoke a direct grant by setting its <c>RevokedAt</c> timestamp. This operation is idempotent.
     /// </summary>
+    /// <param name="id">The GUID of the grant to revoke.</param>
+    /// <returns><c>204 No Content</c> on success (including when already revoked); <c>404 Not Found</c> if the grant does not belong to the current user.</returns>
     [HttpDelete("{id:guid}")]
     [RemoteCommand(Invalidates = ["List"])]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

@@ -6,6 +6,8 @@ namespace Nocturne.Core.Contracts;
 /// Service for deduplicating records from multiple data sources.
 /// Links records that represent the same underlying event and provides unified views.
 /// </summary>
+/// <seealso cref="IEntryService"/>
+/// <seealso cref="ITreatmentService"/>
 public interface IDeduplicationService
 {
     /// <summary>

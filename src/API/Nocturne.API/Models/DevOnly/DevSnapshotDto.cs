@@ -6,24 +6,68 @@ namespace Nocturne.API.Models.DevOnly;
 /// </summary>
 public class DevSnapshotDto
 {
+    /// <summary>
+    /// Timestamp when the snapshot was exported.
+    /// </summary>
     public DateTime ExportedAt { get; set; }
+
+    /// <summary>
+    /// All tenants and their associated identity/config data.
+    /// </summary>
     public List<TenantSnapshotDto> Tenants { get; set; } = [];
 }
 
+/// <summary>
+/// Snapshot of a single tenant's identity and configuration data for dev-only export/import.
+/// </summary>
 public class TenantSnapshotDto
 {
+    /// <summary>
+    /// The tenant entity itself.
+    /// </summary>
     public TenantEntityDto Tenant { get; set; } = null!;
+
+    /// <summary>
+    /// All subjects (users/service accounts) belonging to this tenant.
+    /// </summary>
     public List<SubjectEntityDto> Subjects { get; set; } = [];
+
+    /// <summary>
+    /// All passkey credentials registered for this tenant's subjects.
+    /// </summary>
     public List<PasskeyCredentialEntityDto> PasskeyCredentials { get; set; } = [];
+
+    /// <summary>
+    /// All tenant-scoped roles.
+    /// </summary>
     public List<TenantRoleEntityDto> Roles { get; set; } = [];
+
+    /// <summary>
+    /// All tenant membership records linking subjects to the tenant.
+    /// </summary>
     public List<TenantMemberEntityDto> Members { get; set; } = [];
+
+    /// <summary>
+    /// All role assignments for tenant members.
+    /// </summary>
     public List<TenantMemberRoleEntityDto> MemberRoles { get; set; } = [];
+
+    /// <summary>
+    /// All OAuth client registrations for this tenant.
+    /// </summary>
     public List<OAuthClientEntityDto> OAuthClients { get; set; } = [];
+
+    /// <summary>
+    /// All connector configurations (with secrets decrypted) for this tenant.
+    /// </summary>
     public List<ConnectorConfigSnapshotDto> ConnectorConfigurations { get; set; } = [];
 }
 
 // ── Tenant ──────────────────────────────────────────────────────────────
 
+/// <summary>
+/// Serialized representation of a tenant entity for snapshot export/import.
+/// </summary>
 public class TenantEntityDto
 {
     public Guid Id { get; set; }
@@ -45,6 +89,9 @@ public class TenantEntityDto
 
 // ── Subject ─────────────────────────────────────────────────────────────
 
+/// <summary>
+/// Serialized representation of a subject (user or service account) for snapshot export/import.
+/// </summary>
 public class SubjectEntityDto
 {
     public Guid Id { get; set; }
@@ -68,6 +115,10 @@ public class SubjectEntityDto
 
 // ── PasskeyCredential (byte[] → base64 string) ─────────────────────────
 
+/// <summary>
+/// Serialized representation of a WebAuthn passkey credential. Binary fields (CredentialId, PublicKey)
+/// are base64-encoded strings for JSON portability.
+/// </summary>
 public class PasskeyCredentialEntityDto
 {
     public Guid Id { get; set; }
@@ -84,6 +135,9 @@ public class PasskeyCredentialEntityDto
 
 // ── TenantRole ──────────────────────────────────────────────────────────
 
+/// <summary>
+/// Serialized representation of a tenant-scoped authorization role for snapshot export/import.
+/// </summary>
 public class TenantRoleEntityDto
 {
     public Guid Id { get; set; }
@@ -99,6 +153,9 @@ public class TenantRoleEntityDto
 
 // ── TenantMember ────────────────────────────────────────────────────────
 
+/// <summary>
+/// Serialized representation of a tenant membership (subject-to-tenant link) for snapshot export/import.
+/// </summary>
 public class TenantMemberEntityDto
 {
     public Guid Id { get; set; }
@@ -118,6 +175,9 @@ public class TenantMemberEntityDto
 
 // ── TenantMemberRole ────────────────────────────────────────────────────
 
+/// <summary>
+/// Serialized representation of a role assignment for a tenant member.
+/// </summary>
 public class TenantMemberRoleEntityDto
 {
     public Guid Id { get; set; }
@@ -128,6 +188,9 @@ public class TenantMemberRoleEntityDto
 
 // ── OAuthClient ─────────────────────────────────────────────────────────
 
+/// <summary>
+/// Serialized representation of an OAuth client registration for snapshot export/import.
+/// </summary>
 public class OAuthClientEntityDto
 {
     public Guid Id { get; set; }
@@ -147,6 +210,9 @@ public class OAuthClientEntityDto
 
 // ── ConnectorConfiguration (secrets decrypted on export) ────────────────
 
+/// <summary>
+/// Serialized representation of a connector configuration with decrypted secrets for snapshot export/import.
+/// </summary>
 public class ConnectorConfigSnapshotDto
 {
     public Guid Id { get; set; }

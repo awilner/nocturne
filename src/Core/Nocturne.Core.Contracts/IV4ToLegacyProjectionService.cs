@@ -6,6 +6,8 @@ namespace Nocturne.Core.Contracts;
 /// Projects V4 granular records (SensorGlucose, Bolus, CarbIntake, BGCheck, Note, DeviceEvent)
 /// back into the legacy Entry and Treatment shapes required by the v1/v2/v3 API endpoints.
 /// </summary>
+/// <seealso cref="IEntryService"/>
+/// <seealso cref="ITreatmentService"/>
 public interface IV4ToLegacyProjectionService
 {
     /// <summary>

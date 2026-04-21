@@ -2,6 +2,10 @@ using Nocturne.Core.Models;
 
 namespace Nocturne.Core.Contracts;
 
+/// <summary>
+/// Domain service for <see cref="BodyWeight"/> record operations with WebSocket broadcasting.
+/// </summary>
+/// <seealso cref="BodyWeight"/>
 public interface IBodyWeightService
 {
     /// <summary>Returns body weight records with pagination.</summary>

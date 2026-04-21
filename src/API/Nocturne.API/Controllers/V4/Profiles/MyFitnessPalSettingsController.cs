@@ -8,12 +8,17 @@ namespace Nocturne.API.Controllers.V4.Profiles;
 /// <summary>
 /// Controller for global MyFitnessPal matching settings.
 /// </summary>
+/// <seealso cref="IMyFitnessPalMatchingSettingsService"/>
 [ApiController]
 [Route("api/v4/connectors/myfitnesspal/settings")]
 public class MyFitnessPalSettingsController : ControllerBase
 {
     private readonly IMyFitnessPalMatchingSettingsService _settingsService;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="MyFitnessPalSettingsController"/>.
+    /// </summary>
+    /// <param name="settingsService">Service for MyFitnessPal matching settings persistence.</param>
     public MyFitnessPalSettingsController(IMyFitnessPalMatchingSettingsService settingsService)
     {
         _settingsService = settingsService;

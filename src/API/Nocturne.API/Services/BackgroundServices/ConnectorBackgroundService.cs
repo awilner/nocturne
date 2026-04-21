@@ -13,9 +13,17 @@ using Nocturne.Infrastructure.Data;
 namespace Nocturne.API.Services.BackgroundServices;
 
 /// <summary>
-/// Base class for connector background services that run within the API
+/// Abstract base class for connector background services that poll external data sources
+/// on a per-tenant basis within the API process.
 /// </summary>
-/// <typeparam name="TConfig">The connector configuration type</typeparam>
+/// <typeparam name="TConfig">
+/// The connector configuration type, which must implement <see cref="IConnectorConfiguration"/>.
+/// </typeparam>
+/// <remarks>
+/// The service polls every minute and only syncs a given tenant when its configured
+/// <c>SyncIntervalMinutes</c> has elapsed since the last sync. Database configuration
+/// and secrets are loaded fresh for each tenant sync cycle via <see cref="LoadDatabaseConfigurationAsync"/>.
+/// </remarks>
 public abstract class ConnectorBackgroundService<TConfig> : BackgroundService
     where TConfig : class, IConnectorConfiguration
 {
@@ -29,6 +37,12 @@ public abstract class ConnectorBackgroundService<TConfig> : BackgroundService
     /// </summary>
     private readonly ConcurrentDictionary<Guid, DateTime> _lastSyncByTenant = new();
 
+    /// <summary>
+    /// Initialises a new <see cref="ConnectorBackgroundService{TConfig}"/>.
+    /// </summary>
+    /// <param name="serviceProvider">Root DI service provider; a new scope is created per tenant sync.</param>
+    /// <param name="config">Connector configuration singleton; updated at runtime from DB values.</param>
+    /// <param name="logger">Logger instance.</param>
     protected ConnectorBackgroundService(
         IServiceProvider serviceProvider,
         TConfig config,
@@ -57,10 +71,15 @@ public abstract class ConnectorBackgroundService<TConfig> : BackgroundService
 
     /// <summary>
     /// Loads runtime configuration and secrets from the database and applies them
-    /// to the Config singleton. This ensures DB-stored values (including encrypted
+    /// to the <see cref="Config"/> singleton. Ensures DB-stored values (including encrypted
     /// passwords) are available to the connector at runtime.
     /// </summary>
-    /// <returns>True if a database configuration exists for this connector, false otherwise.</returns>
+    /// <param name="scopeProvider">Tenant-scoped service provider for resolving <see cref="IConnectorConfigurationService"/>.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>
+    /// <see langword="true"/> when a database configuration row exists for this connector;
+    /// <see langword="false"/> when no configuration is found and the sync should be skipped.
+    /// </returns>
     protected async Task<bool> LoadDatabaseConfigurationAsync(IServiceProvider scopeProvider, CancellationToken ct)
     {
         try
@@ -101,9 +120,10 @@ public abstract class ConnectorBackgroundService<TConfig> : BackgroundService
     }
 
     /// <summary>
-    /// Applies JSON configuration values to the Config object via reflection.
-    /// Matches camelCase JSON keys to PascalCase C# properties.
+    /// Applies JSON configuration values to the <see cref="Config"/> object using reflection.
+    /// Matches camelCase JSON property names to PascalCase C# property names.
     /// </summary>
+    /// <param name="configuration">The parsed JSON document containing connector configuration values.</param>
     private void ApplyJsonToConfig(JsonDocument configuration)
     {
         var properties = Config.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -137,9 +157,10 @@ public abstract class ConnectorBackgroundService<TConfig> : BackgroundService
     }
 
     /// <summary>
-    /// Applies decrypted secret values to the Config object via reflection.
-    /// Matches camelCase secret keys to PascalCase C# properties.
+    /// Applies decrypted secret values to the <see cref="Config"/> object using reflection.
+    /// Matches camelCase secret keys to PascalCase C# properties of type <see cref="string"/>.
     /// </summary>
+    /// <param name="secrets">Dictionary of camelCase secret names to decrypted string values.</param>
     private void ApplySecretsToConfig(Dictionary<string, string> secrets)
     {
         var properties = Config.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -157,7 +178,8 @@ public abstract class ConnectorBackgroundService<TConfig> : BackgroundService
     }
 
     /// <summary>
-    /// Updates the health state for this connector in the database
+    /// Persists the health state for this connector to the database via <see cref="IConnectorConfigurationService"/>.
+    /// Errors are swallowed and logged as warnings so that health-state failures do not abort sync.
     /// </summary>
     private async Task UpdateHealthStateAsync(
         IServiceProvider scopeProvider,

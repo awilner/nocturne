@@ -5,9 +5,12 @@ using Nocturne.Core.Models;
 namespace Nocturne.API.Services;
 
 /// <summary>
-/// V1 notification service implementation with 1:1 legacy JavaScript compatibility
-/// Implements the functionality from legacy notifications.js and adminnotifies.js
+/// In-memory alarm and admin-notification service with 1:1 legacy JavaScript compatibility.
+/// Implements functionality from <c>notifications.js</c> and <c>adminnotifies.js</c>, maintaining
+/// per-site alarm state in <see cref="ConcurrentDictionary{TKey,TValue}"/> collections with bounded
+/// cache sizes and TTL-based eviction. Also bridges legacy Pushover receipt polling.
 /// </summary>
+/// <seealso cref="INotificationV1Service"/>
 public class NotificationV1Service : INotificationV1Service, IDisposable
 {
     private readonly ILogger<NotificationV1Service> _logger;
