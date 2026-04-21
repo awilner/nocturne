@@ -14,6 +14,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 DIAGRAMS_DIR="$REPO_ROOT/docs/diagrams"
 OUTPUT_DIR="$REPO_ROOT/src/API/Nocturne.API/wwwroot/diagrams"
 MANIFEST="$DIAGRAMS_DIR/diagrams.yaml"
+DIAGRAMGEN="$REPO_ROOT/tools/Nocturne.Tools.DiagramGen"
 
 # Ensure output directory exists
 mkdir -p "$OUTPUT_DIR"
@@ -26,15 +27,44 @@ dotnet dependify graph scan "$REPO_ROOT" \
   --format mermaid \
   > "$DIAGRAMS_DIR/project-dependencies.mmd"
 
-# --- EfToMermaid: entity relationship diagram ---
-echo "    Generating ER diagram"
-dotnet run --project "$REPO_ROOT/tools/Nocturne.Tools.DiagramGen" \
-  -- "$DIAGRAMS_DIR/er-diagram.mmd"
+# --- EfToMermaid: all efcore entries from manifest ---
+# Parse manifest for entries with "auto: efcore", extract source and optional module.
+echo "    Generating EF Core diagrams"
+
+# Use awk to extract source/module pairs for efcore entries
+awk '
+  /^  - source:/ { source = $NF }
+  /auto: efcore/ { efcore = 1 }
+  /module:/ { module = $NF }
+  /^  - source:/ && efcore && source {
+    # Emit previous entry when we hit the next entry
+  }
+  /^$/ || /^  - source:/ {
+    if (efcore && source) {
+      print source ":" module
+    }
+    efcore = 0; module = ""
+  }
+  END {
+    if (efcore && source) {
+      print source ":" module
+    }
+  }
+' "$MANIFEST" | while IFS=: read -r source module; do
+  output_mmd="$DIAGRAMS_DIR/$source"
+
+  if [[ -n "$module" ]]; then
+    echo "      $source (module: $module)"
+    dotnet run --project "$DIAGRAMGEN" --no-launch-profile -- "$output_mmd" --module "$module"
+  else
+    echo "      $source (full model)"
+    dotnet run --project "$DIAGRAMGEN" --no-launch-profile -- "$output_mmd"
+  fi
+done
 
 # --- Render all diagrams listed in manifest to SVG ---
 echo "==> Rendering diagrams to SVG"
 
-# Parse YAML manifest (simple grep-based — avoids yq dependency)
 grep "source:" "$MANIFEST" | sed 's/.*source: *//' | while read -r source; do
   input="$DIAGRAMS_DIR/$source"
   output="$OUTPUT_DIR/${source%.mmd}.svg"
