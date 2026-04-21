@@ -163,64 +163,6 @@ public class AlertsController : ControllerBase
     }
 
     /// <summary>
-    /// Get the current quiet hours configuration for the tenant.
-    /// </summary>
-    [HttpGet("quiet-hours")]
-    [RemoteQuery]
-    [ProducesResponseType(typeof(QuietHoursResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult<QuietHoursResponse>> GetQuietHours(CancellationToken ct)
-    {
-        await using var db = await _contextFactory.CreateDbContextAsync(ct);
-        var tenantId = _tenantAccessor.TenantId;
-
-        var tenant = await db.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId, ct);
-        if (tenant is null)
-            return NotFound();
-
-        return Ok(new QuietHoursResponse
-        {
-            Enabled = tenant.QuietHoursStart is not null && tenant.QuietHoursEnd is not null,
-            StartTime = tenant.QuietHoursStart?.ToString("HH:mm"),
-            EndTime = tenant.QuietHoursEnd?.ToString("HH:mm"),
-            OverrideCritical = tenant.QuietHoursOverrideCritical,
-        });
-    }
-
-    /// <summary>
-    /// Update quiet hours configuration for the tenant.
-    /// </summary>
-    [HttpPut("quiet-hours")]
-    [RemoteCommand(Invalidates = ["GetQuietHours"])]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> UpdateQuietHours(
-        [FromBody] UpdateQuietHoursRequest request, CancellationToken ct)
-    {
-        await using var db = await _contextFactory.CreateDbContextAsync(ct);
-        var tenantId = _tenantAccessor.TenantId;
-
-        var tenant = await db.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId, ct);
-        if (tenant is null)
-            return NotFound();
-
-        if (request.Enabled)
-        {
-            tenant.QuietHoursStart = TimeOnly.Parse(request.StartTime!);
-            tenant.QuietHoursEnd = TimeOnly.Parse(request.EndTime!);
-        }
-        else
-        {
-            tenant.QuietHoursStart = null;
-            tenant.QuietHoursEnd = null;
-        }
-
-        tenant.QuietHoursOverrideCritical = request.OverrideCritical;
-        await db.SaveChangesAsync(ct);
-
-        return NoContent();
-    }
-
-    /// <summary>
     /// Snooze an alert instance for the specified duration.
     /// </summary>
     [HttpPost("instances/{instanceId:guid}/snooze")]
@@ -372,22 +314,6 @@ public class HistoryExcursionResponse
 public class AcknowledgeRequest
 {
     public string? AcknowledgedBy { get; set; }
-}
-
-public class QuietHoursResponse
-{
-    public bool Enabled { get; set; }
-    public string? StartTime { get; set; }
-    public string? EndTime { get; set; }
-    public bool OverrideCritical { get; set; }
-}
-
-public class UpdateQuietHoursRequest
-{
-    public bool Enabled { get; set; }
-    public string? StartTime { get; set; }
-    public string? EndTime { get; set; }
-    public bool OverrideCritical { get; set; } = true;
 }
 
 public class SnoozeRequest

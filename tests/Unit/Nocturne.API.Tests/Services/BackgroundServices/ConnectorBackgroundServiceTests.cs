@@ -116,9 +116,6 @@ public class ConnectorBackgroundServiceTests
                 last_reading_at TEXT,
                 timezone TEXT NOT NULL DEFAULT 'UTC',
                 subject_name TEXT,
-                quiet_hours_start TEXT,
-                quiet_hours_end TEXT,
-                quiet_hours_override_critical INTEGER NOT NULL DEFAULT 1,
                 allow_access_requests INTEGER NOT NULL DEFAULT 1,
                 sys_created_at TEXT NOT NULL,
                 sys_updated_at TEXT NOT NULL
@@ -126,7 +123,7 @@ public class ConnectorBackgroundServiceTests
 
         var tenantId = Guid.NewGuid();
         context.Database.ExecuteSqlRaw(
-            "INSERT INTO tenants (Id, slug, display_name, is_active, is_default, timezone, quiet_hours_override_critical, allow_access_requests, sys_created_at, sys_updated_at) VALUES ({0}, {1}, {2}, 1, 0, 'UTC', 1, 1, {3}, {4})",
+            "INSERT INTO tenants (Id, slug, display_name, is_active, is_default, timezone, allow_access_requests, sys_created_at, sys_updated_at) VALUES ({0}, {1}, {2}, 1, 0, 'UTC', 1, {3}, {4})",
             tenantId.ToString(), "test-tenant", "Test Tenant",
             DateTime.UtcNow.ToString("O"), DateTime.UtcNow.ToString("O"));
 

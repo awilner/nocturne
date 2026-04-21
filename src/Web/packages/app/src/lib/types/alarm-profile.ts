@@ -184,19 +184,6 @@ export interface AlarmProfileConfiguration {
   updatedAt: string;
 }
 
-/** Enhanced quiet hours configuration */
-export interface QuietHoursConfiguration {
-  enabled: boolean;
-  startTime: string;
-  endTime: string;
-  /** Allow critical alarms during quiet hours */
-  allowCritical: boolean;
-  /** Reduce volume during quiet hours instead of silencing */
-  reduceVolume: boolean;
-  /** Volume level during quiet hours (percentage) */
-  quietVolume: number;
-}
-
 /** Reference to a custom uploaded sound */
 export interface CustomSoundReference {
   id: string;
@@ -257,8 +244,6 @@ export interface UserAlarmConfiguration {
   globalVolume: number;
   /** List of all configured alarm profiles */
   profiles: AlarmProfileConfiguration[];
-  /** Quiet hours configuration */
-  quietHours: QuietHoursConfiguration;
   /** Custom sounds uploaded by the user */
   customSounds: CustomSoundReference[];
   /** Emergency contacts to notify for urgent alarms */

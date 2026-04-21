@@ -73,24 +73,6 @@ public class TenantEntity
     public string? SubjectName { get; set; }
 
     /// <summary>
-    /// Quiet hours start time. Null means quiet hours disabled.
-    /// </summary>
-    [Column("quiet_hours_start")]
-    public TimeOnly? QuietHoursStart { get; set; }
-
-    /// <summary>
-    /// Quiet hours end time.
-    /// </summary>
-    [Column("quiet_hours_end")]
-    public TimeOnly? QuietHoursEnd { get; set; }
-
-    /// <summary>
-    /// Whether critical-severity alerts bypass quiet hours.
-    /// </summary>
-    [Column("quiet_hours_override_critical")]
-    public bool QuietHoursOverrideCritical { get; set; } = true;
-
-    /// <summary>
     /// Whether unauthenticated users can request access to this tenant.
     /// </summary>
     [Column("allow_access_requests")]

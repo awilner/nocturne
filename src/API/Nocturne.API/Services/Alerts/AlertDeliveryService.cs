@@ -48,7 +48,7 @@ internal sealed class AlertDeliveryService(
         }
 
         // --- Quiet hours check ---
-        if (await IsQuietHoursActiveAsync(db, tenantId, instance.AlertExcursionId, ct))
+        if (await IsQuietHoursActiveAsync(db, instance.AlertScheduleId, instance.AlertExcursionId, ct))
         {
             logger.LogInformation("Alert dispatch suppressed by quiet hours for tenant {TenantId}", tenantId);
             return;
@@ -183,55 +183,55 @@ internal sealed class AlertDeliveryService(
     }
 
     /// <summary>
-    /// Checks whether quiet hours are currently active for the tenant and whether
+    /// Checks whether quiet hours are currently active for the alert schedule and whether
     /// the alert severity allows bypassing them.
     /// </summary>
-    private async Task<bool> IsQuietHoursActiveAsync(NocturneDbContext db, Guid tenantId, Guid excursionId, CancellationToken ct)
+    private async Task<bool> IsQuietHoursActiveAsync(
+        NocturneDbContext db, Guid alertScheduleId, Guid excursionId, CancellationToken ct)
     {
-        var tenant = await db.Tenants
+        var schedule = await db.AlertSchedules
             .AsNoTracking()
-            .Where(t => t.Id == tenantId)
-            .Select(t => new { t.QuietHoursStart, t.QuietHoursEnd, t.QuietHoursOverrideCritical, t.Timezone })
+            .Where(s => s.Id == alertScheduleId)
+            .Select(s => new { s.QuietHoursStart, s.QuietHoursEnd, s.QuietHoursOverrideCritical, s.Timezone })
             .FirstOrDefaultAsync(ct);
 
-        if (tenant is null) return false;
+        if (schedule is null) return false;
 
         // Quiet hours disabled if either bound is null
-        if (tenant.QuietHoursStart is null || tenant.QuietHoursEnd is null) return false;
+        if (schedule.QuietHoursStart is null || schedule.QuietHoursEnd is null) return false;
 
-        // Determine current time in tenant's timezone
+        // Determine current time in schedule's timezone
         TimeZoneInfo tz;
         try
         {
-            tz = TimeZoneInfo.FindSystemTimeZoneById(tenant.Timezone);
+            tz = TimeZoneInfo.FindSystemTimeZoneById(schedule.Timezone);
         }
         catch
         {
             tz = TimeZoneInfo.Utc;
         }
 
-        var tenantNow = TimeOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz));
-        var start = tenant.QuietHoursStart.Value;
-        var end = tenant.QuietHoursEnd.Value;
+        var now = TimeOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz));
+        var start = schedule.QuietHoursStart.Value;
+        var end = schedule.QuietHoursEnd.Value;
 
         bool inQuietWindow;
         if (start <= end)
         {
             // Same-day window, e.g. 13:00-15:00
-            inQuietWindow = tenantNow >= start && tenantNow < end;
+            inQuietWindow = now >= start && now < end;
         }
         else
         {
             // Cross-midnight window, e.g. 22:00-07:00
-            inQuietWindow = tenantNow >= start || tenantNow < end;
+            inQuietWindow = now >= start || now < end;
         }
 
         if (!inQuietWindow) return false;
 
         // Check if critical severity bypasses quiet hours
-        if (tenant.QuietHoursOverrideCritical)
+        if (schedule.QuietHoursOverrideCritical)
         {
-            // Navigate instance → excursion → rule to get severity
             var severity = await db.AlertExcursions
                 .AsNoTracking()
                 .Where(e => e.Id == excursionId)

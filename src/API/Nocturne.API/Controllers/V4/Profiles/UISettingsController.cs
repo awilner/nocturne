@@ -504,15 +504,6 @@ public class UISettingsController : ControllerBase
                     },
                 },
             },
-            QuietHours = new QuietHoursConfiguration
-            {
-                Enabled = false,
-                StartTime = "22:00",
-                EndTime = "07:00",
-                AllowCritical = true,
-                ReduceVolume = true,
-                QuietVolume = 30,
-            },
         };
     }
 

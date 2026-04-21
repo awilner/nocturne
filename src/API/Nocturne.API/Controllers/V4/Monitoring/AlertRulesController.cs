@@ -285,6 +285,13 @@ public class AlertRulesController : ControllerBase
             StartTime = req.StartTime is not null ? TimeOnly.Parse(req.StartTime) : null,
             EndTime = req.EndTime is not null ? TimeOnly.Parse(req.EndTime) : null,
             Timezone = req.Timezone ?? "UTC",
+            QuietHoursStart = req.QuietHoursEnabled && req.QuietHoursStart is not null
+                ? TimeOnly.Parse(req.QuietHoursStart)
+                : null,
+            QuietHoursEnd = req.QuietHoursEnabled && req.QuietHoursEnd is not null
+                ? TimeOnly.Parse(req.QuietHoursEnd)
+                : null,
+            QuietHoursOverrideCritical = req.QuietHoursOverrideCritical,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
@@ -352,6 +359,9 @@ public class AlertRulesController : ControllerBase
                 StartTime = s.StartTime?.ToString("HH:mm"),
                 EndTime = s.EndTime?.ToString("HH:mm"),
                 Timezone = s.Timezone,
+                QuietHoursStart = s.QuietHoursStart?.ToString("HH:mm"),
+                QuietHoursEnd = s.QuietHoursEnd?.ToString("HH:mm"),
+                QuietHoursOverrideCritical = s.QuietHoursOverrideCritical,
                 EscalationSteps = s.EscalationSteps
                     .OrderBy(es => es.StepOrder)
                     .Select(es => new AlertEscalationStepResponse
@@ -416,6 +426,9 @@ public class AlertScheduleResponse
     public string? StartTime { get; set; }
     public string? EndTime { get; set; }
     public string Timezone { get; set; } = "UTC";
+    public string? QuietHoursStart { get; set; }
+    public string? QuietHoursEnd { get; set; }
+    public bool QuietHoursOverrideCritical { get; set; }
     public List<AlertEscalationStepResponse> EscalationSteps { get; set; } = [];
 }
 
@@ -473,6 +486,10 @@ public class CreateAlertScheduleRequest
     public string? StartTime { get; set; }
     public string? EndTime { get; set; }
     public string? Timezone { get; set; }
+    public bool QuietHoursEnabled { get; set; }
+    public string? QuietHoursStart { get; set; }
+    public string? QuietHoursEnd { get; set; }
+    public bool QuietHoursOverrideCritical { get; set; } = true;
     public List<CreateAlertEscalationStepRequest>? EscalationSteps { get; set; }
 }
 

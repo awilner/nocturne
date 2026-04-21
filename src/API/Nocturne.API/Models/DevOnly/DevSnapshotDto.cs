@@ -79,9 +79,6 @@ public class TenantEntityDto
     public DateTime? LastReadingAt { get; set; }
     public string Timezone { get; set; } = "UTC";
     public string? SubjectName { get; set; }
-    public TimeOnly? QuietHoursStart { get; set; }
-    public TimeOnly? QuietHoursEnd { get; set; }
-    public bool QuietHoursOverrideCritical { get; set; }
     public bool AllowAccessRequests { get; set; }
     public DateTime SysCreatedAt { get; set; }
     public DateTime SysUpdatedAt { get; set; }

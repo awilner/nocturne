@@ -9,8 +9,6 @@
     getActiveAlerts,
     getAlertHistory,
     acknowledge,
-    getQuietHours,
-    updateQuietHours,
   } from "$api/generated/alerts.generated.remote";
   import type {
     AlertRuleResponse,
@@ -37,7 +35,6 @@
   import { goto } from "$app/navigation";
   import RuleEditorSheet from "$lib/components/alerts/RuleEditorSheet.svelte";
   import AlertRuleRow from "$lib/components/alerts/AlertRuleRow.svelte";
-  import QuietHoursCard from "$lib/components/alerts/QuietHoursCard.svelte";
   import AlertHistoryCard from "$lib/components/alerts/AlertHistoryCard.svelte";
   import { AlertConditionType } from "$api-clients";
 
@@ -54,13 +51,6 @@
   let historyLoading = $state(false);
   let editorOpen = $state(false);
   let editingRule = $state<AlertRuleResponse | null>(null);
-
-  // Quiet hours
-  let quietHoursEnabled = $state(false);
-  let quietHoursStart = $state("22:00");
-  let quietHoursEnd = $state("07:00");
-  let quietHoursOverrideCritical = $state(true);
-  let quietHoursSaving = $state(false);
 
   function getConditionLabel(conditionType: AlertConditionType | undefined): string {
     switch (conditionType) {
@@ -92,21 +82,14 @@
     loading = true;
     error = null;
     try {
-      const [rulesResult, alertsResult, historyResult, qhResult] = await Promise.all([
+      const [rulesResult, alertsResult, historyResult] = await Promise.all([
         getRules(),
         getActiveAlerts(),
         getAlertHistory({ page: 1, pageSize: 10 }),
-        getQuietHours().catch(() => null),
       ]);
       rules = Array.isArray(rulesResult) ? rulesResult : [];
       activeAlerts = Array.isArray(alertsResult) ? alertsResult : [];
       history = historyResult ?? null;
-      if (qhResult) {
-        quietHoursEnabled = qhResult.enabled ?? false;
-        quietHoursStart = qhResult.startTime ?? "22:00";
-        quietHoursEnd = qhResult.endTime ?? "07:00";
-        quietHoursOverrideCritical = qhResult.overrideCritical ?? true;
-      }
     } catch (err) {
       error =
         err instanceof Error ? err.message : "Failed to load alert settings";
@@ -169,22 +152,6 @@
 
   function toggleExpand(ruleId: string) {
     expandedRuleId = expandedRuleId === ruleId ? null : ruleId;
-  }
-
-  async function handleSaveQuietHours() {
-    quietHoursSaving = true;
-    try {
-      await updateQuietHours({
-        enabled: quietHoursEnabled,
-        startTime: quietHoursEnabled ? quietHoursStart : undefined,
-        endTime: quietHoursEnabled ? quietHoursEnd : undefined,
-        overrideCritical: quietHoursOverrideCritical,
-      });
-    } catch {
-      // Error handled by remote function
-    } finally {
-      quietHoursSaving = false;
-    }
   }
 
   function openCreateEditor() {
@@ -336,16 +303,6 @@
         {/if}
       </CardContent>
     </Card>
-
-    <!-- Quiet Hours -->
-    <QuietHoursCard
-      bind:enabled={quietHoursEnabled}
-      bind:start={quietHoursStart}
-      bind:end={quietHoursEnd}
-      bind:overrideCritical={quietHoursOverrideCritical}
-      saving={quietHoursSaving}
-      onSave={handleSaveQuietHours}
-    />
 
     <!-- Alert History -->
     <AlertHistoryCard

@@ -112,13 +112,13 @@ public class RlsTestFixture : IAsyncLifetime
         await conn.OpenAsync();
 
         await ExecAsync(conn,
-            "INSERT INTO tenants (id, slug, display_name, is_active, is_default, timezone, quiet_hours_override_critical, allow_access_requests, sys_created_at, sys_updated_at) " +
-            "VALUES (@id, @slug, @name, true, false, 'UTC', true, true, now(), now())",
+            "INSERT INTO tenants (id, slug, display_name, is_active, is_default, timezone, allow_access_requests, sys_created_at, sys_updated_at) " +
+            "VALUES (@id, @slug, @name, true, false, 'UTC', true, now(), now())",
             ("id", TenantAId), ("slug", "rls-tenant-a"), ("name", "RLS Tenant A"));
 
         await ExecAsync(conn,
-            "INSERT INTO tenants (id, slug, display_name, is_active, is_default, timezone, quiet_hours_override_critical, allow_access_requests, sys_created_at, sys_updated_at) " +
-            "VALUES (@id, @slug, @name, true, false, 'UTC', true, true, now(), now())",
+            "INSERT INTO tenants (id, slug, display_name, is_active, is_default, timezone, allow_access_requests, sys_created_at, sys_updated_at) " +
+            "VALUES (@id, @slug, @name, true, false, 'UTC', true, now(), now())",
             ("id", TenantBId), ("slug", "rls-tenant-b"), ("name", "RLS Tenant B"));
 
         TenantAEntryCount = await SeedEntriesAsync(conn, TenantAId, 3);

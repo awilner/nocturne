@@ -458,7 +458,6 @@ public class TimeRange
 /// This is the root object stored in JSONB.
 /// </summary>
 /// <seealso cref="AlarmProfileConfiguration"/>
-/// <seealso cref="QuietHoursConfiguration"/>
 /// <seealso cref="NotificationChannelsConfig"/>
 public class UserAlarmConfiguration
 {
@@ -499,12 +498,6 @@ public class UserAlarmConfiguration
     public List<AlarmProfileConfiguration> Profiles { get; set; } = new();
 
     /// <summary>
-    /// Quiet hours configuration
-    /// </summary>
-    [JsonPropertyName("quietHours")]
-    public QuietHoursConfiguration QuietHours { get; set; } = new();
-
-    /// <summary>
     /// Custom sounds uploaded by the user
     /// </summary>
     [JsonPropertyName("customSounds")]
@@ -521,42 +514,6 @@ public class UserAlarmConfiguration
     /// </summary>
     [JsonPropertyName("channels")]
     public NotificationChannelsConfig Channels { get; set; } = new();
-}
-
-/// <summary>
-/// Enhanced quiet hours configuration
-/// </summary>
-public class QuietHoursConfiguration
-{
-    /// <summary>Whether quiet hours are enabled.</summary>
-    [JsonPropertyName("enabled")]
-    public bool Enabled { get; set; }
-
-    /// <summary>Start time for quiet hours in HH:mm format (24-hour).</summary>
-    [JsonPropertyName("startTime")]
-    public string StartTime { get; set; } = "22:00";
-
-    /// <summary>End time for quiet hours in HH:mm format (24-hour).</summary>
-    [JsonPropertyName("endTime")]
-    public string EndTime { get; set; } = "07:00";
-
-    /// <summary>
-    /// Allow critical alarms during quiet hours
-    /// </summary>
-    [JsonPropertyName("allowCritical")]
-    public bool AllowCritical { get; set; } = true;
-
-    /// <summary>
-    /// Reduce volume during quiet hours instead of silencing
-    /// </summary>
-    [JsonPropertyName("reduceVolume")]
-    public bool ReduceVolume { get; set; } = true;
-
-    /// <summary>
-    /// Volume level during quiet hours (percentage)
-    /// </summary>
-    [JsonPropertyName("quietVolume")]
-    public int QuietVolume { get; set; } = 30;
 }
 
 /// <summary>

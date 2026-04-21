@@ -135,9 +135,6 @@ public class DevAdminController : ControllerBase
                     LastReadingAt = tenant.LastReadingAt,
                     Timezone = tenant.Timezone,
                     SubjectName = tenant.SubjectName,
-                    QuietHoursStart = tenant.QuietHoursStart,
-                    QuietHoursEnd = tenant.QuietHoursEnd,
-                    QuietHoursOverrideCritical = tenant.QuietHoursOverrideCritical,
                     AllowAccessRequests = tenant.AllowAccessRequests,
                     SysCreatedAt = tenant.SysCreatedAt,
                     SysUpdatedAt = tenant.SysUpdatedAt,
@@ -369,9 +366,6 @@ public class DevAdminController : ControllerBase
                     existingTenant.LastReadingAt = td.LastReadingAt;
                     existingTenant.Timezone = td.Timezone;
                     existingTenant.SubjectName = td.SubjectName;
-                    existingTenant.QuietHoursStart = td.QuietHoursStart;
-                    existingTenant.QuietHoursEnd = td.QuietHoursEnd;
-                    existingTenant.QuietHoursOverrideCritical = td.QuietHoursOverrideCritical;
                     existingTenant.AllowAccessRequests = td.AllowAccessRequests;
                     existingTenant.SysCreatedAt = td.SysCreatedAt;
                     existingTenant.SysUpdatedAt = td.SysUpdatedAt;
@@ -389,9 +383,6 @@ public class DevAdminController : ControllerBase
                         LastReadingAt = td.LastReadingAt,
                         Timezone = td.Timezone,
                         SubjectName = td.SubjectName,
-                        QuietHoursStart = td.QuietHoursStart,
-                        QuietHoursEnd = td.QuietHoursEnd,
-                        QuietHoursOverrideCritical = td.QuietHoursOverrideCritical,
                         AllowAccessRequests = td.AllowAccessRequests,
                         SysCreatedAt = td.SysCreatedAt,
                         SysUpdatedAt = td.SysUpdatedAt,

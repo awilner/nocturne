@@ -78,6 +78,24 @@ public class AlertScheduleEntity : ITenantScoped
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    /// <summary>
+    /// Quiet hours start time. Null means quiet hours disabled for this schedule.
+    /// </summary>
+    [Column("quiet_hours_start")]
+    public TimeOnly? QuietHoursStart { get; set; }
+
+    /// <summary>
+    /// Quiet hours end time.
+    /// </summary>
+    [Column("quiet_hours_end")]
+    public TimeOnly? QuietHoursEnd { get; set; }
+
+    /// <summary>
+    /// Whether critical-severity alerts bypass quiet hours on this schedule.
+    /// </summary>
+    [Column("quiet_hours_override_critical")]
+    public bool QuietHoursOverrideCritical { get; set; } = true;
+
     // Navigation
 
     /// <summary>
