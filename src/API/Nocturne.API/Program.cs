@@ -302,6 +302,7 @@ app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseResponseCaching();
 app.UseCors();
+app.UseStaticFiles();
 app.UseForwardedHeaders();
 
 // Strip .json suffixes before routing so /api/v1/treatments.json matches
