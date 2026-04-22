@@ -15,6 +15,7 @@
   import AlertBanner from "$lib/components/alerts/AlertBanner.svelte";
   import { CoachMarkProvider } from "@nocturne/coach";
   import "@nocturne/coach/theme.css";
+  import "../../styles/coach-theme-overrides.css";
   import { createCoachMarkAdapter } from "$lib/coach-marks/adapter";
   import { sequences } from "$lib/coach-marks/sequences";
 
