@@ -1,14 +1,24 @@
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace Nocturne.API.Configuration;
 
 /// <summary>
 /// Adds human-readable descriptions to OpenAPI tags so Scalar displays an overview
 /// for each controller group. Descriptions use GitHub-flavored markdown.
+/// Embeds ER diagrams from the diagram manifest into matching tag descriptions.
 /// </summary>
 public sealed class TagDescriptionDocumentTransformer : IOpenApiDocumentTransformer
 {
+    private readonly Dictionary<string, List<DiagramRef>> _tagDiagrams;
+
+    public TagDescriptionDocumentTransformer(IWebHostEnvironment env)
+    {
+        _tagDiagrams = BuildTagDiagramMap(env);
+    }
+
     private static readonly Dictionary<string, string> Descriptions = new()
     {
         // ── Nocturne document (V4 + Auth) ────────────────────────────────
@@ -156,10 +166,13 @@ public sealed class TagDescriptionDocumentTransformer : IOpenApiDocumentTransfor
             > **Footgun:** Unlike V1–V3, the V4 treatments endpoint does **not** include StateSpan-derived basal data. For basal delivery, use the State Spans endpoints under Analytics instead. This is an intentional separation of concerns.
             """,
 
-        ["V4 Insulins"] = """
-            Static, read-only catalog of insulin formulations.
+        ["Metadata"] = """
+            Static, read-only reference catalogs for populating app UI with prefilled lists.
 
-            Browse insulin types with their pharmacokinetic profiles (onset, peak, duration). This is reference data — it is not tenant-specific and cannot be modified via the API.
+            - **Device Catalog** — Known pump, CGM, and meter hardware models, filterable by category.
+            - **Insulin Catalog** — Insulin formulations with pharmacokinetic profiles (onset, peak, duration).
+
+            This is reference data — it is not tenant-specific and cannot be modified via the API.
             """,
 
         // ── Nightscout document (V1 / V2 / V3) ──────────────────────────
@@ -225,6 +238,32 @@ public sealed class TagDescriptionDocumentTransformer : IOpenApiDocumentTransfor
         {
             Descriptions.TryGetValue(tagName, out var description);
 
+            // Append any ER diagrams mapped to this tag.
+            if (_tagDiagrams.TryGetValue(tagName, out var diagrams))
+            {
+                var sb = new System.Text.StringBuilder();
+                if (!string.IsNullOrWhiteSpace(description))
+                {
+                    sb.AppendLine(description);
+                    sb.AppendLine();
+                }
+
+                sb.AppendLine("## Data Model");
+                sb.AppendLine();
+
+                foreach (var diagram in diagrams)
+                {
+                    sb.AppendLine($"**{diagram.Title}**");
+                    if (!string.IsNullOrWhiteSpace(diagram.Description))
+                        sb.AppendLine($"_{diagram.Description}_");
+                    sb.AppendLine();
+                    sb.AppendLine($"[![{diagram.Title}]({diagram.SvgPath})]({diagram.SvgPath})");
+                    sb.AppendLine();
+                }
+
+                description = sb.ToString().TrimEnd();
+            }
+
             tags.Add(new OpenApiTag
             {
                 Name = tagName,
@@ -235,6 +274,60 @@ public sealed class TagDescriptionDocumentTransformer : IOpenApiDocumentTransfor
         document.Tags = tags;
 
         return Task.CompletedTask;
+    }
+
+    private static Dictionary<string, List<DiagramRef>> BuildTagDiagramMap(IWebHostEnvironment env)
+    {
+        var manifestPath = Path.Combine(env.ContentRootPath, "..", "..", "..", "docs", "diagrams", "diagrams.yaml");
+        var map = new Dictionary<string, List<DiagramRef>>(StringComparer.Ordinal);
+
+        if (!File.Exists(manifestPath))
+            return map;
+
+        var yaml = File.ReadAllText(manifestPath);
+        var deserializer = new DeserializerBuilder()
+            .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+
+        var manifest = deserializer.Deserialize<DiagramManifest>(yaml);
+
+        foreach (var diagram in manifest.Diagrams)
+        {
+            if (diagram.Tags is not { Count: > 0 })
+                continue;
+
+            var svgName = Path.GetFileNameWithoutExtension(diagram.Source) + ".svg";
+            var diagramRef = new DiagramRef(diagram.Title, diagram.Description, $"/diagrams/{svgName}");
+
+            foreach (var tag in diagram.Tags)
+            {
+                if (!map.TryGetValue(tag, out var list))
+                {
+                    list = [];
+                    map[tag] = list;
+                }
+                list.Add(diagramRef);
+            }
+        }
+
+        return map;
+    }
+
+    private sealed record DiagramRef(string Title, string? Description, string SvgPath);
+
+    private sealed class DiagramManifest
+    {
+        public List<DiagramEntry> Diagrams { get; set; } = [];
+    }
+
+    private sealed class DiagramEntry
+    {
+        public string Source { get; set; } = "";
+        public string Title { get; set; } = "";
+        public string? Description { get; set; }
+        public List<string>? Tags { get; set; }
+        public string? Auto { get; set; }
+        public string? Module { get; set; }
     }
 
     private sealed class TagNameComparer : IEqualityComparer<OpenApiTag>

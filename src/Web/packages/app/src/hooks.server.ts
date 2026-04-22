@@ -1,4 +1,4 @@
-import type { Handle } from "@sveltejs/kit";
+import { error as httpError, type Handle } from "@sveltejs/kit";
 import { randomUUID } from "$lib/utils";
 import type { HandleServerError } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
@@ -183,7 +183,7 @@ const siteSecurityHandle: Handle = async ({ event, resolve }) => {
     if (error && typeof error === "object" && "status" in error) {
       const status = (error as any).status;
 
-      // Tenant not found — redirect to marketing site if configured
+      // Tenant not found — redirect to marketing site or show error page
       if (status === 404) {
         const marketingUrl = env.MARKETING_URL;
         if (marketingUrl) {
@@ -192,6 +192,7 @@ const siteSecurityHandle: Handle = async ({ event, resolve }) => {
             headers: { Location: marketingUrl },
           });
         }
+        throw httpError(404, "This site doesn't exist. Check the URL and try again.");
       }
 
       if (status === 503) {

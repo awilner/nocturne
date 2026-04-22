@@ -18,7 +18,7 @@ namespace Nocturne.API.Controllers.V4;
 /// <seealso cref="InsulinCategory"/>
 [ApiController]
 [Route("api/v4/insulins")]
-[Tags("V4 Insulins")]
+[Tags("Metadata")]
 [Authorize]
 public class InsulinCatalogController : ControllerBase
 {

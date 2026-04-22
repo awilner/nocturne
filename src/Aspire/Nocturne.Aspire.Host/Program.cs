@@ -409,6 +409,42 @@ class Program
         var webEndpoints = (IResourceBuilder<IResourceWithEndpoints>)web;
 
         // ------------------------------------------------------------------
+        // Scalar API reference (optional)
+        // ------------------------------------------------------------------
+        IResourceBuilder<IResourceWithEndpoints>? scalar = null;
+        if (includeScalar)
+        {
+            scalar = builder
+                .AddScalarApiReference(options =>
+                {
+                    options.WithTheme(ScalarTheme.Mars);
+                    options.EnablePersistentAuthentication();
+                    options.AddPreferredSecuritySchemes("oauth2");
+                    options.AddAuthorizationCodeFlow(
+                        "oauth2",
+                        flow =>
+                        {
+                            flow.WithAuthorizationUrl("/api/oauth/authorize");
+                            flow.WithTokenUrl("/api/oauth/token");
+                            flow.WithPkce(Pkce.Sha256);
+                            flow.WithSelectedScopes(["*"]);
+                        }
+                    );
+                })
+                .WithApiReference(
+                    api,
+                    options =>
+                    {
+                        options
+                            .AddDocument("nocturne", "Nocturne API")
+                            .AddDocument("nightscout", "Nightscout API")
+                            .WithOpenApiRoutePattern("/openapi/{documentName}.json");
+                    }
+                )
+;
+        }
+
+        // ------------------------------------------------------------------
         // YARP Gateway — single external HTTPS endpoint fronting all services.
         // Replaces per-resource dev certs and Vite proxy config.
         // ------------------------------------------------------------------
@@ -469,9 +505,15 @@ class Program
                 yarp.AddRoute("/auth/bot/{**catch-all}", webEndpoints.GetEndpoint("http"))
                     .WithTransformXForwarded("X-Forwarded-", ForwardedTransformActions.Set);
 
-                // API docs
-                yarp.AddRoute("/scalar/{**catch-all}", api.GetEndpoint("http"))
-                    .WithTransformXForwarded("X-Forwarded-", ForwardedTransformActions.Set);
+                // API docs (Scalar UI — container serves at /, strip /scalar prefix)
+                if (scalar != null)
+                {
+                    yarp.AddRoute("/scalar/{**catch-all}", scalar.GetEndpoint("http"))
+                        .WithTransformPathRemovePrefix("/scalar")
+                        .WithTransformXForwarded("X-Forwarded-", ForwardedTransformActions.Set);
+                    yarp.AddRoute("/scalar-proxy/{**catch-all}", scalar.GetEndpoint("http"))
+                        .WithTransformXForwarded("X-Forwarded-", ForwardedTransformActions.Set);
+                }
                 yarp.AddRoute("/openapi/{**catch-all}", api.GetEndpoint("http"))
                     .WithTransformXForwarded("X-Forwarded-", ForwardedTransformActions.Set);
 
@@ -552,40 +594,6 @@ class Program
                 var port = isWorktree ? 0 : 1612;
                 MkcertHelper.WarnIfDomainUnresolvable(customDomain, port);
             }
-        }
-
-        // ------------------------------------------------------------------
-        // Scalar API reference (optional)
-        // ------------------------------------------------------------------
-        if (includeScalar)
-        {
-            builder
-                .AddScalarApiReference(options =>
-                {
-                    options.WithTheme(ScalarTheme.Mars);
-                    options.EnablePersistentAuthentication();
-                    options.AddPreferredSecuritySchemes("oauth2");
-                    options.AddAuthorizationCodeFlow(
-                        "oauth2",
-                        flow =>
-                        {
-                            flow.WithAuthorizationUrl("/api/oauth/authorize");
-                            flow.WithTokenUrl("/api/oauth/token");
-                            flow.WithPkce(Pkce.Sha256);
-                            flow.WithSelectedScopes(["*"]);
-                        }
-                    );
-                })
-                .WithApiReference(
-                    api,
-                    options =>
-                    {
-                        options
-                            .AddDocument("nocturne", "Nocturne API")
-                            .AddDocument("nightscout", "Nightscout API")
-                            .WithOpenApiRoutePattern("/openapi/{documentName}.json");
-                    }
-                );
         }
 
         // ------------------------------------------------------------------

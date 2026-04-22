@@ -21,54 +21,63 @@ diagrams:
     description: Tenants, members, subjects, roles, and invites.
     auto: efcore
     module: multitenancy-identity
+    tags: [Identity, PlatformAdmin]
 
   - source: er-authentication.mmd
     title: "ER: Authentication"
     description: Passkeys, TOTP, recovery codes, OIDC identities, and audit log.
     auto: efcore
     module: authentication
+    tags: [Authentication]
 
   - source: er-oauth.mmd
     title: "ER: OAuth"
     description: OAuth clients, grants, tokens, authorization codes, and device codes.
     auto: efcore
     module: oauth
+    tags: [Authentication, OIDC Discovery]
 
   - source: er-glucose-readings.mmd
     title: "ER: Glucose & Readings"
     description: CGM and meter readings across v1-v3 and v4 API models.
     auto: efcore
     module: glucose-readings
+    tags: [Analytics]
 
   - source: er-treatments-events.mmd
     title: "ER: Treatments & Events"
     description: Bolus, carb intake, temp basal, BG checks, and legacy treatments.
     auto: efcore
     module: treatments-events
+    tags: [Treatments]
 
   - source: er-therapy-profiles.mmd
     title: "ER: Therapy & Profiles"
     description: Therapy settings, basal/carb-ratio/sensitivity/target schedules, and profiles.
     auto: efcore
     module: therapy-profiles
+    tags: [Profiles]
 
   - source: er-patient-food-activity.mmd
     title: "ER: Patient, Food & Activity"
     description: Patient demographics, food database, and activity/wearable data.
     auto: efcore
     module: patient-food-activity
+    tags: [Health, Treatments]
 
   - source: er-alerts-trackers.mmd
     title: "ER: Alerts & Trackers"
     description: Alert rules, escalation chains, delivery, and consumable/event trackers.
     auto: efcore
     module: alerts-trackers
+    tags: [Monitoring, Devices]
 
   - source: er-system-connectors.mmd
     title: "ER: System & Connectors"
     description: Settings, system events, data connectors, migration tracking, and chat.
     auto: efcore
     module: system-connectors
+    tags: [Platform, Connectors, TenantAdmin]
 
   - source: er-diagram.mmd
     title: Full Entity Model

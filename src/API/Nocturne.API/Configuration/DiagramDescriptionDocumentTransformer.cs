@@ -78,5 +78,7 @@ public sealed class DiagramDescriptionDocumentTransformer : IOpenApiDocumentTran
         public string Title { get; set; } = "";
         public string? Description { get; set; }
         public string? Auto { get; set; }
+        public string? Module { get; set; }
+        public List<string>? Tags { get; set; }
     }
 }

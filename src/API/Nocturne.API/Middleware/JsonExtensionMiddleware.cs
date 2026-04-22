@@ -49,10 +49,11 @@ public class JsonExtensionMiddleware
     {
         var path = context.Request.Path.Value;
 
-        // Check if the path ends with .json
+        // Check if the path ends with .json (skip /openapi paths — MapOpenApi expects .json)
         if (
             !string.IsNullOrEmpty(path)
             && path.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
+            && !path.StartsWith("/openapi", StringComparison.OrdinalIgnoreCase)
         )
         {
             // Remove the .json extension

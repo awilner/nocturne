@@ -18,7 +18,7 @@ namespace Nocturne.API.Controllers.V4;
 /// <seealso cref="DeviceCategory"/>
 [ApiController]
 [Route("api/v4/devices")]
-[Tags("V4 Devices")]
+[Tags("Metadata")]
 [Authorize]
 public class DeviceCatalogController : ControllerBase
 {
