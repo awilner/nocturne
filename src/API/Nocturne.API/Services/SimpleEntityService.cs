@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Nocturne.Core.Contracts;
 using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Data;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Services;
 

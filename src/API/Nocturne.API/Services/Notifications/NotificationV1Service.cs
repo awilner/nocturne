@@ -3,6 +3,7 @@ using Nocturne.Core.Contracts;
 using Nocturne.Core.Contracts.Notifications;
 using Nocturne.Core.Contracts.Identity;
 using Nocturne.Core.Models;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Services.Notifications;
 

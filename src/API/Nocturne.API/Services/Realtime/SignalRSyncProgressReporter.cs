@@ -2,7 +2,7 @@ using Nocturne.API.Services.Connectors;
 using Nocturne.Connectors.Core.Interfaces;
 using Nocturne.Connectors.Core.Models;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Realtime;
 
 /// <summary>
 /// <see cref="ISyncProgressReporter"/> implementation that forwards sync progress events

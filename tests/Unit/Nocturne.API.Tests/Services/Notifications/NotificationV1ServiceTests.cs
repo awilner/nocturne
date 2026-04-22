@@ -5,6 +5,7 @@ using Nocturne.API.Services.Notifications;
 using Nocturne.Core.Contracts;
 using Nocturne.Core.Contracts.Notifications;
 using Nocturne.Core.Contracts.Identity;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Tests.Services.Notifications;
 

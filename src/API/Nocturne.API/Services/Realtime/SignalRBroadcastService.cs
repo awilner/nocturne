@@ -5,7 +5,7 @@ using Nocturne.Core.Contracts;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Realtime;
 
 /// <summary>
 /// Service for broadcasting real-time updates via SignalR, replacing the legacy socket.io server-side broadcasting.

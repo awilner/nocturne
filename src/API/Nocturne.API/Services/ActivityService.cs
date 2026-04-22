@@ -4,6 +4,7 @@ using Nocturne.Core.Contracts.Glucose;
 using Nocturne.Core.Contracts.Events;
 using Nocturne.Core.Contracts.V4;
 using Nocturne.Core.Models;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Services;
 

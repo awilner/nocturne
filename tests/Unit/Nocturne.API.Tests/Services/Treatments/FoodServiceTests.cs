@@ -9,6 +9,7 @@ using Nocturne.Core.Contracts.Events;
 using Nocturne.Core.Models;
 using Nocturne.Core.Contracts.Repositories;
 using Xunit;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Tests.Services.Treatments;
 

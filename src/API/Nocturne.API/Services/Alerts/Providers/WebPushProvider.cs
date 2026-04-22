@@ -1,4 +1,5 @@
 using Nocturne.Core.Models;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Services.Alerts.Providers;
 

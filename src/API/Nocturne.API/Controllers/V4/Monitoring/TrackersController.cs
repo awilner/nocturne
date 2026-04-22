@@ -8,6 +8,7 @@ using Nocturne.API.Services;
 using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Data.Entities;
 using Nocturne.Infrastructure.Data.Abstractions;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Controllers.V4.Monitoring;
 

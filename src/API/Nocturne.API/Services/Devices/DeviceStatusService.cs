@@ -5,6 +5,7 @@ using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Cache.Abstractions;
 using Nocturne.Core.Contracts.Repositories;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Services.Devices;
 

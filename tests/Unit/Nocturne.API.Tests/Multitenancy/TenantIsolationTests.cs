@@ -18,6 +18,7 @@ using Nocturne.Core.Contracts.Identity;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models;
 using Xunit;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Tests.Unit.Multitenancy;
 

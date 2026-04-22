@@ -4,6 +4,7 @@ using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Data;
 using Nocturne.Infrastructure.Data.Entities;
 using Nocturne.Infrastructure.Data.Mappers;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Services;
 

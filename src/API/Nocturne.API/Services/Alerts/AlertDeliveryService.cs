@@ -6,6 +6,7 @@ using Nocturne.Core.Models;
 using Nocturne.Core.Models.Alerts;
 using Nocturne.Infrastructure.Data;
 using Nocturne.Infrastructure.Data.Entities;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Services.Alerts;
 

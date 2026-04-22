@@ -7,6 +7,7 @@ using Nocturne.Core.Contracts.Events;
 using Nocturne.Core.Contracts.V4;
 using Nocturne.Core.Models;
 using Xunit;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Tests.Services;
 

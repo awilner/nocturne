@@ -4,6 +4,7 @@ using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Cache.Keys;
 using Nocturne.API.Services.Glucose;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Services.Entries;
 

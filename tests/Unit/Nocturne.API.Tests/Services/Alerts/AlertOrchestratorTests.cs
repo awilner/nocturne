@@ -11,6 +11,7 @@ using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models;
 using Nocturne.Core.Models.Alerts;
 using Xunit;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Tests.Services.Alerts;
 

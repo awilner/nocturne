@@ -57,6 +57,7 @@ using Nocturne.Infrastructure.Data.Services;
 using Nocturne.Infrastructure.Shared.Services;
 using JwtOptions = Nocturne.Core.Models.Configuration.JwtOptions;
 using OidcOptions = Nocturne.Core.Models.Configuration.OidcOptions;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Extensions;
 

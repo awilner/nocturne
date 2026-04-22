@@ -9,6 +9,7 @@ using Nocturne.Core.Models.V4;
 using Nocturne.Infrastructure.Cache.Abstractions;
 using Nocturne.Tests.Shared.Mocks;
 using Xunit;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Tests.Services;
 

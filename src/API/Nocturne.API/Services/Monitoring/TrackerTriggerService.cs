@@ -2,6 +2,7 @@ using System.Text.Json;
 using Nocturne.API.Controllers.V4.Monitoring;
 using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Data.Abstractions;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Services.Monitoring;
 

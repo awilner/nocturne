@@ -12,6 +12,7 @@ using Nocturne.Core.Contracts.Repositories;
 using Nocturne.Core.Models;
 using Nocturne.Core.Models.Authorization;
 using Xunit;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Tests.Controllers.V4;
 

@@ -14,6 +14,7 @@ using Nocturne.Core.Contracts.Connectors;
 using Nocturne.Core.Models.Configuration;
 using Nocturne.Infrastructure.Data;
 using Nocturne.Infrastructure.Data.Entities;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Services.Connectors;
 

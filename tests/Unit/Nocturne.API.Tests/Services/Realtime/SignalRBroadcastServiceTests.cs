@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Nocturne.API.Hubs;
-using Nocturne.API.Services;
+using Nocturne.API.Services.Realtime;
 using Nocturne.Core.Models;
 using Nocturne.Tests.Shared.Mocks;
 using Xunit;
 
-namespace Nocturne.API.Tests.Unit.Services;
+namespace Nocturne.API.Tests.Unit.Services.Realtime;
 
 /// <summary>
 /// Unit tests for SignalR broadcast service to ensure WebSocket events are properly sent
