@@ -13,6 +13,20 @@
     PatientDeviceManager,
     PatientInsulinManager,
   } from "$lib/components/patient";
+  import { coachmark } from "@nocturne/coach";
+  import * as patientRemote from "$api/generated/patientRecords.generated.remote";
+
+  const patientRecord = patientRemote.getPatientRecord();
+  const devices = patientRemote.getDevices();
+  const insulins = patientRemote.getInsulins();
+
+  const patientConfigured = $derived(!!patientRecord.current?.diabetesType);
+  const devicesConfigured = $derived(
+    (devices.current ?? []).some((d) => d.isCurrent === true),
+  );
+  const insulinsConfigured = $derived(
+    (insulins.current ?? []).some((i) => i.isCurrent === true),
+  );
 
   let saving = $state(false);
   let saveFn = $state<(() => Promise<boolean>) | undefined>(undefined);
@@ -40,7 +54,7 @@
   </div>
 
   <!-- Clinical Information -->
-  <Card.Root>
+  <Card.Root {@attach coachmark({ key: "onboarding.patient-details", title: "Patient details", description: "Clinical info so Nocturne can tailor readings", completed: patientConfigured })}>
     <Card.Header>
       <div class="flex items-center gap-2">
         <HeartPulse class="h-5 w-5 text-muted-foreground" />
@@ -66,7 +80,7 @@
   </Card.Root>
 
   <!-- Devices -->
-  <Card.Root>
+  <Card.Root {@attach coachmark({ key: "onboarding.devices", title: "Devices", description: "Your CGM, pump, and meter", completed: devicesConfigured })}>
     <Card.Header>
       <div class="flex items-center gap-2">
         <Cpu class="h-5 w-5 text-muted-foreground" />
@@ -82,7 +96,7 @@
   </Card.Root>
 
   <!-- Insulins -->
-  <Card.Root>
+  <Card.Root {@attach coachmark({ key: "onboarding.insulins", title: "Insulins", description: "Current insulin types and regimen", completed: insulinsConfigured })}>
     <Card.Header>
       <div class="flex items-center gap-2">
         <Syringe class="h-5 w-5 text-muted-foreground" />

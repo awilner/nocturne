@@ -33,6 +33,7 @@
     Zap,
   } from "lucide-svelte";
   import { goto } from "$app/navigation";
+  import { coachmark } from "@nocturne/coach";
   import RuleEditorSheet from "$lib/components/alerts/RuleEditorSheet.svelte";
   import AlertRuleRow from "$lib/components/alerts/AlertRuleRow.svelte";
   import AlertHistoryCard from "$lib/components/alerts/AlertHistoryCard.svelte";
@@ -169,6 +170,8 @@
     rules = Array.isArray(result) ? result : [];
   }
 
+  const alertsConfigured = $derived(rules.length > 0);
+
   onMount(() => {
     loadData();
   });
@@ -178,7 +181,7 @@
   <title>Alerts - Settings - Nocturne</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-4xl p-6 space-y-6">
+<div class="container mx-auto max-w-4xl p-6 space-y-6" {@attach coachmark({ key: "onboarding.alerts", title: "Alerts", description: "Get notified about highs and lows", completed: alertsConfigured })}>
   <!-- Header -->
   <div class="flex items-center justify-between">
     <div>

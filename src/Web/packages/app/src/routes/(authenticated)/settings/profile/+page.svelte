@@ -23,6 +23,7 @@
   import * as Alert from "$lib/components/ui/alert";
   import { bgLabel } from "$lib/utils/formatting";
   import { getProfileSummary } from "$api/generated/profiles.generated.remote";
+  import { coachmark } from "@nocturne/coach";
   import ScheduleView from "$lib/components/schedule/ScheduleView.svelte";
 
   type Summary = Awaited<ReturnType<typeof getProfileSummary>>;
@@ -113,7 +114,8 @@
   {@const carbRatio = selectedProfileName ? getCarbRatioForProfile(data, selectedProfileName) : null}
   {@const sensitivity = selectedProfileName ? getSensitivityForProfile(data, selectedProfileName) : null}
   {@const targetRange = selectedProfileName ? getTargetRangeForProfile(data, selectedProfileName) : null}
-  <div class="container mx-auto max-w-4xl p-6 space-y-6">
+  {@const profileConfigured = (data?.basalSchedules ?? []).length > 0}
+  <div class="container mx-auto max-w-4xl p-6 space-y-6" {@attach coachmark({ key: "onboarding.therapy-profile", title: "Therapy profile", description: "Imported from your data source", completed: profileConfigured })}>
     <!-- Header -->
     <div class="flex items-start justify-between">
       <div class="flex items-center gap-3">
