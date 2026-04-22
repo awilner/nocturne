@@ -22,6 +22,7 @@
     expiresAt?: string | Date | null;
     roles: string[];
     permissions: string[];
+    avatarUrl?: string;
   }
 
   interface Props {
@@ -55,6 +56,7 @@
   <Card.Header>
     <div class="flex items-start gap-4">
       <Avatar.Root class="h-16 w-16">
+        <Avatar.Image src={user.avatarUrl} alt={user.name} />
         <Avatar.Fallback class="bg-primary/10 text-primary text-xl">
           {getInitials(user.name)}
         </Avatar.Fallback>

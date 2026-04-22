@@ -103,6 +103,7 @@ const authHandle: Handle = async ({ event, resolve }) => {
         permissions: session.permissions ?? [],
         expiresAt: session.expiresAt,
         preferredLanguage: session.preferredLanguage ?? undefined,
+        avatarUrl: session.avatarUrl ?? undefined,
       };
 
       event.locals.user = user;

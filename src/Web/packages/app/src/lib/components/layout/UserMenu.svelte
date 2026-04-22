@@ -48,6 +48,7 @@
           {...props}
         >
           <Avatar.Root class="h-8 w-8 shrink-0">
+            <Avatar.Image src={user.avatarUrl} alt={user.name} />
             <Avatar.Fallback class="bg-primary/10 text-primary text-xs">
               {getInitials(user.name)}
             </Avatar.Fallback>

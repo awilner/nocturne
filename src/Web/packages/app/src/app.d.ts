@@ -25,6 +25,8 @@ export interface AuthUser {
 	expiresAt?: Date;
 	/** User's preferred language code (e.g., "en", "fr", "de") */
 	preferredLanguage?: string;
+	/** URL to the subject's avatar image */
+	avatarUrl?: string;
 }
 
 declare global {
