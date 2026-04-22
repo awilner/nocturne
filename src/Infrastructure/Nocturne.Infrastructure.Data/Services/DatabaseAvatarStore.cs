@@ -38,7 +38,7 @@ public class DatabaseAvatarStore(IDbContextFactory<NocturneDbContext> contextFac
 
         // Update the subject's avatar URL to the serving endpoint
         var subject = await db.Subjects.FirstAsync(s => s.Id == subjectId, ct);
-        subject.AvatarUrl = "/api/v4/me/avatar";
+        subject.AvatarUrl = $"/api/v4/me/avatar?id={subjectId}";
 
         await db.SaveChangesAsync(ct);
         return subject.AvatarUrl;
