@@ -2,7 +2,7 @@ using Nocturne.Core.Contracts.Glucose;
 using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Models;
 
-namespace Nocturne.Core.Contracts;
+namespace Nocturne.Core.Contracts.Analytics;
 
 /// <summary>
 /// Service for computing pre-calculated dashboard chart data.

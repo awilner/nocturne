@@ -2,12 +2,14 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Nocturne.API.Services;
+using Nocturne.API.Services.Analytics;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Analytics;
 using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Models;
 using Xunit;
 
-namespace Nocturne.API.Tests.Services;
+namespace Nocturne.API.Tests.Services.Analytics;
 
 /// <summary>
 /// Unit tests for SummaryService

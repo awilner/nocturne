@@ -1,6 +1,6 @@
 using Nocturne.Core.Models.Services;
 
-namespace Nocturne.Core.Contracts;
+namespace Nocturne.Core.Contracts.Analytics;
 
 /// <summary>
 /// Service for aggregating data overview statistics across all data types

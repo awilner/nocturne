@@ -1,6 +1,6 @@
 using Nocturne.Core.Models;
 
-namespace Nocturne.Core.Contracts;
+namespace Nocturne.Core.Contracts.Analytics;
 
 /// <summary>
 /// Interface for privacy-first analytics collection service

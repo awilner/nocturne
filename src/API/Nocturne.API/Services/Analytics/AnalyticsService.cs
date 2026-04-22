@@ -4,9 +4,10 @@ using System.Runtime.InteropServices;
 using Microsoft.Extensions.Options;
 using Nocturne.API.Configuration;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Analytics;
 using Nocturne.Core.Models;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Analytics;
 
 /// <summary>
 /// Local analytics service that collects anonymous usage telemetry entirely in-process.

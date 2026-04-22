@@ -2,14 +2,16 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Nocturne.API.Services;
+using Nocturne.API.Services.Analytics;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Analytics;
 using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Infrastructure.Data;
 using Nocturne.Infrastructure.Data.Entities;
 using Nocturne.Infrastructure.Data.Entities.V4;
 using Nocturne.Tests.Shared.Infrastructure;
 
-namespace Nocturne.API.Tests.Services;
+namespace Nocturne.API.Tests.Services.Analytics;
 
 /// <summary>
 /// Unit tests for DataOverviewService.

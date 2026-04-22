@@ -1,4 +1,5 @@
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Analytics;
 using Nocturne.Core.Contracts.Devices;
 using Nocturne.Core.Contracts.Treatments;
 using Nocturne.Core.Contracts.Glucose;
@@ -9,7 +10,7 @@ using Nocturne.Infrastructure.Data.Entities;
 
 using Nocturne.API.Services.Treatments;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Analytics;
 
 /// <summary>
 /// Aggregates widget-friendly summary data from multiple sources (CGM entries, IOB, COB, treatments,

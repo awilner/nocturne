@@ -1,7 +1,7 @@
 using Nocturne.Core.Models;
 using Nocturne.Core.Contracts.Glucose;
 
-namespace Nocturne.Core.Contracts;
+namespace Nocturne.Core.Contracts.Analytics;
 
 /// <summary>
 /// Service interface for summary operations with 1:1 legacy JavaScript compatibility.

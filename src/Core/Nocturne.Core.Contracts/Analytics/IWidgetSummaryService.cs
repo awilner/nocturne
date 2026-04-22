@@ -1,7 +1,7 @@
 using Nocturne.Core.Models.Widget;
 using Nocturne.Core.Contracts.Glucose;
 
-namespace Nocturne.Core.Contracts;
+namespace Nocturne.Core.Contracts.Analytics;
 
 /// <summary>
 /// Service interface for widget-friendly summary data aggregation.

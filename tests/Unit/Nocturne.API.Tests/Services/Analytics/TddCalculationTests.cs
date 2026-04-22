@@ -1,9 +1,10 @@
 using FluentAssertions;
 using Nocturne.API.Services;
+using Nocturne.API.Services.Analytics;
 using Nocturne.Core.Models;
 using Nocturne.Core.Models.V4;
 
-namespace Nocturne.API.Tests.Services;
+namespace Nocturne.API.Tests.Services.Analytics;
 
 /// <summary>
 /// Tests for Total Daily Dose (TDD) calculations in the StatisticsService,

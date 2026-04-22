@@ -1,7 +1,7 @@
 using Nocturne.Core.Models;
 using Nocturne.Core.Models.V4;
 
-namespace Nocturne.Core.Contracts;
+namespace Nocturne.Core.Contracts.Analytics;
 
 /// <summary>
 /// Service for calculating comprehensive AID (Automated Insulin Delivery) system metrics.

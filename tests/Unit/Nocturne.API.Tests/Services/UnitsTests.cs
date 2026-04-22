@@ -1,5 +1,6 @@
 using System.Globalization;
 using Nocturne.API.Services;
+using Nocturne.API.Services.Analytics;
 using Xunit;
 
 namespace Nocturne.API.Tests.Services;

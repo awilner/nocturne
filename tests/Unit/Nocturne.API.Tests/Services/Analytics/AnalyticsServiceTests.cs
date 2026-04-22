@@ -4,10 +4,11 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Nocturne.API.Configuration;
 using Nocturne.API.Services;
+using Nocturne.API.Services.Analytics;
 using Nocturne.Core.Models;
 using Xunit;
 
-namespace Nocturne.API.Tests.Services;
+namespace Nocturne.API.Tests.Services.Analytics;
 
 /// <summary>
 /// Comprehensive unit tests for AnalyticsService

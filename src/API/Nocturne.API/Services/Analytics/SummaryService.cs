@@ -1,9 +1,10 @@
 using Microsoft.Extensions.Logging;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Analytics;
 using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Models;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Analytics;
 
 /// <summary>
 /// Aggregates recent DData and properties into the Nightscout summary response with 1:1 legacy

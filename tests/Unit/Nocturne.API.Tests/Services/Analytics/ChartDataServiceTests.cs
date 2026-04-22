@@ -1,11 +1,12 @@
 using System.Text.Json;
 using Nocturne.API.Helpers;
 using Nocturne.API.Services;
+using Nocturne.API.Services.Analytics;
 using Nocturne.Core.Models;
 using Nocturne.Core.Models.V4;
 using Nocturne.Infrastructure.Data.Entities;
 
-namespace Nocturne.API.Tests.Services;
+namespace Nocturne.API.Tests.Services.Analytics;
 
 /// <summary>
 /// Unit tests for ChartDataService static helper methods and ChartColorMapper.

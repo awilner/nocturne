@@ -1,4 +1,5 @@
 using Nocturne.API.Helpers;
+using Nocturne.API.Services.Analytics;
 using Nocturne.Core.Contracts;
 using Nocturne.Core.Contracts.Treatments;
 using Nocturne.Core.Models;
