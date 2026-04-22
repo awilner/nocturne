@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Nocturne.Core.Contracts.Infrastructure;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Contracts.Repositories;
+using Nocturne.Core.Contracts.Storage;
 using Nocturne.Infrastructure.Data.Abstractions;
 using Nocturne.Infrastructure.Data.Configuration;
 using Nocturne.Infrastructure.Data.Interceptors;
@@ -119,6 +120,9 @@ public static class ServiceCollectionExtensions
 
         // Register Nightscout query parser
         services.AddScoped<IQueryParser, QueryParser>();
+
+        // Register avatar storage
+        services.AddScoped<IAvatarStore, DatabaseAvatarStore>();
 
         return services;
     }
@@ -252,6 +256,9 @@ public static class ServiceCollectionExtensions
 
         // Register Nightscout query parser
         services.AddScoped<IQueryParser, QueryParser>();
+
+        // Register avatar storage
+        services.AddScoped<IAvatarStore, DatabaseAvatarStore>();
 
         return services;
     }
