@@ -2,9 +2,9 @@
   import {
     CurrentBGDisplay,
     GlucoseChartCard,
+    OnboardingProgress,
     RecentEntriesCard,
     RecentTreatmentsCard,
-    SetupCard,
     WidgetGrid,
   } from "$lib/components/dashboard";
   import { getSettingsStore } from "$lib/stores/settings-store.svelte";
@@ -39,7 +39,7 @@
 <div class="@container p-3 @md:p-6 space-y-3 @md:space-y-6">
   <CurrentBGDisplay />
 
-  <SetupCard />
+  <OnboardingProgress />
 
   {#if isMainEnabled(WidgetId.Statistics)}
     <WidgetGrid widgets={topWidgets} maxWidgets={3} />
