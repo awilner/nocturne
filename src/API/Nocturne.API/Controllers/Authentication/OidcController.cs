@@ -607,6 +607,7 @@ public class OidcController : ControllerBase
                 ExpiresAt = authContext.ExpiresAt,
                 PreferredLanguage = userInfo?.PreferredLanguage,
                 IsPlatformAdmin = authContext.IsPlatformAdmin,
+                AvatarUrl = userInfo?.AvatarUrl,
             }
         );
     }
@@ -926,6 +927,11 @@ public class SessionInfo
     /// Whether this subject has platform-level admin access
     /// </summary>
     public bool IsPlatformAdmin { get; set; }
+
+    /// <summary>
+    /// URL to the subject's avatar image
+    /// </summary>
+    public string? AvatarUrl { get; set; }
 }
 
 /// <summary>

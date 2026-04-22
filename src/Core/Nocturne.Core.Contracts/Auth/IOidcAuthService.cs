@@ -316,6 +316,11 @@ public class OidcUserInfo
     /// User's preferred language code (e.g., "en", "fr", "de")
     /// </summary>
     public string? PreferredLanguage { get; set; }
+
+    /// <summary>
+    /// URL to the subject's uploaded avatar image
+    /// </summary>
+    public string? AvatarUrl { get; set; }
 }
 
 /// <summary>
