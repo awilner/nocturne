@@ -130,6 +130,7 @@ export const getSessionInfo = query(async () => {
       subjectId: session?.subjectId,
       name: session?.name,
       email: session?.email,
+      avatarUrl: session?.avatarUrl,
       roles: session?.roles ?? [],
       permissions: session?.permissions ?? [],
       expiresAt: session?.expiresAt,
