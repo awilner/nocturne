@@ -81,7 +81,7 @@ export function coachmark(options: CoachMarkOptions) {
       if (!targetEl) return; // target not available yet, retry on next poll
 
       const handler = () => {
-        ctx.complete(options.key);
+        ctx!.complete(options.key);
       };
 
       targetEl.addEventListener(event, handler, { once: true });
