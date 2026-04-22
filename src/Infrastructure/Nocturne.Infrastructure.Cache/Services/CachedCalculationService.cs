@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Contracts.Treatments;
 using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Cache.Abstractions;

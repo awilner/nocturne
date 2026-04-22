@@ -1,5 +1,6 @@
-using Nocturne.Core.Models;
 using Nocturne.Core.Contracts.Glucose;
+using Nocturne.Core.Contracts.Profiles;
+using Nocturne.Core.Models;
 
 namespace Nocturne.Core.Contracts;
 

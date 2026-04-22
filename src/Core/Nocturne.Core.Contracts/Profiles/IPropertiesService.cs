@@ -1,6 +1,6 @@
 using Nocturne.Core.Models;
 
-namespace Nocturne.Core.Contracts;
+namespace Nocturne.Core.Contracts.Profiles;
 
 /// <summary>
 /// Service interface for properties operations with 1:1 legacy JavaScript compatibility

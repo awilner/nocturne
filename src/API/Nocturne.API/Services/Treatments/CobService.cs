@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Contracts.Treatments;
 using Nocturne.Core.Models;
 

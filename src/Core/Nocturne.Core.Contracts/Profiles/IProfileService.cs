@@ -2,7 +2,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Nocturne.Core.Models;
 
-namespace Nocturne.Core.Contracts;
+namespace Nocturne.Core.Contracts.Profiles;
 
 /// <summary>
 /// Unified profile interface for both COB and IOB calculations with 1:1 legacy compatibility.

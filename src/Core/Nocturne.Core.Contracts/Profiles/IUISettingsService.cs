@@ -1,6 +1,6 @@
 using Nocturne.Core.Models.Configuration;
 
-namespace Nocturne.Core.Contracts;
+namespace Nocturne.Core.Contracts.Profiles;
 
 /// <summary>
 /// Service interface for managing UI settings persistence.

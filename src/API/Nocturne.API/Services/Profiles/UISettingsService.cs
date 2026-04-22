@@ -1,11 +1,12 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Models.Configuration;
 using Nocturne.Infrastructure.Data;
 using Nocturne.Infrastructure.Data.Entities;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Profiles;
 
 /// <summary>
 /// Persists per-tenant UI settings as JSON blobs in the settings table, partitioned by section key

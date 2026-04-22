@@ -5,11 +5,12 @@ using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Contracts.V4.Repositories;
 using Nocturne.Core.Models;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Profiles;
 
 /// <summary>
 /// Full 1:1 legacy-compatible implementation of profile functions for the <see cref="Profile"/> domain model.

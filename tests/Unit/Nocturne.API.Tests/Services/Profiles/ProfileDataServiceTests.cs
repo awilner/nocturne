@@ -2,7 +2,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Nocturne.API.Services;
+using Nocturne.API.Services.Profiles;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Contracts.Events;
 using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Cache.Abstractions;
@@ -11,7 +13,7 @@ using Nocturne.Core.Contracts.Repositories;
 using Nocturne.Tests.Shared.Mocks;
 using Xunit;
 
-namespace Nocturne.API.Tests.Services;
+namespace Nocturne.API.Tests.Services.Profiles;
 
 /// <summary>
 /// Unit tests for ProfileDataService domain service with WebSocket broadcasting

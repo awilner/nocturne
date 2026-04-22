@@ -1,6 +1,6 @@
 using Nocturne.Core.Models;
 
-namespace Nocturne.Core.Contracts;
+namespace Nocturne.Core.Contracts.Profiles;
 
 /// <summary>
 /// Domain service for profile data operations with WebSocket broadcasting

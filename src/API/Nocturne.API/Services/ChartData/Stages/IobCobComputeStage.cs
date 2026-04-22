@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Nocturne.API.Helpers;
 using Nocturne.API.Services.Treatments;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Contracts.Treatments;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models;

@@ -2,14 +2,16 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Nocturne.API.Services;
+using Nocturne.API.Services.Profiles;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Contracts.V4.Repositories;
 using Nocturne.Core.Models;
 using Nocturne.Core.Models.V4;
 using Nocturne.Tests.Shared.Mocks;
 using Xunit;
 
-namespace Nocturne.API.Tests.Services;
+namespace Nocturne.API.Tests.Services.Profiles;
 
 /// <summary>
 /// Tests for ProfileService with 1:1 legacy compatibility

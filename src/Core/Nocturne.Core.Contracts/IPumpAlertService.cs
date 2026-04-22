@@ -1,3 +1,4 @@
+using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Models;
 
 namespace Nocturne.Core.Contracts;

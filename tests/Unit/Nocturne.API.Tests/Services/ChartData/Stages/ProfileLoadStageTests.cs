@@ -4,6 +4,7 @@ using Moq;
 using Nocturne.API.Services.ChartData;
 using Nocturne.API.Services.ChartData.Stages;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Models;
 
 namespace Nocturne.API.Tests.Services.ChartData.Stages;

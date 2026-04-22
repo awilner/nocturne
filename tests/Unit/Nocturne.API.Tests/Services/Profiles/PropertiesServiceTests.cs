@@ -1,14 +1,16 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using Nocturne.API.Services;
+using Nocturne.API.Services.Profiles;
 using Nocturne.API.Services.Treatments;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Contracts.Glucose;
 using Nocturne.Core.Contracts.Treatments;
 using Nocturne.Core.Models;
 using Xunit;
 
-namespace Nocturne.API.Tests.Services;
+namespace Nocturne.API.Tests.Services.Profiles;
 
 /// <summary>
 /// Unit tests for PropertiesService

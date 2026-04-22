@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Contracts.Events;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models;
@@ -9,7 +10,7 @@ using Nocturne.Infrastructure.Cache.Constants;
 using Nocturne.Infrastructure.Cache.Keys;
 using Nocturne.Core.Contracts.Repositories;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Profiles;
 
 /// <summary>
 /// Domain service for profile data operations. Persists profiles via <see cref="IProfileRepository"/>,

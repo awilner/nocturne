@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Nocturne.API.Services;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Contracts.Devices;
 using Nocturne.Core.Models;
 using Xunit;
