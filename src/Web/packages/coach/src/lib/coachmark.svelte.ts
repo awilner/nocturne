@@ -36,7 +36,8 @@ export function coachmark(options: CoachMarkOptions) {
       title: stepContent.title,
       description: stepContent.description,
       action: options.action,
-      completed: options.completed ?? false,
+      completedWhen: options.completedWhen,
+      completeOn: options.completeOn,
       priority: options.priority ?? 0,
       element,
     };
@@ -60,10 +61,39 @@ export function coachmark(options: CoachMarkOptions) {
     }
     element.appendChild(dot);
 
+    // completeOn event listener management
+    let completeOnCleanup: (() => void) | null = null;
+
+    function attachCompleteOnListener(): void {
+      if (completeOnCleanup || !options.completeOn) return;
+
+      const { event, target } = options.completeOn;
+      let targetEl: HTMLElement | null = null;
+
+      if (!target) {
+        targetEl = element;
+      } else if (typeof target === "string") {
+        targetEl = element.querySelector(target);
+      } else {
+        targetEl = target;
+      }
+
+      if (!targetEl) return; // target not available yet, retry on next poll
+
+      const handler = () => {
+        ctx.complete(options.key);
+      };
+
+      targetEl.addEventListener(event, handler, { once: true });
+      completeOnCleanup = () => targetEl!.removeEventListener(event, handler);
+    }
+
     // Visibility update interval
     const updateVisibility = () => {
       const status = ctx.getStatus(options.key);
-      if (status === "completed" || status === "dismissed") {
+      const eligible = ctx.isMarkEligible(options.key);
+
+      if (status === "completed" || status === "dismissed" || !eligible) {
         dot.style.display = "none";
       } else if (status === "seen") {
         dot.classList.remove("coach-hotspot--pulse");
@@ -73,10 +103,16 @@ export function coachmark(options: CoachMarkOptions) {
         dot.style.display = "";
       }
 
-      // Check reactive completion
-      if (options.completed && !registration.completed) {
-        registration.completed = true;
-        ctx.updateRegistration(options.key, stepIndex, { completed: true });
+      // Check completedWhen callback
+      if (options.completedWhen && status !== "completed" && status !== "dismissed") {
+        if (options.completedWhen()) {
+          ctx.complete(options.key);
+        }
+      }
+
+      // Lazily attach completeOn listener (handles bind:this refs that arrive after mount)
+      if (options.completeOn && !completeOnCleanup && status !== "completed" && status !== "dismissed") {
+        attachCompleteOnListener();
       }
     };
 
@@ -86,6 +122,7 @@ export function coachmark(options: CoachMarkOptions) {
     // Cleanup
     return () => {
       clearInterval(interval);
+      completeOnCleanup?.();
       unregister();
       dot.remove();
     };

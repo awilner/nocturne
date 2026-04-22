@@ -25,7 +25,11 @@ export interface CoachMarkOptions {
   description?: string;
   steps?: CoachMarkStep[];
   action?: { label: string; href: string };
-  completed?: boolean;
+  completedWhen?: () => boolean;
+  completeOn?: {
+    event: string;
+    target?: HTMLElement | string;
+  };
   priority?: number;
 }
 
@@ -52,7 +56,11 @@ export interface MarkRegistration {
   title: string;
   description: string;
   action?: { label: string; href: string };
-  completed: boolean;
+  completedWhen?: () => boolean;
+  completeOn?: {
+    event: string;
+    target?: HTMLElement | string;
+  };
   priority: number;
   element: HTMLElement;
 }

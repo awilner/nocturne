@@ -6,7 +6,7 @@ import type {
   MarkStatus,
   SequenceConfig,
 } from "./types.js";
-import { selectActiveMark, sequenceProgress, type SelectionResult } from "./sequencing.js";
+import { selectActiveMark, isSequenceDone, sequenceProgress, type SelectionResult } from "./sequencing.js";
 
 const COACH_CONTEXT_KEY = Symbol("coach-mark-context");
 
@@ -68,9 +68,6 @@ export class CoachMarkContext {
     this._registrations = this._registrations.map((r) =>
       r.key === key && r.step === step ? { ...r, ...updates } : r,
     );
-    if (updates.completed) {
-      this.complete(key);
-    }
   }
 
   activate(key: string, step: number): void {
@@ -103,6 +100,29 @@ export class CoachMarkContext {
 
   getStatus(key: string): MarkStatus {
     return this._states.get(key)?.status ?? "unseen";
+  }
+
+  isMarkEligible(key: string): boolean {
+    // Find which sequence this mark belongs to (if any)
+    let markSequenceName: string | null = null;
+    for (const [name, seq] of Object.entries(this.sequences)) {
+      if (seq.steps.includes(key)) {
+        markSequenceName = name;
+        break;
+      }
+    }
+
+    // Standalone marks are always eligible
+    if (!markSequenceName) return true;
+
+    const markSequence = this.sequences[markSequenceName];
+
+    // Check if this sequence's prerequisite is met
+    if (markSequence.prerequisite && !isSequenceDone(markSequence.prerequisite, this.sequences, this._states)) {
+      return false;
+    }
+
+    return true;
   }
 
   getSequenceProgress(seqName: string): { completed: number; total: number } {
