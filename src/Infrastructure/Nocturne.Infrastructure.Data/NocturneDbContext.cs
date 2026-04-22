@@ -117,6 +117,11 @@ public class NocturneDbContext : DbContext
     public DbSet<SubjectEntity> Subjects { get; set; }
 
     /// <summary>
+    /// Gets or sets the SubjectAvatars table for avatar image storage
+    /// </summary>
+    public DbSet<SubjectAvatarEntity> SubjectAvatars { get; set; }
+
+    /// <summary>
     /// Gets or sets the Roles table for authorization roles
     /// </summary>
     public DbSet<RoleEntity> Roles { get; set; }
@@ -2432,6 +2437,15 @@ public class NocturneDbContext : DbContext
                 .Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .ValueGeneratedOnAddOrUpdate();
+        });
+
+        modelBuilder.Entity<SubjectAvatarEntity>(entity =>
+        {
+            entity.ToTable("subject_avatars");
+            entity.Property(e => e.Id).HasValueGenerator<GuidV7ValueGenerator>();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(e => e.SubjectId).IsUnique().HasDatabaseName("ix_subject_avatars_subject_id");
+            entity.HasOne(e => e.Subject).WithMany().HasForeignKey(e => e.SubjectId).OnDelete(DeleteBehavior.Cascade);
         });
 
         // Configure Role entity defaults
