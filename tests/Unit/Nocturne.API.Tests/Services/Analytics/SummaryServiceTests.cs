@@ -5,6 +5,7 @@ using Nocturne.API.Services;
 using Nocturne.API.Services.Analytics;
 using Nocturne.Core.Contracts;
 using Nocturne.Core.Contracts.Analytics;
+using Nocturne.Core.Contracts.Legacy;
 using Nocturne.Core.Contracts.Profiles;
 using Nocturne.Core.Models;
 using Xunit;

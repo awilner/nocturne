@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Legacy;
 using Nocturne.Core.Contracts.Health;
 using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Data;
 using Nocturne.API.Services.Realtime;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Legacy;
 
 /// <summary>
 /// Abstract base for simple entity CRUD services that use <see cref="NocturneDbContext"/> directly

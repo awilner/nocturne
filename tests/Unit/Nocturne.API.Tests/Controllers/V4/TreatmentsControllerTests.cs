@@ -7,6 +7,7 @@ using Nocturne.API.Controllers.V4.Treatments;
 using Nocturne.API.Services;
 using Nocturne.API.Services.Monitoring;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Legacy;
 using Nocturne.Core.Contracts.Monitoring;
 using Nocturne.Core.Contracts.Repositories;
 using Nocturne.Core.Models;

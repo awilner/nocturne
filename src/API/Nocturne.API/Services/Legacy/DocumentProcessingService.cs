@@ -1,8 +1,8 @@
 using Ganss.Xss;
-using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Legacy;
 using Nocturne.Core.Models;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Legacy;
 
 /// <summary>
 /// Processes incoming Nightscout documents before they are persisted. Responsibilities include

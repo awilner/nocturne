@@ -1,7 +1,7 @@
 using Ganss.Xss;
 using Nocturne.Core.Models;
 
-namespace Nocturne.Core.Contracts;
+namespace Nocturne.Core.Contracts.Legacy;
 
 /// <summary>
 /// Generic service for processing documents with sanitization and timestamp conversion

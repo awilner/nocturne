@@ -1,9 +1,9 @@
 using FluentAssertions;
-using Nocturne.API.Services;
-using Nocturne.Core.Contracts;
+using Nocturne.API.Services.Legacy;
+using Nocturne.Core.Contracts.Legacy;
 using Xunit;
 
-namespace Nocturne.API.Tests.Services;
+namespace Nocturne.API.Tests.Services.Legacy;
 
 /// <summary>
 /// Unit tests for the BraceExpansionService

@@ -36,6 +36,7 @@ using Nocturne.Connectors.HomeAssistant.WriteBack;
 using Nocturne.Connectors.Nightscout.Services.WriteBack;
 using Nocturne.Core.Contracts;
 using Nocturne.Core.Contracts.Health;
+using Nocturne.Core.Contracts.Legacy;
 using Nocturne.Core.Contracts.Monitoring;
 using Nocturne.Core.Contracts.Platform;
 using Nocturne.Core.Contracts.Connectors;
@@ -61,6 +62,7 @@ using Nocturne.Infrastructure.Data.Services;
 using Nocturne.Infrastructure.Shared.Services;
 using JwtOptions = Nocturne.Core.Models.Configuration.JwtOptions;
 using OidcOptions = Nocturne.Core.Models.Configuration.OidcOptions;
+using Nocturne.API.Services.Legacy;
 using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Extensions;

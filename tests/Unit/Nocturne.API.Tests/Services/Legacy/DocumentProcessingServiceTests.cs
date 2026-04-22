@@ -2,12 +2,12 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Nocturne.API.Services;
+using Nocturne.API.Services.Legacy;
 using Nocturne.Core.Models;
 using Xunit;
 using Activity = Nocturne.Core.Models.Activity;
 
-namespace Nocturne.API.Tests.Services;
+namespace Nocturne.API.Tests.Services.Legacy;
 
 public class DocumentProcessingServiceTests
 {

@@ -4,7 +4,7 @@ using Nocturne.Core.Models;
 using Xunit;
 using Nocturne.API.Tests.Services.Glucose;
 
-namespace Nocturne.API.Tests.Services;
+namespace Nocturne.API.Tests.Services.Legacy;
 
 /// <summary>
 /// Tests for simple alarms functionality with 1:1 legacy compatibility

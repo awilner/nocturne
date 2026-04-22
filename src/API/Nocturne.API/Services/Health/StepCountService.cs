@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Nocturne.Core.Contracts;
 using Nocturne.Core.Contracts.Health;
+using Nocturne.Core.Contracts.Legacy;
+using Nocturne.API.Services.Legacy;
 using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Data;
 using Nocturne.Infrastructure.Data.Entities;

@@ -1,10 +1,10 @@
 using System.Text;
 using FluentAssertions;
-using Nocturne.API.Services;
+using Nocturne.API.Services.Legacy;
 using Nocturne.Core.Models;
 using Xunit;
 
-namespace Nocturne.API.Tests.Services;
+namespace Nocturne.API.Tests.Services.Legacy;
 
 /// <summary>
 /// Comprehensive unit tests for DataFormatService covering all formatting scenarios

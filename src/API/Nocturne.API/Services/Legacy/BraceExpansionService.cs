@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
-using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Legacy;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Legacy;
 
 /// <summary>
 /// Implements bash-style brace expansion for time-pattern matching,

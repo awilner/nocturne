@@ -1,7 +1,7 @@
 using System.Text;
 using Nocturne.Core.Models;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Legacy;
 
 /// <summary>
 /// Static helpers for formatting <see cref="Entry"/> and <see cref="Treatment"/> collections into

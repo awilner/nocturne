@@ -4,10 +4,11 @@ using Moq;
 using Nocturne.API.Services;
 using Nocturne.API.Services.Platform;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Legacy;
 using Nocturne.Core.Contracts.Platform;
 using Nocturne.Core.Contracts.Repositories;
 using Xunit;
-using TimePatternQuery = Nocturne.Core.Contracts.TimePatternQuery;
+using TimePatternQuery = Nocturne.Core.Contracts.Legacy.TimePatternQuery;
 
 namespace Nocturne.API.Tests.Services.Platform;
 

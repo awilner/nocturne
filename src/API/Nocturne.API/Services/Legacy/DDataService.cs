@@ -1,10 +1,11 @@
 using System.Reflection;
 using System.Text.Json;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Legacy;
 using Nocturne.Core.Models;
 using Nocturne.Core.Contracts.Repositories;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Legacy;
 
 /// <summary>
 /// Implements the Nightscout <c>/api/v1/ddata</c> response payload, which bundles recent entries,

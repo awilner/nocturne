@@ -1,6 +1,6 @@
 using Nocturne.Core.Models;
 
-namespace Nocturne.Core.Contracts;
+namespace Nocturne.Core.Contracts.Legacy;
 
 /// <summary>
 /// Service interface for <see cref="DData"/> operations.
