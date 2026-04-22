@@ -1,8 +1,9 @@
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Notifications;
 using Nocturne.Core.Contracts.Devices;
 using Nocturne.Core.Models;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Notifications;
 
 /// <summary>
 /// V2 notification service with 1:1 legacy JavaScript compatibility. Implements the enhanced

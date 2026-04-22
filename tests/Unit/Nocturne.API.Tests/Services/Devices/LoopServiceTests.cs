@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Nocturne.API.Services;
 using Nocturne.API.Services.Devices;
+using Nocturne.API.Services.Notifications;
 using Xunit;
 
 namespace Nocturne.API.Tests.Services.Devices;

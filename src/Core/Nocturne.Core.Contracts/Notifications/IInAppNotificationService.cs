@@ -1,6 +1,6 @@
 using Nocturne.Core.Models;
 
-namespace Nocturne.Core.Contracts;
+namespace Nocturne.Core.Contracts.Notifications;
 
 /// <summary>
 /// Service for managing in-app notifications displayed to users

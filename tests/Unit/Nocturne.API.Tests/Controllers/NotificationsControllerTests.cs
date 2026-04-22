@@ -6,6 +6,7 @@ using Moq;
 using Nocturne.API.Controllers.V1;
 using Nocturne.API.Services;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Notifications;
 
 namespace Nocturne.API.Tests.Controllers;
 

@@ -2,9 +2,10 @@ using System.Text;
 using System.Text.Json;
 using Nocturne.Core.Constants;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Notifications;
 using Nocturne.Core.Models;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Notifications;
 
 /// <summary>
 /// Sends push notifications to the Pushover API and polls for receipt acknowledgements.

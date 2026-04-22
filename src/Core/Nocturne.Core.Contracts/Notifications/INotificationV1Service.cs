@@ -1,6 +1,6 @@
 using Nocturne.Core.Models;
 
-namespace Nocturne.Core.Contracts;
+namespace Nocturne.Core.Contracts.Notifications;
 
 /// <summary>
 /// Service interface for V1 notification operations with 1:1 legacy JavaScript compatibility

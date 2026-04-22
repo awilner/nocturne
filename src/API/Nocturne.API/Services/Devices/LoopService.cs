@@ -1,6 +1,7 @@
 using System.Globalization;
 using dotAPNS;
 using Microsoft.Extensions.Options;
+using Nocturne.API.Services.Notifications;
 using Nocturne.Core.Contracts;
 using Nocturne.Core.Contracts.Devices;
 using Nocturne.Core.Models;

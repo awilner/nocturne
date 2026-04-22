@@ -1,10 +1,12 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using Nocturne.API.Services;
+using Nocturne.API.Services.Notifications;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Notifications;
 using Nocturne.Core.Contracts.Identity;
 
-namespace Nocturne.API.Tests.Services;
+namespace Nocturne.API.Tests.Services.Notifications;
 
 /// <summary>
 /// Unit tests for NotificationV1Service

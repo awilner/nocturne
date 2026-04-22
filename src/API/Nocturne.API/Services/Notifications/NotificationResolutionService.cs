@@ -6,7 +6,7 @@ using Nocturne.Infrastructure.Data;
 using Nocturne.Infrastructure.Data.Abstractions;
 using Nocturne.Infrastructure.Data.Repositories;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Notifications;
 
 /// <summary>
 /// Background service that periodically evaluates pending in-app notifications and auto-resolves

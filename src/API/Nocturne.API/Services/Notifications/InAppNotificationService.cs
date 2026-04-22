@@ -1,11 +1,12 @@
 using System.Text.Json;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Notifications;
 using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Data.Abstractions;
 using Nocturne.Infrastructure.Data.Entities;
 using Nocturne.Infrastructure.Data.Repositories;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Notifications;
 
 /// <summary>
 /// Service implementation for managing in-app notifications. Persists notifications via

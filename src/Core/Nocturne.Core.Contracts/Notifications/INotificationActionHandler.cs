@@ -1,4 +1,4 @@
-namespace Nocturne.Core.Contracts;
+namespace Nocturne.Core.Contracts.Notifications;
 
 /// <summary>
 /// Handles notification-specific actions. Registered per notification type string.

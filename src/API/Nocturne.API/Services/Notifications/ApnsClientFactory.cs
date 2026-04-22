@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Nocturne.Core.Models;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Notifications;
 
 /// <summary>
 /// Production implementation of <see cref="IApnsClientFactory"/> that creates JWT-authenticated

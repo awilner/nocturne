@@ -1,6 +1,6 @@
 using Nocturne.Core.Models;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Notifications;
 
 /// <summary>
 /// Registry that maps notification type strings to their default <see cref="NotificationTemplate"/>

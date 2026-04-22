@@ -1,6 +1,6 @@
 using dotAPNS;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Notifications;
 
 /// <summary>
 /// Factory for creating APNs clients, abstracted for testability.

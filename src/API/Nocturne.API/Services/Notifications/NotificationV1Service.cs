@@ -1,9 +1,10 @@
 using System.Collections.Concurrent;
 using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Notifications;
 using Nocturne.Core.Contracts.Identity;
 using Nocturne.Core.Models;
 
-namespace Nocturne.API.Services;
+namespace Nocturne.API.Services.Notifications;
 
 /// <summary>
 /// In-memory alarm and admin-notification service with 1:1 legacy JavaScript compatibility.
