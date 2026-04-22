@@ -11,9 +11,13 @@
     Key,
     LogOut,
     Settings,
+    Camera,
+    Loader2,
+    Trash2,
   } from "lucide-svelte";
-  import { formatSessionExpiry } from "$lib/stores/auth-store.svelte";
+  import { formatSessionExpiry, getAuthStore } from "$lib/stores/auth-store.svelte";
   import { formatDate } from "$lib/utils/formatting";
+  import { uploadAvatar, deleteAvatar } from "./avatar-upload.remote";
 
   interface User {
     name: string;
@@ -32,6 +36,21 @@
 
   const { user, onLogout }: Props = $props();
 
+  const authStore = getAuthStore();
+
+  let fileInput: HTMLInputElement | undefined;
+  let isUploading = $state(false);
+  let isDeleting = $state(false);
+  let avatarError = $state<string | null>(null);
+
+  /** Reactive avatar URL that updates after upload/delete */
+  let localAvatarUrl = $state<string | undefined>(user.avatarUrl);
+
+  /** Sync localAvatarUrl when user prop changes (e.g. session reload) */
+  $effect(() => {
+    localAvatarUrl = user.avatarUrl;
+  });
+
   /** Get initials from user name */
   function getInitials(name: string): string {
     return name
@@ -40,6 +59,49 @@
       .join("")
       .toUpperCase()
       .slice(0, 2);
+  }
+
+  /** Open file picker when avatar is clicked */
+  function handleAvatarClick() {
+    if (isUploading || isDeleting) return;
+    fileInput?.click();
+  }
+
+  /** Handle file selection and upload */
+  async function handleFileSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    isUploading = true;
+    avatarError = null;
+
+    try {
+      const result = await uploadAvatar(file);
+      localAvatarUrl = result.avatarUrl;
+      authStore.updateAvatarUrl(result.avatarUrl);
+    } catch (err) {
+      avatarError = err instanceof Error ? err.message : "Failed to upload avatar";
+    } finally {
+      isUploading = false;
+      if (fileInput) fileInput.value = "";
+    }
+  }
+
+  /** Delete the current avatar */
+  async function handleDeleteAvatar() {
+    isDeleting = true;
+    avatarError = null;
+
+    try {
+      await deleteAvatar();
+      localAvatarUrl = undefined;
+      authStore.updateAvatarUrl(undefined);
+    } catch (err) {
+      avatarError = err instanceof Error ? err.message : "Failed to delete avatar";
+    } finally {
+      isDeleting = false;
+    }
   }
 
   /** Time until session expires in seconds */
@@ -55,12 +117,46 @@
 <Card.Root>
   <Card.Header>
     <div class="flex items-start gap-4">
-      <Avatar.Root class="h-16 w-16">
-        <Avatar.Image src={user.avatarUrl} alt={user.name} />
-        <Avatar.Fallback class="bg-primary/10 text-primary text-xl">
-          {getInitials(user.name)}
-        </Avatar.Fallback>
-      </Avatar.Root>
+      <div class="relative group">
+        <button
+          type="button"
+          class="relative rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer"
+          onclick={handleAvatarClick}
+          disabled={isUploading || isDeleting}
+          title="Change avatar"
+        >
+          <Avatar.Root class="h-16 w-16">
+            <Avatar.Image src={localAvatarUrl} alt={user.name} />
+            <Avatar.Fallback class="bg-primary/10 text-primary text-xl">
+              {getInitials(user.name)}
+            </Avatar.Fallback>
+          </Avatar.Root>
+          <div class="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+            {#if isUploading}
+              <Loader2 class="h-5 w-5 text-white animate-spin" />
+            {:else}
+              <Camera class="h-5 w-5 text-white" />
+            {/if}
+          </div>
+        </button>
+        {#if localAvatarUrl && !isUploading && !isDeleting}
+          <button
+            type="button"
+            class="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onclick={handleDeleteAvatar}
+            title="Remove avatar"
+          >
+            <Trash2 class="h-3 w-3" />
+          </button>
+        {/if}
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          class="hidden"
+          bind:this={fileInput}
+          onchange={handleFileSelect}
+        />
+      </div>
       <div class="space-y-1 flex-1">
         <Card.Title class="text-xl">{user.name}</Card.Title>
         {#if user.email}
@@ -68,6 +164,9 @@
             <Mail class="h-4 w-4" />
             {user.email}
           </Card.Description>
+        {/if}
+        {#if avatarError}
+          <p class="text-xs text-destructive">{avatarError}</p>
         {/if}
       </div>
     </div>

@@ -430,6 +430,15 @@ export class AuthStore {
   }
 
   /**
+   * Update the avatar URL after upload or deletion
+   */
+  updateAvatarUrl(url: string | undefined): void {
+    if (this._user) {
+      this._user = { ...this._user, avatarUrl: url };
+    }
+  }
+
+  /**
    * Cleanup when the store is destroyed
    */
   destroy(): void {
