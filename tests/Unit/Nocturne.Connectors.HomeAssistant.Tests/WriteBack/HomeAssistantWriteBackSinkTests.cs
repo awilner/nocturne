@@ -5,7 +5,7 @@ using Nocturne.Connectors.HomeAssistant.Configurations;
 using Nocturne.Connectors.HomeAssistant.Services;
 using Nocturne.Connectors.HomeAssistant.WriteBack;
 using Nocturne.Core.Constants;
-using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Devices;
 using Nocturne.Core.Models;
 using Xunit;
 

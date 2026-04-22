@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Connectors;
 using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Data.Entities;
 using Nocturne.Infrastructure.Data.Mappers;

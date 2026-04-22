@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Nocturne.Core.Contracts;
 using Nocturne.Core.Models.Configuration;
 
 namespace Nocturne.API.Services.Auth;

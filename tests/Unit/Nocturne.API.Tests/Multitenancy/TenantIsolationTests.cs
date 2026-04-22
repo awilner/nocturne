@@ -12,11 +12,11 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Nocturne.API.Hubs;
 using Nocturne.API.Multitenancy;
-using Nocturne.API.Services;
-using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Identity;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models;
 using Xunit;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Tests.Unit.Multitenancy;
 
@@ -765,7 +765,7 @@ public class TenantIsolationTests
     private static (DataHub hub, Mock<IGroupManager> groups) CreateDataHub(TenantContext tenantContext)
     {
         var mockLogger = new Mock<ILogger<DataHub>>();
-        var mockAuthService = new Mock<Core.Contracts.IAuthorizationService>();
+        var mockAuthService = new Mock<Core.Contracts.Identity.IAuthorizationService>();
         var hub = new DataHub(mockLogger.Object, mockAuthService.Object);
 
         var httpContext = new DefaultHttpContext();
@@ -826,7 +826,7 @@ public class TenantIsolationTests
     private static (AlarmHub hub, Mock<IGroupManager> groups) CreateAlarmHub(TenantContext tenantContext)
     {
         var mockLogger = new Mock<ILogger<AlarmHub>>();
-        var mockAuthService = new Mock<Core.Contracts.IAuthorizationService>();
+        var mockAuthService = new Mock<Core.Contracts.Identity.IAuthorizationService>();
         var hub = new AlarmHub(mockLogger.Object, mockAuthService.Object);
 
         var httpContext = new DefaultHttpContext();

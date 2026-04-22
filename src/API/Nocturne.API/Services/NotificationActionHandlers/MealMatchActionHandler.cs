@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
-using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Notifications;
+using Nocturne.Core.Contracts.Connectors;
 using Nocturne.Core.Models;
 
 namespace Nocturne.API.Services.NotificationActionHandlers;

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OpenApi.Remote.Attributes;
-using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Devices;
 using Nocturne.Core.Models.Battery;
 
 namespace Nocturne.API.Controllers.V4.Devices;

@@ -2,7 +2,7 @@ using System.Data.Common;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Infrastructure;
 
 namespace Nocturne.Infrastructure.Data.Tests.Repositories;
 

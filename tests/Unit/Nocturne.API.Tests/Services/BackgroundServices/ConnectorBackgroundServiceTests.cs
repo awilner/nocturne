@@ -9,7 +9,7 @@ using Moq;
 using Nocturne.API.Services.BackgroundServices;
 using Nocturne.Connectors.Core.Interfaces;
 using Nocturne.Connectors.Core.Models;
-using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Connectors;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Infrastructure.Data;
 using Nocturne.Infrastructure.Data.Entities;

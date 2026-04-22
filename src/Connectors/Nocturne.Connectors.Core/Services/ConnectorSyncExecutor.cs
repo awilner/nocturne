@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Nocturne.Connectors.Core.Interfaces;
 using Nocturne.Connectors.Core.Models;
-using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Connectors;
 
 namespace Nocturne.Connectors.Core.Services;
 

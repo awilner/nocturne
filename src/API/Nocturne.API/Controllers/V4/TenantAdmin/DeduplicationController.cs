@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using OpenApi.Remote.Attributes;
 using Nocturne.API.Authorization;
-using Nocturne.Core.Contracts;
 using Nocturne.Core.Models;
 
 namespace Nocturne.API.Controllers.V4.TenantAdmin;

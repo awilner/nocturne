@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.RateLimiting;
 using Nocturne.API.Extensions;
 using Nocturne.API.Models.OAuth;
 using Nocturne.API.Services.Auth;
-using Nocturne.Core.Contracts;
 using Nocturne.Core.Models.Authorization;
 
 namespace Nocturne.API.Controllers.Authentication;

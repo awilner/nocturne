@@ -1,4 +1,3 @@
-using Nocturne.Core.Contracts;
 using Nocturne.Core.Contracts.Entries;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models;
@@ -6,6 +5,8 @@ using Nocturne.Core.Models.Entries;
 using Nocturne.Infrastructure.Cache.Abstractions;
 using Nocturne.Infrastructure.Cache.Constants;
 using Nocturne.Infrastructure.Cache.Keys;
+using Nocturne.API.Services.Glucose;
+using Nocturne.API.Services.Platform;
 
 namespace Nocturne.API.Services.Entries;
 

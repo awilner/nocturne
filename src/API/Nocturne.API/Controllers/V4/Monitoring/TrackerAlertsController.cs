@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Nocturne.API.Extensions;
-using Nocturne.API.Services;
+using Nocturne.API.Services.Monitoring;
 using Nocturne.Core.Models;
 
 namespace Nocturne.API.Controllers.V4.Monitoring;

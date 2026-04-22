@@ -2,6 +2,7 @@ using Nocturne.API.Services.Alerts.Evaluators;
 using Nocturne.Core.Contracts.Alerts;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Services.Alerts;
 

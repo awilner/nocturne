@@ -1,4 +1,3 @@
-using Nocturne.Core.Contracts;
 using Nocturne.Infrastructure.Cache.Keys;
 
 namespace Nocturne.API.Services.Effects;

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Nocturne.Core.Contracts.Alerts;
 using Nocturne.Infrastructure.Data;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Services.Alerts;
 

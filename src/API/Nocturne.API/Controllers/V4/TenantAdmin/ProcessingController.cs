@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Nocturne.Core.Contracts;
 using Nocturne.Core.Models;
 
 namespace Nocturne.API.Controllers.V4.TenantAdmin;

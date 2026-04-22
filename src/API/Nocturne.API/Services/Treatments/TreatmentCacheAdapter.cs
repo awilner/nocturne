@@ -4,6 +4,7 @@ using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Cache.Abstractions;
 using Nocturne.Infrastructure.Cache.Constants;
 using Nocturne.Infrastructure.Cache.Keys;
+using Nocturne.API.Services.Platform;
 
 namespace Nocturne.API.Services.Treatments;
 

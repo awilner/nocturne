@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Nocturne.API.Authorization;
 using Nocturne.API.Models.DevOnly;
-using Nocturne.API.Services;
+using Nocturne.API.Services.Connectors;
 using Nocturne.Connectors.Core.Models;
-using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Connectors;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Infrastructure.Data;
 

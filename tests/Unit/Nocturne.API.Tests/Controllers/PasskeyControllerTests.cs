@@ -9,7 +9,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Nocturne.API.Controllers.Authentication;
 using Nocturne.API.Services.Auth;
-using Nocturne.Core.Contracts;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models.Configuration;
 using Subject = Nocturne.Core.Models.Authorization.Subject;

@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Nocturne.API.Attributes;
 using Nocturne.API.Authorization;
-using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Legacy;
+using Nocturne.Core.Contracts.Treatments;
 using Nocturne.Core.Models;
 
 namespace Nocturne.API.Controllers.V1;

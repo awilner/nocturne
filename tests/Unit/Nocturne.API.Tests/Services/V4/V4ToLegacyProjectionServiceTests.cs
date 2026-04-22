@@ -1,9 +1,10 @@
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using Nocturne.API.Services;
+using Nocturne.API.Services.V4;
+using Nocturne.API.Services.Treatments;
 using Nocturne.Connectors.Core.Constants;
-using Nocturne.Core.Contracts;
+using Nocturne.Core.Contracts.Treatments;
 using Nocturne.Core.Contracts.V4.Repositories;
 using Nocturne.Core.Models;
 using Nocturne.Core.Models.V4;

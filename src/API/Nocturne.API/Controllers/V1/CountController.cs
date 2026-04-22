@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Nocturne.API.Attributes;
-using Nocturne.Core.Contracts;
 using Nocturne.Core.Contracts.Repositories;
 
 namespace Nocturne.API.Controllers.V1;

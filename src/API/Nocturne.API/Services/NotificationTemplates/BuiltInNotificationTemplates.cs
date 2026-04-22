@@ -1,3 +1,4 @@
+using Nocturne.API.Services.Notifications;
 using Nocturne.Core.Models;
 
 namespace Nocturne.API.Services.NotificationTemplates;

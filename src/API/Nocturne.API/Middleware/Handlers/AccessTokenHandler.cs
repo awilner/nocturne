@@ -1,6 +1,5 @@
 using System.Security.Cryptography;
 using System.Text;
-using Nocturne.Core.Contracts;
 using Nocturne.Core.Models.Authorization;
 
 namespace Nocturne.API.Middleware.Handlers;

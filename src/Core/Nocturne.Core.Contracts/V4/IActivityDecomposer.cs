@@ -1,3 +1,4 @@
+using Nocturne.Core.Contracts.Health;
 using Nocturne.Core.Models;
 using Nocturne.Core.Models.V4;
 

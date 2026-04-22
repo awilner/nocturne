@@ -1,4 +1,3 @@
-using Nocturne.Core.Contracts;
 using Nocturne.Infrastructure.Cache.Abstractions;
 
 namespace Nocturne.API.Services.Auth;

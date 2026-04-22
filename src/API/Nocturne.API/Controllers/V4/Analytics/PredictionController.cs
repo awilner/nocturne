@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using OpenApi.Remote.Attributes;
-using Nocturne.API.Services;
+using Nocturne.API.Services.Glucose;
 
 namespace Nocturne.API.Controllers.V4.Analytics;
 

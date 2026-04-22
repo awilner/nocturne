@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Options;
-using Nocturne.Core.Contracts;
 using Nocturne.Core.Models.Authorization;
 using Nocturne.Core.Models.Configuration;
 using SameSiteMode = Nocturne.Core.Models.Configuration.SameSiteMode;

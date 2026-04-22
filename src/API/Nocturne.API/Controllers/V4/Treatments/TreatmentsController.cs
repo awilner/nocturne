@@ -2,10 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpenApi.Remote.Attributes;
 using Nocturne.API.Extensions;
-using Nocturne.API.Services;
-using Nocturne.Core.Contracts;
+using Nocturne.API.Services.Monitoring;
+using Nocturne.Core.Contracts.Legacy;
+using Nocturne.Core.Contracts.Monitoring;
 using Nocturne.Core.Contracts.Repositories;
 using Nocturne.Core.Models;
+using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Controllers.V4.Treatments;
 
