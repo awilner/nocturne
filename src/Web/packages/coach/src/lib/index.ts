@@ -10,3 +10,6 @@ export type {
   SequenceConfig,
   SequenceDefinition,
 } from "./types.js";
+
+export { selectActiveMark, isSequenceDone, sequenceProgress } from "./sequencing.js";
+export type { SelectionResult } from "./sequencing.js";
