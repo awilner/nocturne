@@ -1,5 +1,8 @@
 namespace Nocturne.Core.Models.CoachMarks;
 
+/// <summary>
+/// Tracks a single user's progression through a coach mark (unseen, seen, dismissed, completed).
+/// </summary>
 public class CoachMarkState
 {
     public Guid Id { get; set; }

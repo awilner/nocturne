@@ -1,8 +1,11 @@
-namespace Nocturne.Infrastructure.Data.Mappers;
-
 using Nocturne.Core.Models.CoachMarks;
 using Nocturne.Infrastructure.Data.Entities;
 
+namespace Nocturne.Infrastructure.Data.Mappers;
+
+/// <summary>
+/// Mapper for converting between CoachMarkState domain models and CoachMarkStateEntity database entities.
+/// </summary>
 public static class CoachMarkStateMapper
 {
     public static CoachMarkState ToDomainModel(CoachMarkStateEntity entity)

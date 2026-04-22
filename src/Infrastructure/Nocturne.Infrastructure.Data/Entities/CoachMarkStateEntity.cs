@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Nocturne.Infrastructure.Data.Entities;
 
+/// <summary>
+/// PostgreSQL entity for per-user coach mark progression. Maps to the coach_mark_states table.
+/// </summary>
 [Table("coach_mark_states")]
 public class CoachMarkStateEntity : ITenantScoped
 {

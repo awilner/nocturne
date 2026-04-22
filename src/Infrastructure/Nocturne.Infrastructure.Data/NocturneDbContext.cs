@@ -479,7 +479,6 @@ public class NocturneDbContext : DbContext
     /// </summary>
     public DbSet<CoachMarkStateEntity> CoachMarkStates { get; set; }
 
-
     /// <summary>
     /// Configure the database model and relationships
     /// </summary>
