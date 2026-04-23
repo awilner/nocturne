@@ -141,7 +141,7 @@ public class TreatmentService : ITreatmentService
     /// via <see cref="PopulateInsulinContextAsync"/> if its <see cref="Treatment.EventType"/>
     /// matches a known bolus or basal type and no context is already set. After creation,
     /// the <see cref="ITreatmentCache"/> is invalidated and events are fired via
-    /// <see cref="IDataEventSink{T}.OnCreatedAsync"/>.
+    /// <see cref="IDataEventSink{T}.OnCreatedAsync(IReadOnlyList{T}, CancellationToken)"/>.
     /// </remarks>
     public async Task<IEnumerable<Treatment>> CreateTreatmentsAsync(
         IEnumerable<Treatment> treatments, CancellationToken cancellationToken = default)

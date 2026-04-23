@@ -11,10 +11,12 @@ namespace Nocturne.Infrastructure.Data.Entities.V4;
 [Table("decomposition_batches")]
 public class DecompositionBatchEntity : ITenantScoped
 {
+    /// <summary>Primary key (UUID v7).</summary>
     [Key]
     [Column("id")]
     public Guid Id { get; set; }
 
+    /// <summary>Owning tenant for RLS isolation.</summary>
     [Column("tenant_id")]
     public Guid TenantId { get; set; }
 

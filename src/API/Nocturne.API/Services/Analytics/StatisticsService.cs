@@ -1578,6 +1578,7 @@ public class StatisticsService : IStatisticsService
     /// </summary>
     /// <param name="boluses">Collection of boluses</param>
     /// <param name="carbIntakes">Collection of carb intakes</param>
+    /// <param name="foodsByCarbIntake">Optional lookup of treatment foods grouped by carb intake ID</param>
     /// <returns>Treatment summary with totals and counts</returns>
     public TreatmentSummary CalculateTreatmentSummary(
         IEnumerable<Bolus> boluses,

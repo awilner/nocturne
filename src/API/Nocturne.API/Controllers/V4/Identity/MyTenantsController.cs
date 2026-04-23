@@ -35,10 +35,10 @@ public class MyTenantsController : ControllerBase
         _config = config.Value;
     }
 
+    /// <inheritdoc cref="ITenantService.GetTenantsForSubjectAsync"/>
     [HttpGet]
     [RemoteQuery]
     [ProducesResponseType(typeof(List<TenantDto>), StatusCodes.Status200OK)]
-    /// <inheritdoc cref="ITenantService.GetTenantsForSubjectAsync"/>
     public async Task<IActionResult> GetMyTenants(CancellationToken ct)
     {
         var authContext = HttpContext.Items["AuthContext"] as AuthContext;
@@ -49,11 +49,11 @@ public class MyTenantsController : ControllerBase
         return Ok(tenants);
     }
 
+    /// <inheritdoc cref="ITenantService.CreateAsync"/>
     [HttpPost]
     [RemoteCommand(Invalidates = ["GetMyTenants"])]
     [ProducesResponseType(typeof(TenantCreatedDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    /// <inheritdoc cref="ITenantService.CreateAsync"/>
     public async Task<IActionResult> CreateTenant(
         [FromBody] CreateMyTenantRequest request, CancellationToken ct)
     {
@@ -74,12 +74,12 @@ public class MyTenantsController : ControllerBase
         return Created($"/api/v4/me/tenants", tenant);
     }
 
+    /// <inheritdoc cref="ITenantService.ValidateSlugAsync"/>
     [HttpGet("validate-slug")]
     [AllowAnonymous]
     [AllowDuringSetup]
     [RemoteQuery]
     [ProducesResponseType(typeof(SlugValidationResult), StatusCodes.Status200OK)]
-    /// <inheritdoc cref="ITenantService.ValidateSlugAsync"/>
     public async Task<IActionResult> ValidateSlug([FromQuery] string slug, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(slug))

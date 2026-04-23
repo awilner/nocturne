@@ -80,11 +80,11 @@ public class ConnectedAppsController : ControllerBase
     /// associated refresh tokens; previously-issued access tokens become
     /// unusable on next request via the revocation cache.
     /// </summary>
+    /// <inheritdoc cref="IOAuthGrantService.RevokeGrantAsync"/>
     [HttpDelete("{grantId}")]
     [RemoteCommand(Invalidates = ["List"])]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    /// <inheritdoc cref="IOAuthGrantService.RevokeGrantAsync"/>
     public async Task<ActionResult> Revoke(Guid grantId, CancellationToken ct)
     {
         var subjectId = HttpContext.GetSubjectId();

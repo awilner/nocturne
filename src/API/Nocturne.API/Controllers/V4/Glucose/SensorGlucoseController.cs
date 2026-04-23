@@ -92,7 +92,7 @@ public class SensorGlucoseController(
             return Problem(detail: "Bulk operations are limited to 1000 readings per request", statusCode: 400, title: "Bad Request");
 
         var models = requests.Select(MapCreateToModel).ToList();
-        var created = await repo.BulkCreateAsync(models, ct);
+        var created = await Repository.BulkCreateAsync(models, ct);
         var createdArray = created.ToArray();
 
         // Evaluate alerts for the most recent reading only (not every historical reading during backfill)

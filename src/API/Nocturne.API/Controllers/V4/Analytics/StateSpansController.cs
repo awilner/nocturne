@@ -19,9 +19,9 @@ namespace Nocturne.API.Controllers.V4.Analytics;
 /// <c>/illness</c>, <c>/travel</c>, <c>/activities</c>) are thin wrappers that pre-filter
 /// <see cref="IStateSpanService.GetStateSpansAsync"/> by <see cref="StateSpanCategory"/>.
 ///
-/// The main <c>GET /</c> endpoint is annotated with <see cref="OpenApi.Remote.Attributes.RemoteQueryAttribute"/>
+/// The main <c>GET /</c> endpoint is annotated with <c>RemoteQueryAttribute</c>
 /// and cached for 120 seconds. Create, update, and delete use
-/// <see cref="OpenApi.Remote.Attributes.RemoteCommandAttribute"/> with cache invalidation hints.
+/// <c>RemoteCommandAttribute</c> with cache invalidation hints.
 /// </remarks>
 /// <seealso cref="IStateSpanService"/>
 /// <seealso cref="StateSpan"/>

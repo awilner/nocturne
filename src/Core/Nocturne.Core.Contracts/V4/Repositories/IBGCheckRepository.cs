@@ -47,7 +47,7 @@ public interface IBGCheckRepository : IV4Repository<BGCheck>
     /// <summary>Returns a single <see cref="BGCheck"/> by its UUID v7, or <c>null</c> if not found.</summary>
     /// <param name="id">UUID v7 record identifier.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task<BGCheck?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    new Task<BGCheck?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>Retrieve a <see cref="BGCheck"/> by its original MongoDB ObjectId.</summary>
     /// <param name="legacyId">Original MongoDB ObjectId string.</param>
@@ -58,18 +58,18 @@ public interface IBGCheckRepository : IV4Repository<BGCheck>
     /// <summary>Persist a new <see cref="BGCheck"/> and return the saved entity.</summary>
     /// <param name="model">Record to create.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task<BGCheck> CreateAsync(BGCheck model, CancellationToken ct = default);
+    new Task<BGCheck> CreateAsync(BGCheck model, CancellationToken ct = default);
 
     /// <summary>Replace an existing <see cref="BGCheck"/> identified by <paramref name="id"/>.</summary>
     /// <param name="id">UUID v7 identifier of the record to update.</param>
     /// <param name="model">Updated record data.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task<BGCheck> UpdateAsync(Guid id, BGCheck model, CancellationToken ct = default);
+    new Task<BGCheck> UpdateAsync(Guid id, BGCheck model, CancellationToken ct = default);
 
     /// <summary>Delete a <see cref="BGCheck"/> by its UUID v7.</summary>
     /// <param name="id">UUID v7 identifier of the record to delete.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task DeleteAsync(Guid id, CancellationToken ct = default);
+    new Task DeleteAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>Delete the <see cref="BGCheck"/> with the given legacy MongoDB ObjectId.</summary>
     /// <param name="legacyId">Original MongoDB ObjectId string.</param>
@@ -81,7 +81,7 @@ public interface IBGCheckRepository : IV4Repository<BGCheck>
     /// <param name="from">Inclusive start, or <c>null</c> for no lower bound.</param>
     /// <param name="to">Exclusive end, or <c>null</c> for no upper bound.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task<int> CountAsync(DateTime? from, DateTime? to, CancellationToken ct = default);
+    new Task<int> CountAsync(DateTime? from, DateTime? to, CancellationToken ct = default);
 
     /// <summary>Retrieve all <see cref="BGCheck"/> records sharing the same correlation identifier.</summary>
     /// <param name="correlationId">Correlation ID linking related records.</param>

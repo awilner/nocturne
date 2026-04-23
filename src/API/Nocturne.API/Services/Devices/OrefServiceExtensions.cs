@@ -28,12 +28,12 @@ public class OrefServiceOptions
 public static class OrefServiceExtensions
 {
     /// <summary>
-    /// Registers <see cref="OrefWasmService"/> as a singleton <see cref="Core.Contracts.IOrefService"/>
+    /// Registers <see cref="OrefWasmService"/> as a singleton <see cref="IOrefService"/>
     /// after resolving the WASM binary path from a prioritised search list.
     /// </summary>
     /// <remarks>
     /// When <see cref="OrefServiceOptions.Enabled"/> is <see langword="false"/> no
-    /// <see cref="Core.Contracts.IOrefService"/> registration is made and the calling code is
+    /// <see cref="IOrefService"/> registration is made and the calling code is
     /// responsible for providing an alternative implementation or handling the missing service.
     /// WASM path resolution order: absolute path → current directory → AppContext.BaseDirectory →
     /// relative Rust build output path (for local development) → <c>wasm/</c> subdirectory.

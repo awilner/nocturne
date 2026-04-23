@@ -1,3 +1,5 @@
+using Nocturne.API.Services.Entries;
+using Nocturne.API.Services.Treatments;
 using Nocturne.Connectors.Core.Constants;
 using Nocturne.Core.Contracts.V4;
 using Nocturne.Core.Contracts.Treatments;

@@ -1,3 +1,4 @@
+using Nocturne.API.Services.Entries;
 using Nocturne.Core.Contracts.Events;
 using Nocturne.Core.Models;
 using Nocturne.API.Services.Realtime;
@@ -78,7 +79,7 @@ public class SignalRTreatmentEventSink : IDataEventSink<Treatment>
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to broadcast delete for treatment {Id}", treatment.Id);
+            _logger.LogError(ex, "Failed to broadcast delete for treatment {Id}", treatment?.Id);
         }
     }
 }

@@ -4,8 +4,12 @@ using Nocturne.Infrastructure.Data.Entities;
 
 namespace Nocturne.Infrastructure.Data.Services;
 
+/// <summary>
+/// Stores and retrieves subject avatar images in PostgreSQL (bytea column).
+/// </summary>
 public class DatabaseAvatarStore(IDbContextFactory<NocturneDbContext> contextFactory) : IAvatarStore
 {
+    /// <inheritdoc />
     public async Task<string> SaveAsync(Guid subjectId, Stream image, string contentType, CancellationToken ct = default)
     {
         using var ms = new MemoryStream();
@@ -44,6 +48,7 @@ public class DatabaseAvatarStore(IDbContextFactory<NocturneDbContext> contextFac
         return subject.AvatarUrl;
     }
 
+    /// <inheritdoc />
     public async Task<AvatarData?> GetAsync(Guid subjectId, CancellationToken ct = default)
     {
         await using var db = await contextFactory.CreateDbContextAsync(ct);
@@ -57,6 +62,7 @@ public class DatabaseAvatarStore(IDbContextFactory<NocturneDbContext> contextFac
         return new AvatarData(new MemoryStream(entity.Data), entity.ContentType, entity.FileSize);
     }
 
+    /// <inheritdoc />
     public async Task DeleteAsync(Guid subjectId, CancellationToken ct = default)
     {
         await using var db = await contextFactory.CreateDbContextAsync(ct);

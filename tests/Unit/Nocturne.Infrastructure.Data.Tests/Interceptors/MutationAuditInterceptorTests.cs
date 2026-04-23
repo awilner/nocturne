@@ -108,7 +108,7 @@ public class MutationAuditInterceptorTests : IDisposable
         _connection.Open();
 
         var httpContextAccessor = new Mock<IHttpContextAccessor>();
-        httpContextAccessor.Setup(x => x.HttpContext).Returns((HttpContext?)null);
+        httpContextAccessor.Setup(x => x.HttpContext).Returns((HttpContext)null!);
 
         _interceptor = new MutationAuditInterceptor(httpContextAccessor.Object);
 

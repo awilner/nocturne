@@ -73,7 +73,7 @@ public sealed partial class FlyoutWindow : Window
         }
     }
 
-    public new void Show()
+    public void Show()
     {
         RefreshContent();
         PositionNearTaskbar();
@@ -85,7 +85,7 @@ public sealed partial class FlyoutWindow : Window
         this.Activated += OnDeactivated;
     }
 
-    public new void Hide()
+    public void Hide()
     {
         var appWindow = GetAppWindow();
         appWindow.Hide();

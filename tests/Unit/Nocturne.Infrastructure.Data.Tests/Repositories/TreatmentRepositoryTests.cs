@@ -1358,12 +1358,12 @@ public class TreatmentRepositoryTests : IDisposable
         var treatment = new Treatment { Mills = 1000, EventType = "Correction Bolus", Insulin = 2.0 };
         var created = await repository.CreateTreatmentAsync(treatment);
 
-        var result = await repository.DeleteTreatmentAsync(created!.Id);
+        var result = await repository.DeleteTreatmentAsync(created!.Id!);
 
         Assert.True(result);
 
         // Record should be invisible to normal queries
-        var visible = await repository.GetTreatmentByIdAsync(created.Id);
+        var visible = await repository.GetTreatmentByIdAsync(created.Id!);
         Assert.Null(visible);
 
         // Record should still exist with IgnoreQueryFilters

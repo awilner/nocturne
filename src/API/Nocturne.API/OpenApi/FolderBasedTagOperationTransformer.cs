@@ -34,7 +34,8 @@ public sealed class FolderBasedTagOperationTransformer : IOpenApiOperationTransf
 
         var tag = DeriveTag(controllerType);
 
-        operation.Tags.Clear();
+        operation.Tags?.Clear();
+        operation.Tags ??= new HashSet<OpenApiTagReference>();
         operation.Tags.Add(new OpenApiTagReference(tag));
 
         return Task.CompletedTask;

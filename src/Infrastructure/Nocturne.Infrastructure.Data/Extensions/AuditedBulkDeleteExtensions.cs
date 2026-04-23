@@ -6,6 +6,9 @@ using Nocturne.Infrastructure.Data.Entities;
 
 namespace Nocturne.Infrastructure.Data.Extensions;
 
+/// <summary>
+/// Extensions for executing bulk deletes that write per-row audit log entries before removal.
+/// </summary>
 public static class AuditedBulkDeleteExtensions
 {
     private static readonly JsonSerializerOptions JsonOptions = new()

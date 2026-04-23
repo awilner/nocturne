@@ -1,5 +1,6 @@
 using Nocturne.API.Controllers.V4;
 using Nocturne.API.Controllers.V4.Analytics;
+using Nocturne.API.Services.Devices;
 
 namespace Nocturne.API.Services.Glucose;
 

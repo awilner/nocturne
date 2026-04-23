@@ -536,7 +536,7 @@ public class ConnectorExecutionService(
             eventsCache,
             eventProcessor,
             sessionStore,
-            null
+            null!
         );
         return new ConnectorServiceWrapper<MyLifeConnectorConfiguration>(service);
     }

@@ -221,8 +221,10 @@ public sealed class TagDescriptionDocumentTransformer : IOpenApiDocumentTransfor
 
         foreach (var pathItem in document.Paths.Values)
         {
+            if (pathItem.Operations is null) continue;
             foreach (var operation in pathItem.Operations.Values)
             {
+                if (operation.Tags is null) continue;
                 foreach (var tag in operation.Tags)
                 {
                     if (tag is IOpenApiTag openApiTag && openApiTag.Name is not null)

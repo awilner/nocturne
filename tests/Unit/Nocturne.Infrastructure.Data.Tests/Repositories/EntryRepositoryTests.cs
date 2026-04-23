@@ -1313,16 +1313,16 @@ public class EntryRepositoryTests : IDisposable
         var entry = new Entry { Mills = 1000, Mgdl = 120, Type = "sgv" };
         var created = (await repository.CreateEntriesAsync([entry])).First();
 
-        var result = await repository.DeleteEntryAsync(created.Id);
+        var result = await repository.DeleteEntryAsync(created.Id!);
 
         Assert.True(result);
 
         // Record should be invisible to normal queries
-        var visible = await repository.GetEntryByIdAsync(created.Id);
+        var visible = await repository.GetEntryByIdAsync(created.Id!);
         Assert.Null(visible);
 
         // Record should still exist with IgnoreQueryFilters
-        var guidId = Guid.Parse(created.Id);
+        var guidId = Guid.Parse(created.Id!);
         var raw = await context.Entries.IgnoreQueryFilters()
             .FirstOrDefaultAsync(e => e.Id == guidId);
         Assert.NotNull(raw);

@@ -1,4 +1,5 @@
 using Nocturne.Core.Contracts.Alerts;
+using Nocturne.Core.Models;
 using Nocturne.Core.Models.Alerts;
 
 namespace Nocturne.API.Services.Alerts.Evaluators;

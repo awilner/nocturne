@@ -129,7 +129,12 @@ public class OAuthGrantEntity : ITenantScoped
 /// </summary>
 public static class OAuthGrantTypes
 {
+    /// <summary>Third-party application grant.</summary>
     public const string App = OAuthScopes.GrantTypeApp;
+
+    /// <summary>User-to-user follower/caregiver sharing grant.</summary>
     public const string Follower = OAuthScopes.GrantTypeFollower;
+
+    /// <summary>Direct token grant (API key style, no OAuth client).</summary>
     public const string Direct = OAuthScopes.GrantTypeDirect;
 }

@@ -215,7 +215,7 @@ public class OAuthController : ControllerBase
         var existingScopeString = existingGrant != null
             ? string.Join(" ", existingGrant.Scopes)
             : null;
-        var consentUrl = BuildConsentUrl(client_id, redirect_uri, scope, state, code_challenge, existingScopeString);
+        var consentUrl = BuildConsentUrl(client_id, redirect_uri, scope!, state, code_challenge, existingScopeString);
         return Redirect(consentUrl);
     }
 

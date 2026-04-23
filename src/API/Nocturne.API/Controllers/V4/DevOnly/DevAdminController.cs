@@ -754,7 +754,7 @@ public class DevAdminController : ControllerBase
                 .ThenInclude(mr => mr.TenantRole)
             .Where(m => m.TenantId == defaultTenant.Id
                      && m.RevokedAt == null
-                     && !m.Subject.IsSystemSubject)
+                     && !m.Subject!.IsSystemSubject)
             .ToListAsync(ct);
 
         if (sourceMembers.Count == 0)
@@ -789,8 +789,8 @@ public class DevAdminController : ControllerBase
 
             _logger.LogInformation(
                 "Copied member {SubjectName} ({SubjectId}) with roles [{Roles}] to tenant {TenantId}",
-                member.Subject.Name, member.SubjectId,
-                string.Join(", ", member.MemberRoles.Select(mr => mr.TenantRole.Slug)),
+                member.Subject!.Name, member.SubjectId,
+                string.Join(", ", member.MemberRoles.Select(mr => mr.TenantRole!.Slug)),
                 targetTenantId);
         }
     }
@@ -842,8 +842,8 @@ public class DevAdminController : ControllerBase
             .AsNoTracking()
             .Include(m => m.Subject)
             .Include(m => m.MemberRoles).ThenInclude(mr => mr.TenantRole)
-            .Where(m => m.TenantId == tenantId && m.RevokedAt == null && !m.Subject.IsSystemSubject)
-            .Select(m => new { m.SubjectId, RoleSlugs = m.MemberRoles.Select(mr => mr.TenantRole.Slug).ToList() })
+            .Where(m => m.TenantId == tenantId && m.RevokedAt == null && !m.Subject!.IsSystemSubject)
+            .Select(m => new { m.SubjectId, RoleSlugs = m.MemberRoles.Select(mr => mr.TenantRole!.Slug).ToList() })
             .ToListAsync(ct);
 
         // Delete + re-insert the tenant row in a single statement so the ID

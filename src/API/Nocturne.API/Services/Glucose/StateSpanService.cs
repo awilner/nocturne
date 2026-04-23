@@ -1,3 +1,4 @@
+using Nocturne.API.Services.Health;
 using Nocturne.Core.Contracts.Health;
 using Nocturne.Core.Contracts.Glucose;
 using Nocturne.Core.Contracts.Repositories;

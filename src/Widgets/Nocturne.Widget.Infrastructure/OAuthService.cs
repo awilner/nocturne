@@ -25,6 +25,9 @@ public class OAuthService : IOAuthService
         PropertyNameCaseInsensitive = true,
     };
 
+    /// <summary>
+    /// Initializes with the HTTP client for token endpoint calls, credential persistence, and logging.
+    /// </summary>
     public OAuthService(
         HttpClient httpClient,
         ICredentialStore credentialStore,

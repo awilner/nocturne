@@ -50,7 +50,7 @@ public interface IDeviceEventRepository : IV4Repository<DeviceEvent>
     /// <summary>Returns a single <see cref="DeviceEvent"/> by its UUID v7, or <c>null</c> if not found.</summary>
     /// <param name="id">UUID v7 record identifier.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task<DeviceEvent?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    new Task<DeviceEvent?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>Retrieve a <see cref="DeviceEvent"/> by its original MongoDB ObjectId.</summary>
     /// <param name="legacyId">Original MongoDB ObjectId string.</param>
@@ -61,18 +61,18 @@ public interface IDeviceEventRepository : IV4Repository<DeviceEvent>
     /// <summary>Persist a new <see cref="DeviceEvent"/> and return the saved entity.</summary>
     /// <param name="model">Record to create.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task<DeviceEvent> CreateAsync(DeviceEvent model, CancellationToken ct = default);
+    new Task<DeviceEvent> CreateAsync(DeviceEvent model, CancellationToken ct = default);
 
     /// <summary>Replace an existing <see cref="DeviceEvent"/> identified by <paramref name="id"/>.</summary>
     /// <param name="id">UUID v7 identifier of the record to update.</param>
     /// <param name="model">Updated record data.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task<DeviceEvent> UpdateAsync(Guid id, DeviceEvent model, CancellationToken ct = default);
+    new Task<DeviceEvent> UpdateAsync(Guid id, DeviceEvent model, CancellationToken ct = default);
 
     /// <summary>Delete a <see cref="DeviceEvent"/> by its UUID v7.</summary>
     /// <param name="id">UUID v7 identifier of the record to delete.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task DeleteAsync(Guid id, CancellationToken ct = default);
+    new Task DeleteAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>Delete the <see cref="DeviceEvent"/> with the given legacy MongoDB ObjectId.</summary>
     /// <param name="legacyId">Original MongoDB ObjectId string.</param>
@@ -84,7 +84,7 @@ public interface IDeviceEventRepository : IV4Repository<DeviceEvent>
     /// <param name="from">Inclusive start, or <c>null</c> for no lower bound.</param>
     /// <param name="to">Exclusive end, or <c>null</c> for no upper bound.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task<int> CountAsync(DateTime? from, DateTime? to, CancellationToken ct = default);
+    new Task<int> CountAsync(DateTime? from, DateTime? to, CancellationToken ct = default);
 
     /// <summary>Retrieve all <see cref="DeviceEvent"/> records sharing the same correlation identifier.</summary>
     /// <param name="correlationId">Correlation ID linking related records.</param>

@@ -25,7 +25,7 @@ public interface ITargetRangeScheduleRepository : IV4Repository<TargetRangeSched
     /// <param name="offset">Number of records to skip for pagination (default 0).</param>
     /// <param name="descending">When <c>true</c>, results are ordered newest-first (default).</param>
     /// <param name="ct">Cancellation token.</param>
-    Task<IEnumerable<TargetRangeSchedule>> GetAsync(
+    new Task<IEnumerable<TargetRangeSchedule>> GetAsync(
         DateTime? from,
         DateTime? to,
         string? device,
@@ -39,7 +39,7 @@ public interface ITargetRangeScheduleRepository : IV4Repository<TargetRangeSched
     /// <summary>Returns a single <see cref="TargetRangeSchedule"/> by its UUID v7, or <c>null</c> if not found.</summary>
     /// <param name="id">UUID v7 record identifier.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task<TargetRangeSchedule?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    new Task<TargetRangeSchedule?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>Retrieve a <see cref="TargetRangeSchedule"/> by its original MongoDB ObjectId.</summary>
     /// <param name="legacyId">Original MongoDB ObjectId string.</param>
@@ -55,18 +55,18 @@ public interface ITargetRangeScheduleRepository : IV4Repository<TargetRangeSched
     /// <summary>Persist a new <see cref="TargetRangeSchedule"/> and return the saved entity.</summary>
     /// <param name="model">Record to create.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task<TargetRangeSchedule> CreateAsync(TargetRangeSchedule model, CancellationToken ct = default);
+    new Task<TargetRangeSchedule> CreateAsync(TargetRangeSchedule model, CancellationToken ct = default);
 
     /// <summary>Replace an existing <see cref="TargetRangeSchedule"/> identified by <paramref name="id"/>.</summary>
     /// <param name="id">UUID v7 identifier of the record to update.</param>
     /// <param name="model">Updated record data.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task<TargetRangeSchedule> UpdateAsync(Guid id, TargetRangeSchedule model, CancellationToken ct = default);
+    new Task<TargetRangeSchedule> UpdateAsync(Guid id, TargetRangeSchedule model, CancellationToken ct = default);
 
     /// <summary>Delete a <see cref="TargetRangeSchedule"/> by its UUID v7.</summary>
     /// <param name="id">UUID v7 identifier of the record to delete.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task DeleteAsync(Guid id, CancellationToken ct = default);
+    new Task DeleteAsync(Guid id, CancellationToken ct = default);
 
     /// <summary>Delete the <see cref="TargetRangeSchedule"/> with the given legacy MongoDB ObjectId.</summary>
     /// <param name="legacyId">Original MongoDB ObjectId string.</param>
@@ -87,7 +87,7 @@ public interface ITargetRangeScheduleRepository : IV4Repository<TargetRangeSched
     /// <param name="from">Inclusive start, or <c>null</c> for no lower bound.</param>
     /// <param name="to">Exclusive end, or <c>null</c> for no upper bound.</param>
     /// <param name="ct">Cancellation token.</param>
-    Task<int> CountAsync(DateTime? from, DateTime? to, CancellationToken ct = default);
+    new Task<int> CountAsync(DateTime? from, DateTime? to, CancellationToken ct = default);
 
     /// <summary>Retrieve all <see cref="TargetRangeSchedule"/> records sharing the same correlation identifier.</summary>
     /// <param name="correlationId">Correlation ID linking related records (e.g., from one profile upload).</param>

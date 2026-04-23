@@ -1,4 +1,5 @@
 using Nocturne.API.Extensions;
+using Nocturne.Core.Models.Authorization;
 
 namespace Nocturne.API.Middleware;
 

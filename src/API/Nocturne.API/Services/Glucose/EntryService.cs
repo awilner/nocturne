@@ -160,7 +160,7 @@ public class EntryService : IEntryService
     /// <inheritdoc />
     /// <remarks>
     /// Persists entries via <see cref="IEntryRepository.CreateEntriesAsync"/> and then
-    /// fires <see cref="IDataEventSink{T}.OnCreatedAsync"/> to trigger cache invalidation
+    /// fires <see cref="IDataEventSink{T}.OnCreatedAsync(IReadOnlyList{T}, CancellationToken)"/> to trigger cache invalidation
     /// and SignalR broadcasting.
     /// </remarks>
     public async Task<IEnumerable<Entry>> CreateEntriesAsync(

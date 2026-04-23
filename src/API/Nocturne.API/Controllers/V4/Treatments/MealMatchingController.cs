@@ -24,7 +24,7 @@ namespace Nocturne.API.Controllers.V4.Treatments;
 /// <b>Dismiss</b> (<c>POST /dismiss</c>) — marks the food entry as dismissed and archives the
 /// notification with reason <c>Dismissed</c>.
 ///
-/// Both mutation endpoints use <see cref="OpenApi.Remote.Attributes.RemoteCommandAttribute"/> with
+/// Both mutation endpoints use <c>RemoteCommandAttribute</c> with
 /// cache invalidation on <c>GetSuggestions</c>.
 /// </remarks>
 /// <seealso cref="IMealMatchingService"/>

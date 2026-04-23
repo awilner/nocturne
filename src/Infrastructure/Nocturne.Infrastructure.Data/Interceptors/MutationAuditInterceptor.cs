@@ -29,11 +29,15 @@ public class MutationAuditInterceptor : SaveChangesInterceptor
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
     };
 
+    /// <summary>
+    /// Initializes the interceptor with access to the current HTTP context for audit metadata.
+    /// </summary>
     public MutationAuditInterceptor(IHttpContextAccessor httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
     }
 
+    /// <inheritdoc />
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
         InterceptionResult<int> result,

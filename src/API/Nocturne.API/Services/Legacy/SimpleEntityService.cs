@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Nocturne.API.Services.Health;
 using Nocturne.Core.Contracts.Legacy;
 using Nocturne.Core.Contracts.Health;
 using Nocturne.Core.Models;

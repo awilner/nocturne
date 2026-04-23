@@ -52,8 +52,8 @@ public class PlatformAdminBootstrapService
 
         // Option 2: grant to owner of oldest tenant
         var firstOwnerSubjectId = await _db.TenantMembers
-            .Where(tm => tm.MemberRoles.Any(mr => mr.TenantRole.Slug == "owner"))
-            .OrderBy(tm => tm.Tenant.SysCreatedAt)
+            .Where(tm => tm.MemberRoles.Any(mr => mr.TenantRole!.Slug == "owner"))
+            .OrderBy(tm => tm.Tenant!.SysCreatedAt)
             .Select(tm => tm.SubjectId)
             .FirstOrDefaultAsync(cancellationToken);
 

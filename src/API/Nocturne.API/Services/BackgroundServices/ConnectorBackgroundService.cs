@@ -67,6 +67,7 @@ public abstract class ConnectorBackgroundService<TConfig> : BackgroundService
     /// </summary>
     /// <param name="scopeProvider">Tenant-scoped service provider</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="progressReporter">Optional progress reporter for sync status updates</param>
     /// <returns>A SyncResult indicating success/failure and any error details</returns>
     protected abstract Task<SyncResult> PerformSyncAsync(IServiceProvider scopeProvider, CancellationToken cancellationToken, ISyncProgressReporter? progressReporter = null);
 
