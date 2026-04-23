@@ -11,6 +11,7 @@ import {
   AnalyticsClient,
   ApiSecretClient,
   ApsSnapshotClient,
+  AvatarClient,
   BackfillClient,
   BatteryClient,
   BGCheckClient,
@@ -103,6 +104,7 @@ export class ApiClient {
   public readonly analytics: AnalyticsClient;
   public readonly apiSecret: ApiSecretClient;
   public readonly apsSnapshot: ApsSnapshotClient;
+  public readonly avatar: AvatarClient;
   public readonly backfill: BackfillClient;
   public readonly battery: BatteryClient;
   public readonly bGCheck: BGCheckClient;
@@ -195,6 +197,7 @@ export class ApiClient {
     this.analytics = new AnalyticsClient(apiBaseUrl, http);
     this.apiSecret = new ApiSecretClient(apiBaseUrl, http);
     this.apsSnapshot = new ApsSnapshotClient(apiBaseUrl, http);
+    this.avatar = new AvatarClient(apiBaseUrl, http);
     this.backfill = new BackfillClient(apiBaseUrl, http);
     this.battery = new BatteryClient(apiBaseUrl, http);
     this.bGCheck = new BGCheckClient(apiBaseUrl, http);

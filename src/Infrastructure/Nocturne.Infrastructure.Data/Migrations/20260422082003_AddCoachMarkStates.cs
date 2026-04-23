@@ -44,11 +44,24 @@ namespace Nocturne.Infrastructure.Data.Migrations
                 name: "IX_coach_mark_states_tenant_id",
                 table: "coach_mark_states",
                 column: "tenant_id");
+
+            migrationBuilder.Sql("ALTER TABLE coach_mark_states ENABLE ROW LEVEL SECURITY;");
+            migrationBuilder.Sql("ALTER TABLE coach_mark_states FORCE ROW LEVEL SECURITY;");
+            migrationBuilder.Sql(
+                """
+                CREATE POLICY tenant_isolation ON coach_mark_states
+                    USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid)
+                    WITH CHECK (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid);
+                """);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql("DROP POLICY IF EXISTS tenant_isolation ON coach_mark_states;");
+            migrationBuilder.Sql("ALTER TABLE coach_mark_states NO FORCE ROW LEVEL SECURITY;");
+            migrationBuilder.Sql("ALTER TABLE coach_mark_states DISABLE ROW LEVEL SECURITY;");
+
             migrationBuilder.DropTable(
                 name: "coach_mark_states");
         }

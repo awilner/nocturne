@@ -807,6 +807,7 @@ msgstr ""
 #: src/lib/components/alerts/SnoozeTab.svelte
 #: src/lib/components/auth/LoginForm.svelte
 #: src/lib/components/auth/LoginForm.svelte
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/dashboard/RecentTreatmentsCard.svelte
 #: src/routes/(authenticated)/tools/packing/list/+page.svelte
 #: src/routes/(authenticated)/tools/packing/list/+page.svelte
@@ -3798,6 +3799,7 @@ msgstr ""
 msgid "Customize themes, colors, units, and display preferences"
 msgstr ""
 
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/dashboard/SetupCard.svelte
 #: src/lib/components/rbac/PermissionPicker.svelte
 #: src/routes/(authenticated)/settings/patient/+page.svelte
@@ -10589,6 +10591,7 @@ msgstr ""
 #: src/lib/components/admin/UsersTabContent.svelte
 #: src/lib/components/dashboard/SetupCard.svelte
 #: src/routes/(authenticated)/settings/admin/+page.svelte
+#: src/routes/(authenticated)/settings/members/+page.svelte
 #: src/routes/settings/admin/+page.svelte
 #: src/routes/settings/admin/+page.svelte
 msgid "Public"
@@ -15573,6 +15576,8 @@ msgstr ""
 #~ msgid "Positive = ate after bolusing, Negative = ate before bolusing"
 #~ msgstr ""
 
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/dashboard/SetupCard.svelte
 #: src/lib/components/meal-matching/MealMatchReviewDialog.svelte
 #: src/lib/components/meals/MealSuggestionRow.svelte
@@ -21064,6 +21069,7 @@ msgstr ""
 msgid "SN: {0}"
 msgstr ""
 
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/dashboard/SetupCard.svelte
 #: src/routes/(authenticated)/settings/patient/+page.svelte
 #: src/routes/settings/patient/+page.svelte
@@ -21545,6 +21551,7 @@ msgstr ""
 msgid "Redirecting to Alerts..."
 msgstr ""
 
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/layout/AppSidebar.svelte
 #: src/routes/(authenticated)/settings/alerts/+page.svelte
 #: src/routes/settings/alerts/+page.svelte
@@ -25873,6 +25880,7 @@ msgstr ""
 msgid "Register a passkey to restore normal access."
 msgstr ""
 
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/dashboard/SetupCard.svelte
 #: src/routes/(fullscreen)/setup/permissions/+page.svelte
 #: src/routes/settings/setup/+page.svelte
@@ -26997,10 +27005,12 @@ msgid ""
 "enable delivery."
 msgstr ""
 
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/dashboard/SetupCard.svelte
 msgid "Patient details"
 msgstr ""
 
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/dashboard/SetupCard.svelte
 msgid "Therapy profile"
 msgstr ""
@@ -27853,4 +27863,38 @@ msgstr ""
 
 #: src/routes/(legal)/terms/+page.svelte
 msgid "The AGPL-3.0 provides the software \"as is\" without warranty. See the LICENSE file in the project repository for full terms."
+msgstr ""
+
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "Clinical info so Nocturne can tailor readings"
+msgstr ""
+
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "Your CGM, pump, and meter"
+msgstr ""
+
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "Current insulin types and regimen"
+msgstr ""
+
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "Get notified about highs and lows"
+msgstr ""
+
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "Control who can see your data"
+msgstr ""
+
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "Imported from your data source"
+msgstr ""
+
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "You're all set"
+msgstr ""
+
+#. placeholder {0}: progress.completed
+#. placeholder {1}: progress.total
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "{0} of {1} set up"
 msgstr ""

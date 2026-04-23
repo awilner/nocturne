@@ -11,6 +11,17 @@
   --coach-hotspot-size: 12px;
   --coach-hotspot-color: hsl(210 100% 60%);
   --coach-z-index: 9999;
+  --coach-backdrop: hsl(0 0% 0% / 0.6);
+}
+
+/* Backdrop */
+
+.coach-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--coach-z-index) - 1);
+  background: var(--coach-backdrop);
+  transition: clip-path 0.25s ease;
 }
 
 /* Popover */
@@ -170,7 +181,8 @@
     animation: none;
   }
 
-  .coach-btn {
+  .coach-btn,
+  .coach-backdrop {
     transition: none;
   }
 }

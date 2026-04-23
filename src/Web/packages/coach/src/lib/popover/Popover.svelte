@@ -18,6 +18,10 @@
   let dwellTimer: ReturnType<typeof setTimeout> | null = null;
   let cleanupAutoUpdate: (() => void) | null = null;
 
+  const SPOTLIGHT_PADDING = 8;
+
+  let spotlightClipPath = $state("");
+
   const activeKey = $derived(ctx.activeKey);
   const mountedSteps = $derived(activeKey ? ctx.getMountedSteps(activeKey) : []);
   const currentRegistration = $derived(mountedSteps[currentLocalStep] ?? null);
@@ -33,6 +37,42 @@
     }
   });
 
+  function updateSpotlightRect(element: Element) {
+    const rect = element.getBoundingClientRect();
+    const pad = SPOTLIGHT_PADDING;
+    const top = rect.top - pad;
+    const left = rect.left - pad;
+    const bottom = rect.bottom + pad;
+    const right = rect.right + pad;
+    const r = parseFloat(getComputedStyle(element).borderRadius || "0") + pad;
+
+    // Outer rect (full viewport) clockwise, inner rounded rect counter-clockwise
+    // Using polygon with evenodd for the cutout; approximate rounded corners with extra points
+    if (r > 0) {
+      spotlightClipPath = `polygon(evenodd,
+        0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%,
+        ${left + r}px ${top}px,
+        ${right - r}px ${top}px,
+        ${right}px ${top + r}px,
+        ${right}px ${bottom - r}px,
+        ${right - r}px ${bottom}px,
+        ${left + r}px ${bottom}px,
+        ${left}px ${bottom - r}px,
+        ${left}px ${top + r}px,
+        ${left + r}px ${top}px
+      )`;
+    } else {
+      spotlightClipPath = `polygon(evenodd,
+        0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%,
+        ${left}px ${top}px,
+        ${left}px ${bottom}px,
+        ${right}px ${bottom}px,
+        ${right}px ${top}px,
+        ${left}px ${top}px
+      )`;
+    }
+  }
+
   // Position popover
   $effect(() => {
     if (currentRegistration && popoverEl) {
@@ -41,10 +81,13 @@
       cleanupAutoUpdate?.();
       cleanupAutoUpdate = autoUpdate(currentRegistration.element, popoverEl, () => {
         if (!currentRegistration || !popoverEl) return;
+
+        updateSpotlightRect(currentRegistration.element);
+
         computePosition(currentRegistration.element, popoverEl, {
           placement: "bottom",
           middleware: [
-            offset(12),
+            offset(12 + SPOTLIGHT_PADDING),
             flip(),
             shift({ padding: 8 }),
             ...(arrowEl ? [arrowMiddleware({ element: arrowEl })] : []),
@@ -102,6 +145,13 @@
 </script>
 
 {#if activeKey && currentRegistration}
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div
+    class="coach-backdrop"
+    style:clip-path={spotlightClipPath}
+    onkeydown={handleKeydown}
+    onclick={handleDismiss}
+  ></div>
   <div
     bind:this={popoverEl}
     class="coach-popover"

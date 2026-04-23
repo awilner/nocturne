@@ -1030,6 +1030,7 @@ msgstr "Minutes"
 #: src/lib/components/alerts/SnoozeTab.svelte
 #: src/lib/components/auth/LoginForm.svelte
 #: src/lib/components/auth/LoginForm.svelte
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/dashboard/RecentTreatmentsCard.svelte
 #: src/routes/(authenticated)/tools/packing/list/+page.svelte
 #: src/routes/(authenticated)/tools/packing/list/+page.svelte
@@ -1418,6 +1419,7 @@ msgstr "Create your first user account to get started"
 #: src/lib/components/admin/UsersTabContent.svelte
 #: src/lib/components/dashboard/SetupCard.svelte
 #: src/routes/(authenticated)/settings/admin/+page.svelte
+#: src/routes/(authenticated)/settings/members/+page.svelte
 msgid "Public"
 msgstr "Public"
 
@@ -3607,25 +3609,30 @@ msgstr "Device Event"
 msgid "Error loading recent entries."
 msgstr "Error loading recent entries."
 
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/dashboard/SetupCard.svelte
 msgid "Patient details"
 msgstr "Patient details"
 
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/dashboard/SetupCard.svelte
 #: src/lib/components/rbac/PermissionPicker.svelte
 #: src/routes/(authenticated)/settings/patient/+page.svelte
 msgid "Devices"
 msgstr "Devices"
 
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/dashboard/SetupCard.svelte
 #: src/routes/(authenticated)/settings/patient/+page.svelte
 msgid "Insulins"
 msgstr "Insulins"
 
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/dashboard/SetupCard.svelte
 msgid "Sharing & Privacy"
 msgstr "Sharing & Privacy"
 
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/dashboard/SetupCard.svelte
 msgid "Therapy profile"
 msgstr "Therapy profile"
@@ -3634,6 +3641,8 @@ msgstr "Therapy profile"
 msgid "Finish setting up"
 msgstr "Finish setting up"
 
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/dashboard/SetupCard.svelte
 #: src/lib/components/meal-matching/MealMatchReviewDialog.svelte
 #: src/lib/components/meals/MealSuggestionRow.svelte
@@ -4121,6 +4130,7 @@ msgstr "Appearance"
 msgid "Therapy"
 msgstr "Therapy"
 
+#: src/lib/components/dashboard/OnboardingProgress.svelte
 #: src/lib/components/layout/AppSidebar.svelte
 #: src/routes/(authenticated)/settings/alerts/+page.svelte
 msgid "Alerts"
@@ -17456,3 +17466,37 @@ msgstr "Commercial licensing is available for organizations that need to use Noc
 #: src/routes/(legal)/terms/+page.svelte
 msgid "The AGPL-3.0 provides the software \"as is\" without warranty. See the LICENSE file in the project repository for full terms."
 msgstr "The AGPL-3.0 provides the software \"as is\" without warranty. See the LICENSE file in the project repository for full terms."
+
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "Clinical info so Nocturne can tailor readings"
+msgstr "Clinical info so Nocturne can tailor readings"
+
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "Your CGM, pump, and meter"
+msgstr "Your CGM, pump, and meter"
+
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "Current insulin types and regimen"
+msgstr "Current insulin types and regimen"
+
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "Get notified about highs and lows"
+msgstr "Get notified about highs and lows"
+
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "Control who can see your data"
+msgstr "Control who can see your data"
+
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "Imported from your data source"
+msgstr "Imported from your data source"
+
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "You're all set"
+msgstr "You're all set"
+
+#. placeholder {0}: progress.completed
+#. placeholder {1}: progress.total
+#: src/lib/components/dashboard/OnboardingProgress.svelte
+msgid "{0} of {1} set up"
+msgstr "{0} of {1} set up"

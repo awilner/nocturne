@@ -52,10 +52,18 @@
   {:else}
     <div class="rounded-lg border bg-card">
       <!-- Compact bar -->
-      <button
-        type="button"
-        class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 transition-colors rounded-lg"
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div
+        role="button"
+        tabindex="0"
+        class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 transition-colors rounded-lg cursor-pointer"
         onclick={() => (expanded = !expanded)}
+        onkeydown={(e: KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            expanded = !expanded;
+          }
+        }}
       >
         <ListChecks class="h-4 w-4 shrink-0 text-muted-foreground" />
         <span class="flex-1 text-left">
@@ -78,7 +86,7 @@
         {:else}
           <ChevronRight class="h-4 w-4 shrink-0 text-muted-foreground" />
         {/if}
-      </button>
+      </div>
 
       <!-- Expanded list of remaining steps -->
       {#if expanded}

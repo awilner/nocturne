@@ -1,4 +1,4 @@
-import { getContext, setContext } from "svelte";
+import { getContext, setContext, untrack } from "svelte";
 import type {
   CoachMarkAdapter,
   MarkRegistration,
@@ -58,16 +58,18 @@ export class CoachMarkContext {
   }
 
   register(registration: MarkRegistration): () => void {
-    this._registrations = [...this._registrations, registration];
+    this._registrations = untrack(() => [...this._registrations, registration]);
     this.scheduleSelection();
     return () => {
-      this._registrations = this._registrations.filter(
-        (r) =>
-          !(
-            r.key === registration.key &&
-            r.step === registration.step &&
-            r.element === registration.element
-          ),
+      this._registrations = untrack(() =>
+        this._registrations.filter(
+          (r) =>
+            !(
+              r.key === registration.key &&
+              r.step === registration.step &&
+              r.element === registration.element
+            ),
+        ),
       );
       this.scheduleSelection();
     };
