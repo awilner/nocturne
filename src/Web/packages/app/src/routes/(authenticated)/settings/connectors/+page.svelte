@@ -57,7 +57,6 @@
   import DataSourceManageDialog from "$lib/components/connectors/DataSourceManageDialog.svelte";
   import { getApiClient } from "$lib/api";
   import { toast } from "svelte-sonner";
-  import { getCategoryIcon } from "$lib/utils/connector-display";
   import { getUploaderName } from "$lib/utils/uploader-labels";
   import { getRealtimeStore } from "$lib/stores/realtime-store.svelte";
 
@@ -428,7 +427,7 @@
               {@const isDemo = isDemoDataSource(source)}
               <DataSourceRow
                 name={source.name ?? "Unknown"}
-                icon={getCategoryIcon(source.category)}
+                icon={source.icon}
                 status={mapDataSourceStatus(source)}
                 totalEntries={source.totalEntries}
                 entriesLast24h={source.entriesLast24h}

@@ -18325,29 +18325,24 @@ msgstr ""
 msgid "7. Open Source License"
 msgstr ""
 
-#: src/routes/(legal)/terms/+page.svelte
-msgid "Nocturne is released under the MIT License. This means you're free to:"
-msgstr ""
+#~ msgid "Nocturne is released under the MIT License. This means you're free to:"
+#~ msgstr ""
 
 #: src/routes/(legal)/terms/+page.svelte
 msgid "Use the software for any purpose"
 msgstr ""
 
-#: src/routes/(legal)/terms/+page.svelte
-msgid "Modify the source code"
-msgstr ""
+#~ msgid "Modify the source code"
+#~ msgstr ""
 
-#: src/routes/(legal)/terms/+page.svelte
-msgid "Distribute copies"
-msgstr ""
+#~ msgid "Distribute copies"
+#~ msgstr ""
 
-#: src/routes/(legal)/terms/+page.svelte
-msgid "Sublicense or sell copies"
-msgstr ""
+#~ msgid "Sublicense or sell copies"
+#~ msgstr ""
 
-#: src/routes/(legal)/terms/+page.svelte
-msgid "The MIT License provides the software \"as is\" without warranty. See the LICENSE file in the project repository for full details."
-msgstr ""
+#~ msgid "The MIT License provides the software \"as is\" without warranty. See the LICENSE file in the project repository for full details."
+#~ msgstr ""
 
 #: src/routes/(legal)/terms/+page.svelte
 msgid "8. Contact"
@@ -27834,4 +27829,28 @@ msgstr ""
 
 #: src/routes/(unauthenticated)/setup/+page@.svelte
 msgid "Save and continue <0/>"
+msgstr ""
+
+#: src/routes/(legal)/terms/+page.svelte
+msgid "Nocturne is released under the <0>GNU Affero General Public License v3.0 (AGPL-3.0)</0>. This means you're free to:"
+msgstr ""
+
+#: src/routes/(legal)/terms/+page.svelte
+msgid "Study and modify the source code"
+msgstr ""
+
+#: src/routes/(legal)/terms/+page.svelte
+msgid "Distribute copies, provided derivative works are also licensed under AGPL-3.0"
+msgstr ""
+
+#: src/routes/(legal)/terms/+page.svelte
+msgid "Run the software as a network service, provided users can access the source code"
+msgstr ""
+
+#: src/routes/(legal)/terms/+page.svelte
+msgid "Commercial licensing is available for organizations that need to use Nocturne without AGPL obligations. Contact the maintainers for details."
+msgstr ""
+
+#: src/routes/(legal)/terms/+page.svelte
+msgid "The AGPL-3.0 provides the software \"as is\" without warranty. See the LICENSE file in the project repository for full terms."
 msgstr ""

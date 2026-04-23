@@ -14,16 +14,14 @@
   import { Badge } from "$lib/components/ui/badge";
   import {
     AlertCircle,
-    CheckCircle,
     ChevronRight,
     Loader2,
-    Upload,
-    Activity,
     Smartphone,
     Cloud,
     Plug,
   } from "lucide-svelte";
   import Apple from "lucide-svelte/icons/apple";
+  import AppLogo from "$lib/components/ui/AppLogo.svelte";
 
   interface Props {
     connectors: AvailableConnector[];
@@ -98,17 +96,6 @@
     }
   }
 
-  function getCategoryIcon(category: UploaderCategory | undefined) {
-    switch (category) {
-      case UploaderCategory.Cgm:
-      case UploaderCategory.AidSystem:
-        return Activity;
-      case UploaderCategory.Uploader:
-        return Upload;
-      default:
-        return Upload;
-    }
-  }
 </script>
 
 <div>
@@ -156,11 +143,7 @@
                   ? 'bg-green-500/10 text-green-600'
                   : 'bg-primary/10 text-primary'}"
               >
-                {#if configured}
-                  <CheckCircle class="h-5 w-5" />
-                {:else}
-                  <Plug class="h-5 w-5" />
-                {/if}
+                <AppLogo icon={connector.icon} />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 flex-wrap">
@@ -230,7 +213,6 @@
               <div class="grid gap-3 sm:grid-cols-2">
                 {#each group.apps as app (app.id)}
                   {@const detected = isDetected(app.id)}
-                  {@const Icon = getCategoryIcon(app.category)}
                   <button
                     type="button"
                     class="flex items-center gap-4 p-4 rounded-lg border transition-colors text-left group {detected
@@ -243,11 +225,7 @@
                         ? 'bg-green-500/10 text-green-600'
                         : 'bg-primary/10 text-primary'}"
                     >
-                      {#if detected}
-                        <CheckCircle class="h-5 w-5" />
-                      {:else}
-                        <Icon class="h-5 w-5" />
-                      {/if}
+                      <AppLogo icon={app.icon} />
                     </div>
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center gap-2 flex-wrap">

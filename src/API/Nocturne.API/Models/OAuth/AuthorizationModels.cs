@@ -75,6 +75,11 @@ public class OAuthClientInfoResponse
     /// URL of the client application's homepage.
     /// </summary>
     public string? Homepage { get; set; }
+
+    /// <summary>
+    /// URL of the client application's logo image.
+    /// </summary>
+    public string? LogoUri { get; set; }
 }
 
 /// <summary>

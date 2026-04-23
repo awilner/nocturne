@@ -10,14 +10,9 @@
     AlertCircle,
     CheckCircle,
     ChevronRight,
-    Cloud,
-    Activity,
-    Database,
-    Settings,
-    Smartphone,
-    Sparkles,
     Plug,
   } from "lucide-svelte";
+  import AppLogo from "$lib/components/ui/AppLogo.svelte";
   import SettingsPageSkeleton from "$lib/components/settings/SettingsPageSkeleton.svelte";
 
   interface Props {
@@ -30,25 +25,6 @@
 
   const { servicesOverview, isLoading, error, onSelect, onCancel }: Props =
     $props();
-
-  function getCategoryIcon(category: string | undefined) {
-    switch (category) {
-      case "cgm":
-        return Activity;
-      case "pump":
-        return Database;
-      case "aid-system":
-        return Settings;
-      case "connector":
-        return Cloud;
-      case "uploader":
-        return Smartphone;
-      case "demo":
-        return Sparkles;
-      default:
-        return Plug;
-    }
-  }
 </script>
 
 {#if isLoading}
@@ -73,7 +49,6 @@
     </div>
     <div class="grid gap-3 sm:grid-cols-2">
       {#each servicesOverview.availableConnectors as connector}
-        {@const Icon = getCategoryIcon(connector.category)}
         <button
           class="flex items-center gap-4 p-4 rounded-lg border hover:border-primary/50 hover:bg-accent/50 transition-colors text-left group {connector.isConfigured
             ? 'border-green-300 dark:border-green-700 bg-green-50/50 dark:bg-green-950/20'
@@ -85,11 +60,7 @@
               ? 'bg-green-100 dark:bg-green-900/30'
               : 'bg-primary/10'}"
           >
-            <Icon
-              class="h-5 w-5 {connector.isConfigured
-                ? 'text-green-600 dark:text-green-400'
-                : 'text-primary'}"
-            />
+            <AppLogo icon={connector.icon} />
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 flex-wrap">

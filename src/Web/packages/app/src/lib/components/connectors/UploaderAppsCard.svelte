@@ -15,8 +15,7 @@
     CheckCircle,
     ChevronRight,
   } from "lucide-svelte";
-  import Apple from "lucide-svelte/icons/apple";
-  import TabletSmartphone from "lucide-svelte/icons/tablet-smartphone";
+  import AppLogo from "$lib/components/ui/AppLogo.svelte";
 
   interface Props {
     uploaderApps: UploaderApp[];
@@ -25,17 +24,6 @@
   }
 
   let { uploaderApps, isUploaderActive, onSetup }: Props = $props();
-
-  function getPlatformIcon(platform: string | undefined) {
-    switch (platform) {
-      case "ios":
-        return Apple;
-      case "android":
-        return TabletSmartphone;
-      default:
-        return Smartphone;
-    }
-  }
 
   const cgmApps = $derived(uploaderApps.filter((u) => u.category === "cgm"));
   const aidApps = $derived(uploaderApps.filter((u) => u.category === "aid-system"));
@@ -68,7 +56,6 @@
         <Tabs.Content value={tab.value} class="mt-4">
           <div class="grid gap-3 sm:grid-cols-2">
             {#each tab.apps as uploader}
-              {@const PlatformIcon = getPlatformIcon(uploader.platform)}
               {@const active = isUploaderActive(uploader)}
               <button
                 class="flex items-center gap-4 p-4 rounded-lg border hover:border-primary/50 hover:bg-accent/50 transition-colors text-left group {active
@@ -81,11 +68,7 @@
                     ? 'bg-green-100 dark:bg-green-900/30'
                     : 'bg-primary/10'}"
                 >
-                  <PlatformIcon
-                    class="h-5 w-5 {active
-                      ? 'text-green-600 dark:text-green-400'
-                      : 'text-primary'}"
-                  />
+                  <AppLogo icon={uploader.icon} />
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 flex-wrap">

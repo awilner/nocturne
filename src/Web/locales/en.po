@@ -10277,29 +10277,24 @@ msgstr "For significant changes, we'll announce them in the project's GitHub rep
 msgid "7. Open Source License"
 msgstr "7. Open Source License"
 
-#: src/routes/(legal)/terms/+page.svelte
-msgid "Nocturne is released under the MIT License. This means you're free to:"
-msgstr "Nocturne is released under the MIT License. This means you're free to:"
+#~ msgid "Nocturne is released under the MIT License. This means you're free to:"
+#~ msgstr "Nocturne is released under the MIT License. This means you're free to:"
 
 #: src/routes/(legal)/terms/+page.svelte
 msgid "Use the software for any purpose"
 msgstr "Use the software for any purpose"
 
-#: src/routes/(legal)/terms/+page.svelte
-msgid "Modify the source code"
-msgstr "Modify the source code"
+#~ msgid "Modify the source code"
+#~ msgstr "Modify the source code"
 
-#: src/routes/(legal)/terms/+page.svelte
-msgid "Distribute copies"
-msgstr "Distribute copies"
+#~ msgid "Distribute copies"
+#~ msgstr "Distribute copies"
 
-#: src/routes/(legal)/terms/+page.svelte
-msgid "Sublicense or sell copies"
-msgstr "Sublicense or sell copies"
+#~ msgid "Sublicense or sell copies"
+#~ msgstr "Sublicense or sell copies"
 
-#: src/routes/(legal)/terms/+page.svelte
-msgid "The MIT License provides the software \"as is\" without warranty. See the LICENSE file in the project repository for full details."
-msgstr "The MIT License provides the software \"as is\" without warranty. See the LICENSE file in the project repository for full details."
+#~ msgid "The MIT License provides the software \"as is\" without warranty. See the LICENSE file in the project repository for full details."
+#~ msgstr "The MIT License provides the software \"as is\" without warranty. See the LICENSE file in the project repository for full details."
 
 #: src/routes/(legal)/terms/+page.svelte
 msgid "8. Contact"
@@ -17437,3 +17432,27 @@ msgstr ""
 #: src/routes/(unauthenticated)/setup/+page@.svelte
 msgid "Save and continue <0/>"
 msgstr "Save and continue <0/>"
+
+#: src/routes/(legal)/terms/+page.svelte
+msgid "Nocturne is released under the <0>GNU Affero General Public License v3.0 (AGPL-3.0)</0>. This means you're free to:"
+msgstr "Nocturne is released under the <0>GNU Affero General Public License v3.0 (AGPL-3.0)</0>. This means you're free to:"
+
+#: src/routes/(legal)/terms/+page.svelte
+msgid "Study and modify the source code"
+msgstr "Study and modify the source code"
+
+#: src/routes/(legal)/terms/+page.svelte
+msgid "Distribute copies, provided derivative works are also licensed under AGPL-3.0"
+msgstr "Distribute copies, provided derivative works are also licensed under AGPL-3.0"
+
+#: src/routes/(legal)/terms/+page.svelte
+msgid "Run the software as a network service, provided users can access the source code"
+msgstr "Run the software as a network service, provided users can access the source code"
+
+#: src/routes/(legal)/terms/+page.svelte
+msgid "Commercial licensing is available for organizations that need to use Nocturne without AGPL obligations. Contact the maintainers for details."
+msgstr "Commercial licensing is available for organizations that need to use Nocturne without AGPL obligations. Contact the maintainers for details."
+
+#: src/routes/(legal)/terms/+page.svelte
+msgid "The AGPL-3.0 provides the software \"as is\" without warranty. See the LICENSE file in the project repository for full terms."
+msgstr "The AGPL-3.0 provides the software \"as is\" without warranty. See the LICENSE file in the project repository for full terms."

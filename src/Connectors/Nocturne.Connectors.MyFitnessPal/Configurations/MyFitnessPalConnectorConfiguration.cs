@@ -10,7 +10,7 @@ namespace Nocturne.Connectors.MyFitnessPal.Configurations;
     "MYFITNESSPAL",
     "ConnectSource.MyFitnessPal",
     "myfitnesspal-connector",
-    "utensils",
+    "myfitnesspal",
     ConnectorCategory.Nutrition,
     "Sync food diary entries from MyFitnessPal for meal matching",
     "MyFitnessPal",

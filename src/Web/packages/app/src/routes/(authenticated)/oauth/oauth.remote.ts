@@ -50,6 +50,7 @@ export const getClientInfo = query(
         displayName: null,
         isKnown: false,
         homepage: null,
+        logoUri: null,
       };
     }
   }

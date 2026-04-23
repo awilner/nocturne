@@ -9,6 +9,7 @@
     Loader2,
     WifiOff,
   } from "lucide-svelte";
+  import AppLogo from "$lib/components/ui/AppLogo.svelte";
   import { getDataTypeLabel } from "$lib/utils/data-type-labels";
 
   export type DataSourceStatus =
@@ -25,8 +26,7 @@
 
   interface Props {
     name: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    icon: any;
+    icon: string | undefined;
     status: DataSourceStatus;
     statusMessage?: string;
     totalEntries?: number;
@@ -50,7 +50,7 @@
 
   let {
     name,
-    icon: Icon,
+    icon,
     status,
     statusMessage,
     totalEntries,
@@ -170,7 +170,7 @@
       <div
         class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg {iconColors.bg}"
       >
-        <Icon class="h-5 w-5 {iconColors.text}" />
+        <AppLogo {icon} />
       </div>
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2 flex-wrap">

@@ -10,7 +10,7 @@ namespace Nocturne.Connectors.HomeAssistant.Configurations;
     "HOME_ASSISTANT",
     "ConnectSource.HomeAssistant",
     "home-assistant-connector",
-    "home",
+    "home-assistant",
     ConnectorCategory.Sync,
     "Bidirectional sync with Home Assistant",
     "Home Assistant",

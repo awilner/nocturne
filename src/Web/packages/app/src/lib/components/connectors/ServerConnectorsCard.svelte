@@ -44,7 +44,8 @@
     ChevronRight,
   } from "lucide-svelte";
   import DataSourceRow from "$lib/components/settings/DataSourceRow.svelte";
-  import { getCategoryIcon, mapConnectorStatus } from "$lib/utils/connector-display";
+  import AppLogo from "$lib/components/ui/AppLogo.svelte";
+  import { mapConnectorStatus } from "$lib/utils/connector-display";
 
   interface SyncProgress {
     phase: string;
@@ -183,7 +184,7 @@
           }}
           <DataSourceRow
             name={connector.name ?? connector.id ?? "Unknown"}
-            icon={getCategoryIcon(connector.category)}
+            icon={connector.icon}
             status={syncProgressByConnector[connector.id ?? ""]?.phase === "Syncing" ? "syncing" : mapConnectorStatus(connectorStatus)}
             syncProgress={syncProgressByConnector[connector.id ?? ""] ?? null}
             totalEntries={connectorStatus.totalEntries}
@@ -229,7 +230,7 @@
             : connectorDataSource?.lastSeen}
           <DataSourceRow
             name={connector.name ?? connector.id ?? "Unknown"}
-            icon={getCategoryIcon(connector.category)}
+            icon={connector.icon}
             status={isDisabled ? "disabled" : "offline"}
             syncProgress={syncProgressByConnector[connector.id ?? ""] ?? null}
             totalEntries={entryCount}
@@ -267,7 +268,6 @@
           </DataSourceRow>
         {:else}
           <!-- Not connected and no data - show with configure button -->
-          {@const Icon = getCategoryIcon(connector.category)}
           <a
             href="/settings/connectors/{connector.id?.toLowerCase()}"
             class="flex items-center gap-4 p-4 rounded-lg border bg-muted/30 hover:border-primary/50 hover:bg-accent/50 transition-colors group"
@@ -275,7 +275,7 @@
             <div
               class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10"
             >
-              <Icon class="h-5 w-5 text-primary" />
+              <AppLogo icon={connector.icon} />
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap">

@@ -44,6 +44,7 @@
     displayName: null,
     isKnown: false,
     homepage: null,
+    logoUri: null,
   });
 
   const scopes = $derived(scope.split(" ").filter(Boolean));
@@ -98,11 +99,19 @@
   {:else}
     <Card.Root class="w-full max-w-md">
       <Card.Header class="space-y-1 text-center">
-        <div
-          class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10"
-        >
-          <Shield class="h-6 w-6 text-primary" />
-        </div>
+        {#if clientInfo.logoUri}
+          <div
+            class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/50 border"
+          >
+            <img src={clientInfo.logoUri} alt="" class="h-10 w-10" draggable="false" />
+          </div>
+        {:else}
+          <div
+            class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10"
+          >
+            <Shield class="h-6 w-6 text-primary" />
+          </div>
+        {/if}
         <Card.Title class="text-2xl font-bold">
           {isScopeUpgrade ? "Additional Permissions" : "Authorize Application"}
         </Card.Title>

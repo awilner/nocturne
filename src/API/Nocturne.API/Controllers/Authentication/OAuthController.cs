@@ -641,6 +641,7 @@ public class OAuthController : ControllerBase
             DisplayName = client.DisplayName,
             IsKnown = client.IsKnown,
             Homepage = client.ClientUri,
+            LogoUri = client.LogoUri,
         });
     }
 
