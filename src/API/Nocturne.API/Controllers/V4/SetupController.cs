@@ -312,15 +312,23 @@ public class SetupController : ControllerBase
                 subjectId, request.Username.Trim(), tenant!.Id);
         }
 
-        var authRequest = await _oidcAuthService.GenerateSetupAuthorizationUrlAsync(
-            request.ProviderId, subjectId, tenant!.Slug);
-
-        SetOidcStateCookie(authRequest.State);
-
-        return Ok(new SetupOwnerOidcResponse
+        try
         {
-            AuthorizationUrl = authRequest.AuthorizationUrl,
-        });
+            var authRequest = await _oidcAuthService.GenerateSetupAuthorizationUrlAsync(
+                request.ProviderId, subjectId, tenant!.Slug);
+
+            SetOidcStateCookie(authRequest.State, authRequest.ExpiresAt);
+
+            return Ok(new SetupOwnerOidcResponse
+            {
+                AuthorizationUrl = authRequest.AuthorizationUrl,
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Failed to generate setup OIDC authorization URL");
+            return Problem(detail: ex.Message, statusCode: 400, title: "Provider Error");
+        }
     }
 
     /// <summary>
@@ -332,8 +340,25 @@ public class SetupController : ControllerBase
     [AllowDuringSetup]
     [ProducesResponseType(StatusCodes.Status302Found)]
     public async Task<IActionResult> OidcCallback(
-        [FromQuery] string code, [FromQuery] string state, CancellationToken ct)
+        [FromQuery] string? code,
+        [FromQuery] string? state,
+        [FromQuery] string? error,
+        [FromQuery] string? error_description,
+        CancellationToken ct)
     {
+        if (!string.IsNullOrEmpty(error))
+        {
+            _logger.LogWarning("Setup OIDC provider returned error: {Error} - {Description}", error, error_description);
+            ClearOidcStateCookie();
+            return Redirect($"/setup?error={Uri.EscapeDataString(error)}");
+        }
+
+        if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(state))
+        {
+            ClearOidcStateCookie();
+            return Redirect("/setup?error=missing_parameters");
+        }
+
         var expectedState = Request.Cookies[_oidcOptions.Cookie.StateCookieName];
         ClearOidcStateCookie();
 
@@ -438,7 +463,7 @@ public class SetupController : ControllerBase
         });
     }
 
-    private void SetOidcStateCookie(string state)
+    private void SetOidcStateCookie(string state, DateTimeOffset expiresAt)
     {
         var cookieSameSite = _oidcOptions.Cookie.SameSite switch
         {
@@ -453,15 +478,19 @@ public class SetupController : ControllerBase
             HttpOnly = true,
             Secure = _oidcOptions.Cookie.Secure,
             SameSite = cookieSameSite,
-            Path = "/",
-            IsEssential = true,
-            MaxAge = TimeSpan.FromMinutes(10),
+            Path = _oidcOptions.Cookie.Path,
+            Domain = _oidcOptions.Cookie.Domain,
+            Expires = expiresAt,
         });
     }
 
     private void ClearOidcStateCookie()
     {
-        Response.Cookies.Delete(_oidcOptions.Cookie.StateCookieName);
+        Response.Cookies.Delete(_oidcOptions.Cookie.StateCookieName, new CookieOptions
+        {
+            Path = _oidcOptions.Cookie.Path,
+            Domain = _oidcOptions.Cookie.Domain,
+        });
     }
 
     #endregion
