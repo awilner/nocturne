@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Nocturne.Core.Contracts.Audit;
 using Nocturne.Infrastructure.Data.Interceptors;
 
 namespace Nocturne.Infrastructure.Data.Tests.Interceptors;
@@ -514,6 +515,33 @@ public class MutationAuditInterceptorTests : IDisposable
 
         auditLogs.Should().HaveCount(1);
         auditLogs[0].Should().BeSameAs(auditLog);
+    }
+
+    [Fact]
+    public async Task Create_WithDbContextAuditContext_PopulatesActorFields()
+    {
+        using var context = CreateContext();
+        context.AuditContext = SystemAuditContext.ForService("service:demo-generator");
+
+        var entity = new TestAuditableEntity
+        {
+            Id = Guid.CreateVersion7(),
+            TenantId = _tenantId,
+            Name = "SystemTest",
+            Value = 1
+        };
+
+        context.TestAuditables.Add(entity);
+
+        await InvokeSavingChanges(context);
+
+        var log = context.ChangeTracker.Entries<MutationAuditLogEntity>()
+            .Select(e => e.Entity).Single();
+        log.AuthType.Should().Be("system");
+        log.Endpoint.Should().Be("service:demo-generator");
+        log.CorrelationId.Should().NotBeNullOrEmpty();
+        log.SubjectId.Should().BeNull();
+        log.IpAddress.Should().BeNull();
     }
 
     /// <summary>

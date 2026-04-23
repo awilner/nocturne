@@ -42,8 +42,12 @@ public class MutationAuditInterceptor : SaveChangesInterceptor
         if (eventData.Context is not NocturneDbContext context)
             return new ValueTask<InterceptionResult<int>>(result);
 
+        // HTTP requests: resolve from the request's DI scope via HttpContext.
+        // Background services: fall back to the context-level AuditContext property
+        // which services populate directly when creating scopes.
         var auditContext = _httpContextAccessor.HttpContext?.RequestServices
-            .GetService(typeof(IAuditContext)) as IAuditContext;
+            .GetService(typeof(IAuditContext)) as IAuditContext
+            ?? context.AuditContext;
 
         var auditEntries = new List<MutationAuditLogEntity>();
         var now = DateTime.UtcNow;

@@ -1,9 +1,11 @@
 using Microsoft.Extensions.Options;
 using Nocturne.Core.Constants;
+using Nocturne.Core.Contracts.Audit;
 using Nocturne.Core.Models;
 using Nocturne.Core.Models.V4;
 using Nocturne.Core.Contracts.Repositories;
 using Nocturne.Core.Contracts.V4.Repositories;
+using Nocturne.Infrastructure.Data;
 using Nocturne.Services.Demo.Configuration;
 
 namespace Nocturne.Services.Demo.Services;
@@ -138,6 +140,7 @@ public class DemoDataHostedService : BackgroundService
         _logger.LogInformation("Regenerating demo data - clearing existing data first");
 
         using var scope = _serviceProvider.CreateScope();
+        SetAuditContext(scope.ServiceProvider);
         var entryRepository = scope.ServiceProvider.GetRequiredService<IEntryRepository>();
         var treatmentRepository = scope.ServiceProvider.GetRequiredService<ITreatmentRepository>();
         var entryService = scope.ServiceProvider.GetRequiredService<IDemoEntryService>();
@@ -287,6 +290,7 @@ public class DemoDataHostedService : BackgroundService
     private async Task GenerateAndSaveEntryAsync(CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
+        SetAuditContext(scope.ServiceProvider);
         var entryService = scope.ServiceProvider.GetRequiredService<IDemoEntryService>();
         var treatmentService = scope.ServiceProvider.GetRequiredService<IDemoTreatmentService>();
 
@@ -313,5 +317,15 @@ public class DemoDataHostedService : BackgroundService
             _logger.LogError(ex, "Failed to generate and save demo entry");
             throw;
         }
+    }
+
+    /// <summary>
+    /// Attaches a system audit context to the scoped DbContext so the
+    /// MutationAuditInterceptor can attribute mutations to this service.
+    /// </summary>
+    private static void SetAuditContext(IServiceProvider scopeProvider)
+    {
+        var dbContext = scopeProvider.GetRequiredService<NocturneDbContext>();
+        dbContext.AuditContext = SystemAuditContext.ForService("service:demo-generator");
     }
 }

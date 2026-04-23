@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Nocturne.Core.Contracts.Audit;
 using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Data.Entities;
 using Nocturne.Infrastructure.Data.Entities.V4;
@@ -27,6 +28,13 @@ public class NocturneDbContext : DbContext
     /// With context pooling, this property is set each time the context is checked out.
     /// </summary>
     public Guid TenantId { get; set; }
+
+    /// <summary>
+    /// Audit context for the current operation. Populated from HttpContext for HTTP
+    /// requests (via <see cref="Interceptors.MutationAuditInterceptor"/>), or set
+    /// directly by background services that have no HttpContext.
+    /// </summary>
+    public IAuditContext? AuditContext { get; set; }
 
     /// <summary>
     /// Gets or sets the Entries table for glucose entries

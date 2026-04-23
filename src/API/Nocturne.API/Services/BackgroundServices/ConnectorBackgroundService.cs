@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Nocturne.Connectors.Core.Interfaces;
 using Nocturne.Connectors.Core.Models;
+using Nocturne.Core.Contracts.Audit;
 using Nocturne.Core.Contracts.Connectors;
 using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Infrastructure.Data;
@@ -286,6 +287,10 @@ public abstract class ConnectorBackgroundService<TConfig> : BackgroundService
         // Set tenant context for this scope
         var tenantAccessor = scope.ServiceProvider.GetRequiredService<ITenantAccessor>();
         tenantAccessor.SetTenant(new TenantContext(tenantId, tenantSlug, displayName, true));
+
+        // Populate audit context so mutations are attributed to this connector
+        var dbContext = scope.ServiceProvider.GetRequiredService<NocturneDbContext>();
+        dbContext.AuditContext = SystemAuditContext.ForService($"connector:{ConnectorName}");
 
         // Load tenant-specific connector configuration; skip if no config exists in DB
         var hasConfig = await LoadDatabaseConfigurationAsync(scope.ServiceProvider, stoppingToken);
