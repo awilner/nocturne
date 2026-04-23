@@ -36,6 +36,7 @@ public class SetupController : ControllerBase
     private readonly ISubjectService _subjectService;
     private readonly IDbContextFactory<NocturneDbContext> _dbFactory;
     private readonly OidcOptions _oidcOptions;
+    private readonly IOidcAuthService _oidcAuthService;
     private readonly ILogger<SetupController> _logger;
 
     public SetupController(
@@ -47,6 +48,7 @@ public class SetupController : ControllerBase
         ISubjectService subjectService,
         IDbContextFactory<NocturneDbContext> dbFactory,
         IOptions<OidcOptions> oidcOptions,
+        IOidcAuthService oidcAuthService,
         ILogger<SetupController> logger)
     {
         _tenantService = tenantService;
@@ -57,6 +59,7 @@ public class SetupController : ControllerBase
         _subjectService = subjectService;
         _dbFactory = dbFactory;
         _oidcOptions = oidcOptions.Value;
+        _oidcAuthService = oidcAuthService;
         _logger = logger;
     }
 
@@ -240,6 +243,121 @@ public class SetupController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Initiate OIDC-based owner creation. Creates the subject and owner role,
+    /// then redirects to the OIDC provider to link an identity.
+    /// </summary>
+    [HttpPost("owner/oidc")]
+    [RemoteCommand]
+    [ProducesResponseType(typeof(SetupOwnerOidcResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> OwnerOidc(
+        [FromBody] SetupOwnerOidcRequest request, CancellationToken ct)
+    {
+        var (tenant, error) = await GetSoleTenantWithoutOwnerAsync(ct);
+        if (error != null)
+            return error;
+
+        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.DisplayName))
+            return Problem(detail: "Username and display name are required", statusCode: 400, title: "Bad Request");
+
+        if (request.ProviderId == Guid.Empty)
+            return Problem(detail: "Provider ID is required", statusCode: 400, title: "Bad Request");
+
+        await using var context = await _dbFactory.CreateDbContextAsync(ct);
+
+        // Set RLS context so we can query tenant-scoped tables
+        await context.Database.ExecuteSqlRawAsync(
+            "SELECT set_config('app.current_tenant_id', {0}, false)",
+            tenant!.Id.ToString());
+
+        // Idempotent: reuse existing setup subject if a previous attempt failed
+        var existingSubject = await context.Subjects
+            .FirstOrDefaultAsync(s => !s.IsSystemSubject && s.IsActive, ct);
+
+        Guid subjectId;
+        if (existingSubject != null)
+        {
+            subjectId = existingSubject.Id;
+            existingSubject.Name = request.DisplayName.Trim();
+            existingSubject.Username = request.Username.Trim().ToLowerInvariant();
+            await context.SaveChangesAsync(ct);
+        }
+        else
+        {
+            subjectId = Guid.CreateVersion7();
+            context.Subjects.Add(new SubjectEntity
+            {
+                Id = subjectId,
+                Name = request.DisplayName.Trim(),
+                Username = request.Username.Trim().ToLowerInvariant(),
+                IsActive = true,
+                IsSystemSubject = false,
+            });
+            await context.SaveChangesAsync(ct);
+
+            // Add as owner of the tenant
+            var ownerRole = await context.TenantRoles
+                .FirstOrDefaultAsync(r => r.TenantId == tenant!.Id && r.Slug == "owner", ct);
+
+            if (ownerRole != null)
+                await _tenantService.AddMemberAsync(tenant!.Id, subjectId, [ownerRole.Id], ct: ct);
+
+            // Assign admin role
+            await _subjectService.AssignRoleAsync(subjectId, "admin");
+
+            _logger.LogInformation(
+                "Setup OIDC: created first owner {SubjectId} ({Username}) for tenant {TenantId}",
+                subjectId, request.Username.Trim(), tenant!.Id);
+        }
+
+        var authRequest = await _oidcAuthService.GenerateSetupAuthorizationUrlAsync(
+            request.ProviderId, subjectId, tenant!.Slug);
+
+        SetOidcStateCookie(authRequest.State);
+
+        return Ok(new SetupOwnerOidcResponse
+        {
+            AuthorizationUrl = authRequest.AuthorizationUrl,
+        });
+    }
+
+    /// <summary>
+    /// OIDC callback for setup owner creation. Called by the OIDC provider after authentication.
+    /// Links the identity, issues session cookies, and redirects to /setup.
+    /// </summary>
+    [HttpGet("oidc/callback")]
+    [AllowAnonymous]
+    [AllowDuringSetup]
+    [ProducesResponseType(StatusCodes.Status302Found)]
+    public async Task<IActionResult> OidcCallback(
+        [FromQuery] string code, [FromQuery] string state, CancellationToken ct)
+    {
+        var expectedState = Request.Cookies[_oidcOptions.Cookie.StateCookieName];
+        ClearOidcStateCookie();
+
+        if (string.IsNullOrEmpty(expectedState))
+            return Redirect("/setup?error=missing_state");
+
+        var result = await _oidcAuthService.HandleSetupCallbackAsync(
+            code, state, expectedState,
+            ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString(),
+            userAgent: Request.Headers.UserAgent.ToString());
+
+        if (!result.Success)
+        {
+            _logger.LogWarning(
+                "Setup OIDC callback failed: {Error} - {Description}",
+                result.Error, result.ErrorDescription);
+            return Redirect($"/setup?error={Uri.EscapeDataString(result.Error ?? "unknown")}");
+        }
+
+        SetSessionCookies(result.Tokens!.AccessToken, result.Tokens.RefreshToken);
+
+        return Redirect(result.ReturnUrl ?? "/setup");
+    }
+
     #region Private Helpers
 
     /// <summary>
@@ -320,10 +438,38 @@ public class SetupController : ControllerBase
         });
     }
 
+    private void SetOidcStateCookie(string state)
+    {
+        var cookieSameSite = _oidcOptions.Cookie.SameSite switch
+        {
+            SameSiteMode.Strict => Microsoft.AspNetCore.Http.SameSiteMode.Strict,
+            SameSiteMode.Lax => Microsoft.AspNetCore.Http.SameSiteMode.Lax,
+            SameSiteMode.None => Microsoft.AspNetCore.Http.SameSiteMode.None,
+            _ => Microsoft.AspNetCore.Http.SameSiteMode.Lax,
+        };
+
+        Response.Cookies.Append(_oidcOptions.Cookie.StateCookieName, state, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = _oidcOptions.Cookie.Secure,
+            SameSite = cookieSameSite,
+            Path = "/",
+            IsEssential = true,
+            MaxAge = TimeSpan.FromMinutes(10),
+        });
+    }
+
+    private void ClearOidcStateCookie()
+    {
+        Response.Cookies.Delete(_oidcOptions.Cookie.StateCookieName);
+    }
+
     #endregion
 }
 
 #region Request/Response DTOs
+
+public record ValidateSlugRequest(string Slug);
 
 public record SetupTenantRequest(string Slug, string DisplayName);
 
@@ -355,6 +501,18 @@ public class SetupOwnerCompleteResponse
     public string AccessToken { get; set; } = string.Empty;
     public string? RefreshToken { get; set; }
     public int ExpiresIn { get; set; }
+}
+
+public class SetupOwnerOidcRequest
+{
+    public string Username { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public Guid ProviderId { get; set; }
+}
+
+public class SetupOwnerOidcResponse
+{
+    public string AuthorizationUrl { get; set; } = string.Empty;
 }
 
 #endregion
