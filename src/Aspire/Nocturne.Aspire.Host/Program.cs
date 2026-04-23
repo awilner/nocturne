@@ -1,7 +1,5 @@
 #pragma warning disable ASPIREPIPELINES003 // Experimental container image APIs
 
-using System.Net;
-using System.Net.Sockets;
 using Aspire.Hosting;
 using Aspire.Hosting.Publishing;
 using Aspire.Hosting.Yarp;
@@ -474,13 +472,6 @@ class Program
                 // Custom domain → port 443 so URLs work without a port number.
                 gateway.WithHttpsEndpoint(port: !string.IsNullOrEmpty(customDomain) ? 443 : 1612);
             }
-            else if (!string.IsNullOrEmpty(customDomain) && IsPortAvailable(443))
-            {
-                // Worktree with custom domain: bind to 443 if the main instance isn't
-                // already using it, so the custom domain works without a port number.
-                // Falls back to a dynamic port when 443 is taken.
-                gateway.WithHttpsEndpoint(port: 443);
-            }
         }
         else
         {
@@ -600,7 +591,8 @@ class Program
             // Warn if custom domain doesn't resolve
             if (!string.IsNullOrEmpty(customDomain))
             {
-                MkcertHelper.WarnIfDomainUnresolvable(customDomain, 443);
+                var port = isWorktree ? 0 : 1612;
+                MkcertHelper.WarnIfDomainUnresolvable(customDomain, port);
             }
         }
 
@@ -621,20 +613,5 @@ class Program
 
         var app = builder.Build();
         await app.RunAsync();
-    }
-
-    static bool IsPortAvailable(int port)
-    {
-        try
-        {
-            using var listener = new TcpListener(IPAddress.Loopback, port);
-            listener.Start();
-            listener.Stop();
-            return true;
-        }
-        catch (SocketException)
-        {
-            return false;
-        }
     }
 }
