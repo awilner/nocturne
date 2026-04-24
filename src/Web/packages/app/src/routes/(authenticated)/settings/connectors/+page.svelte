@@ -47,7 +47,6 @@
   import ApiTokens from "$lib/components/settings/ApiTokens.svelte";
   import DeduplicationDialog from "$lib/components/connectors/DeduplicationDialog.svelte";
   import AppLogo from "$lib/components/ui/AppLogo.svelte";
-  import ApiSecretSection from "$lib/components/connectors/ApiSecretSection.svelte";
   import UploaderSetupDialog from "$lib/components/connectors/UploaderSetupDialog.svelte";
   import ConnectorDetailsDialog from "$lib/components/connectors/ConnectorDetailsDialog.svelte";
   import ManualSyncDialog, { type BatchSyncResult } from "$lib/components/connectors/ManualSyncDialog.svelte";
@@ -561,8 +560,6 @@
         </CardContent>
       </Card>
     {/if}
-
-    <ApiSecretSection />
 
     <!-- Data Maintenance -->
     <Card>

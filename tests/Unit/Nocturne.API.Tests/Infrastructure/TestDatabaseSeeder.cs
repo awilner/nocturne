@@ -35,7 +35,6 @@ public static class TestDatabaseSeeder
             Slug = "default",
             DisplayName = "Default",
             IsActive = true,
-            ApiSecretHash = apiSecretHash,
         });
 
         // 2. Test subject (human user with passkey — satisfies TenantSetupMiddleware)
