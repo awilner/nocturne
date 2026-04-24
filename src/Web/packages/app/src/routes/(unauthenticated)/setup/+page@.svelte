@@ -180,6 +180,11 @@
     await goto("/", { invalidateAll: true });
   }
 
+  async function handleNavigateWithCoach(url: string) {
+    await markSetupComplete();
+    await goto(url, { invalidateAll: true });
+  }
+
   function handleSelectConnector(id: string) {
     selectedConnectorId = id;
     selectedUploader = null;
@@ -562,7 +567,7 @@
                 onComplete={handleImportComplete}
               />
             {:else if currentStep?.id === "finish"}
-              <Finish {path} onEnterDashboard={handleEnterDashboard} />
+              <Finish {path} onEnterDashboard={handleEnterDashboard} onNavigateWithCoach={handleNavigateWithCoach} />
             {/if}
           </div>
 
