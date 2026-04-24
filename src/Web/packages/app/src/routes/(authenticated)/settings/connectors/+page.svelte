@@ -37,7 +37,6 @@
     Check,
     Link2,
     Wrench,
-    MessageSquare,
     ChevronRight,
     Loader2,
   } from "lucide-svelte";
@@ -47,6 +46,7 @@
   import ConnectedApps from "$lib/components/settings/ConnectedApps.svelte";
   import ApiTokens from "$lib/components/settings/ApiTokens.svelte";
   import DeduplicationDialog from "$lib/components/connectors/DeduplicationDialog.svelte";
+  import AppLogo from "$lib/components/ui/AppLogo.svelte";
   import ApiSecretSection from "$lib/components/connectors/ApiSecretSection.svelte";
   import UploaderSetupDialog from "$lib/components/connectors/UploaderSetupDialog.svelte";
   import ConnectorDetailsDialog from "$lib/components/connectors/ConnectorDetailsDialog.svelte";
@@ -402,7 +402,11 @@
     </Card>
   {:else if servicesOverview}
     <!-- Active Data Sources -->
-    <Card>
+    <Card {@attach coachmark({
+      key: "setup-connectors.sources",
+      title: "Your data sources",
+      description: "Devices and apps sending data appear here \u2014 you'll see your first source once it connects.",
+    })}>
       <CardHeader>
         <CardTitle class="flex items-center gap-2">
           <Wifi class="h-5 w-5" />
@@ -466,24 +470,30 @@
     />
 
     <!-- Server-Side Connectors -->
-    <ServerConnectorsCard
-      availableConnectors={servicesOverview.availableConnectors ?? []}
-      {connectorStatuses}
-      {connectorCapabilitiesById}
-      {syncProgressByConnector}
-      activeDataSources={servicesOverview.activeDataSources ?? []}
-      {isLoadingConnectorStatuses}
-      {isManualSyncing}
-      {quickSyncingById}
-      onRefreshStatuses={loadConnectorStatuses}
-      onManualSync={triggerManualSync}
-      onQuickSync={triggerQuickSync}
-      onConnectorClick={async (connector, connectorId) => {
-        selectedConnector = connector;
-        await loadConnectorCapabilitiesFor(connectorId);
-        showConnectorDialog = true;
-      }}
-    />
+    <div {@attach coachmark({
+      key: "setup-connectors.server-connectors",
+      title: "Cloud connectors",
+      description: "Pull data directly from Dexcom, LibreLink, or Glooko \u2014 no uploader app needed.",
+    })}>
+      <ServerConnectorsCard
+        availableConnectors={servicesOverview.availableConnectors ?? []}
+        {connectorStatuses}
+        {connectorCapabilitiesById}
+        {syncProgressByConnector}
+        activeDataSources={servicesOverview.activeDataSources ?? []}
+        {isLoadingConnectorStatuses}
+        {isManualSyncing}
+        {quickSyncingById}
+        onRefreshStatuses={loadConnectorStatuses}
+        onManualSync={triggerManualSync}
+        onQuickSync={triggerQuickSync}
+        onConnectorClick={async (connector, connectorId) => {
+          selectedConnector = connector;
+          await loadConnectorCapabilitiesFor(connectorId);
+          showConnectorDialog = true;
+        }}
+      />
+    </div>
 
     <!-- API Info -->
     {#if servicesOverview.apiEndpoint}
@@ -615,8 +625,8 @@
           class="flex items-center justify-between rounded-lg border p-4 hover:bg-accent transition-colors"
         >
           <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-md bg-muted">
-              <MessageSquare class="h-5 w-5" />
+            <div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md bg-muted">
+              <AppLogo icon="discord" />
             </div>
             <div>
               <p class="font-medium">Discord</p>
