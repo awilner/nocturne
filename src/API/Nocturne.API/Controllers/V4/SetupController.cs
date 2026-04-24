@@ -110,7 +110,7 @@ public partial class SetupController : ControllerBase
         if (string.IsNullOrWhiteSpace(username))
             return Ok(new SlugValidationResult(false, "Username is required"));
 
-        var normalized = username.ToLowerInvariant().Trim();
+        var normalized = username.Trim().ToLowerInvariant();
 
         if (!UsernamePattern().IsMatch(normalized))
             return Ok(new SlugValidationResult(false,
@@ -166,10 +166,10 @@ public partial class SetupController : ControllerBase
             return Problem(detail: "This username is reserved", statusCode: 400, title: "Bad Request");
 
         var subjectId = await EnsureOwnerSubjectAsync(
-            tenant!, request.DisplayName.Trim(), request.Username.Trim(), ct);
+            tenant!, request.DisplayName.Trim(), normalizedUsername, ct);
 
         var result = await _passkeyService.GenerateRegistrationOptionsAsync(
-            subjectId, request.Username.Trim(), tenant!.Id);
+            subjectId, normalizedUsername, tenant!.Id);
 
         return Ok(new SetupOwnerOptionsResponse
         {
@@ -283,7 +283,7 @@ public partial class SetupController : ControllerBase
             return Problem(detail: "Provider ID is required", statusCode: 400, title: "Bad Request");
 
         var subjectId = await EnsureOwnerSubjectAsync(
-            tenant!, request.DisplayName.Trim(), request.Username.Trim(), ct);
+            tenant!, request.DisplayName.Trim(), normalizedUsername, ct);
 
         try
         {
