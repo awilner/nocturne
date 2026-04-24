@@ -1,3 +1,5 @@
+using System.Net.Http.Json;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +13,7 @@ using Nocturne.Core.Models.Configuration;
 using Nocturne.API.Services.Auth;
 using Nocturne.Infrastructure.Data;
 using Nocturne.Infrastructure.Data.Entities;
+using Nocturne.API.Multitenancy;
 using SameSiteMode = Nocturne.Core.Models.Configuration.SameSiteMode;
 
 namespace Nocturne.API.Controllers.V4;
@@ -26,7 +29,7 @@ namespace Nocturne.API.Controllers.V4;
 [Produces("application/json")]
 [AllowAnonymous]
 [AllowDuringSetup]
-public class SetupController : ControllerBase
+public partial class SetupController : ControllerBase
 {
     private readonly ITenantService _tenantService;
     private readonly IPasskeyService _passkeyService;
@@ -36,6 +39,9 @@ public class SetupController : ControllerBase
     private readonly ISubjectService _subjectService;
     private readonly IDbContextFactory<NocturneDbContext> _dbFactory;
     private readonly OidcOptions _oidcOptions;
+    private readonly IOidcAuthService _oidcAuthService;
+    private readonly MultitenancyConfiguration _multitenancyConfig;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<SetupController> _logger;
 
     public SetupController(
@@ -47,6 +53,9 @@ public class SetupController : ControllerBase
         ISubjectService subjectService,
         IDbContextFactory<NocturneDbContext> dbFactory,
         IOptions<OidcOptions> oidcOptions,
+        IOidcAuthService oidcAuthService,
+        IOptions<MultitenancyConfiguration> multitenancyConfig,
+        IHttpClientFactory httpClientFactory,
         ILogger<SetupController> logger)
     {
         _tenantService = tenantService;
@@ -57,8 +66,16 @@ public class SetupController : ControllerBase
         _subjectService = subjectService;
         _dbFactory = dbFactory;
         _oidcOptions = oidcOptions.Value;
+        _oidcAuthService = oidcAuthService;
+        _multitenancyConfig = multitenancyConfig.Value;
+        _httpClientFactory = httpClientFactory;
         _logger = logger;
     }
+
+    [GeneratedRegex(@"^[a-z0-9][a-z0-9._\-]{1,30}[a-z0-9]$")]
+    private static partial Regex UsernamePattern();
+
+    private static readonly HashSet<string> ReservedUsernames = ["admin", "system"];
 
     /// <summary>
     /// Create the first tenant on a fresh install. Only succeeds when zero tenants exist.
@@ -72,8 +89,14 @@ public class SetupController : ControllerBase
     {
         await using var context = await _dbFactory.CreateDbContextAsync(ct);
 
-        var tenantCount = await context.Tenants.CountAsync(ct);
-        if (tenantCount > 0)
+        // Check for tenants that have real members with credentials (passkey or OIDC).
+        // The multitenancy migration seeds a 'default' tenant for backfilling, which
+        // has no members and should not block fresh setup.
+        var hasConfiguredTenant = await context.TenantMembers
+            .AnyAsync(m =>
+                context.PasskeyCredentials.Any(c => c.SubjectId == m.SubjectId) ||
+                context.SubjectOidcIdentities.Any(o => o.SubjectId == m.SubjectId), ct);
+        if (hasConfiguredTenant)
             return Conflict(new { error = "setup_already_complete" });
 
         if (string.IsNullOrWhiteSpace(request.Slug) || string.IsNullOrWhiteSpace(request.DisplayName))
@@ -86,7 +109,70 @@ public class SetupController : ControllerBase
         var result = await _tenantService.CreateWithoutOwnerAsync(
             request.Slug, request.DisplayName, ct: ct);
 
-        return Ok(new SetupTenantResponse(result.Id, result.ApiSecret));
+        return Ok(new SetupTenantResponse(result.Id));
+    }
+
+    /// <summary>
+    /// Check whether a username is available for the owner account.
+    /// </summary>
+    [HttpGet("validate-username")]
+    [RemoteQuery]
+    [ProducesResponseType(typeof(SlugValidationResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ValidateUsername(
+        [FromQuery] string username, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+            return Ok(new SlugValidationResult(false, "Username is required"));
+
+        var normalized = username.Trim().ToLowerInvariant();
+
+        if (!UsernamePattern().IsMatch(normalized))
+            return Ok(new SlugValidationResult(false,
+                "Username must be 3-32 characters: letters, numbers, dots, underscores, and hyphens"));
+
+        if (ReservedUsernames.Contains(normalized))
+            return Ok(new SlugValidationResult(false, "This username is reserved"));
+
+        await using var context = await _dbFactory.CreateDbContextAsync(ct);
+
+        var tenant = await context.Tenants.AsNoTracking().FirstOrDefaultAsync(ct);
+        if (tenant == null)
+            return Ok(new SlugValidationResult(false, "No tenant exists"));
+
+        await context.Database.ExecuteSqlRawAsync(
+            "SELECT set_config('app.current_tenant_id', {0}, false)",
+            tenant.Id.ToString());
+
+        var exists = await context.TenantMembers.AsNoTracking()
+            .AnyAsync(m => m.TenantId == tenant.Id && m.Username == normalized && m.RevokedAt == null, ct);
+
+        if (exists)
+            return Ok(new SlugValidationResult(false, "This username is already taken"));
+
+        if (!string.IsNullOrEmpty(_multitenancyConfig.UsernameValidationWebhookUrl))
+        {
+            try
+            {
+                var client = _httpClientFactory.CreateClient("username-validation");
+                var response = await client.PostAsJsonAsync(
+                    _multitenancyConfig.UsernameValidationWebhookUrl,
+                    new { username = normalized },
+                    ct);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<SlugValidationResult>(ct);
+                    if (result is { IsValid: false })
+                        return Ok(result);
+                }
+            }
+            catch
+            {
+                // Webhook failure should not block validation — fall through to success
+            }
+        }
+
+        return Ok(new SlugValidationResult(true));
     }
 
     /// <summary>
@@ -108,56 +194,19 @@ public class SetupController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.DisplayName))
             return Problem(detail: "Username and display name are required", statusCode: 400, title: "Bad Request");
 
-        await using var context = await _dbFactory.CreateDbContextAsync(ct);
+        var normalizedUsername = request.Username.Trim().ToLowerInvariant();
+        if (!UsernamePattern().IsMatch(normalizedUsername))
+            return Problem(detail: "Username must be 3-32 characters: letters, numbers, dots, underscores, and hyphens",
+                statusCode: 400, title: "Bad Request");
 
-        // Set RLS context so we can query tenant-scoped tables
-        await context.Database.ExecuteSqlRawAsync(
-            "SELECT set_config('app.current_tenant_id', {0}, false)",
-            tenant!.Id.ToString());
+        if (ReservedUsernames.Contains(normalizedUsername))
+            return Problem(detail: "This username is reserved", statusCode: 400, title: "Bad Request");
 
-        // Idempotent: reuse existing setup subject if the WebAuthn ceremony
-        // failed on a previous attempt
-        var existingSubject = await context.Subjects
-            .FirstOrDefaultAsync(s => !s.IsSystemSubject && s.IsActive, ct);
-
-        Guid subjectId;
-        if (existingSubject != null)
-        {
-            subjectId = existingSubject.Id;
-            existingSubject.Name = request.DisplayName.Trim();
-            existingSubject.Username = request.Username.Trim().ToLowerInvariant();
-            await context.SaveChangesAsync(ct);
-        }
-        else
-        {
-            subjectId = Guid.CreateVersion7();
-            context.Subjects.Add(new SubjectEntity
-            {
-                Id = subjectId,
-                Name = request.DisplayName.Trim(),
-                Username = request.Username.Trim().ToLowerInvariant(),
-                IsActive = true,
-                IsSystemSubject = false,
-            });
-            await context.SaveChangesAsync(ct);
-
-            // Add as owner of the tenant
-            var ownerRole = await context.TenantRoles
-                .FirstOrDefaultAsync(r => r.TenantId == tenant!.Id && r.Slug == "owner", ct);
-
-            if (ownerRole != null)
-                await _tenantService.AddMemberAsync(tenant!.Id, subjectId, [ownerRole.Id], ct: ct);
-
-            // Assign admin role
-            await _subjectService.AssignRoleAsync(subjectId, "admin");
-
-            _logger.LogInformation(
-                "Setup: created first owner {SubjectId} ({Username}) for tenant {TenantId}",
-                subjectId, request.Username.Trim(), tenant!.Id);
-        }
+        var subjectId = await EnsureOwnerSubjectAsync(
+            tenant!, request.DisplayName.Trim(), normalizedUsername, ct);
 
         var result = await _passkeyService.GenerateRegistrationOptionsAsync(
-            subjectId, request.Username.Trim(), tenant!.Id);
+            subjectId, normalizedUsername, tenant!.Id);
 
         return Ok(new SetupOwnerOptionsResponse
         {
@@ -240,6 +289,110 @@ public class SetupController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Initiate OIDC-based owner creation. Creates the subject and owner role,
+    /// then redirects to the OIDC provider to link an identity.
+    /// </summary>
+    [HttpPost("owner/oidc")]
+    [RemoteCommand]
+    [ProducesResponseType(typeof(SetupOwnerOidcResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> OwnerOidc(
+        [FromBody] SetupOwnerOidcRequest request, CancellationToken ct)
+    {
+        var (tenant, error) = await GetSoleTenantWithoutOwnerAsync(ct);
+        if (error != null)
+            return error;
+
+        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.DisplayName))
+            return Problem(detail: "Username and display name are required", statusCode: 400, title: "Bad Request");
+
+        var normalizedUsername = request.Username.Trim().ToLowerInvariant();
+        if (!UsernamePattern().IsMatch(normalizedUsername))
+            return Problem(detail: "Username must be 3-32 characters: letters, numbers, dots, underscores, and hyphens",
+                statusCode: 400, title: "Bad Request");
+
+        if (ReservedUsernames.Contains(normalizedUsername))
+            return Problem(detail: "This username is reserved", statusCode: 400, title: "Bad Request");
+
+        if (request.ProviderId == Guid.Empty)
+            return Problem(detail: "Provider ID is required", statusCode: 400, title: "Bad Request");
+
+        var subjectId = await EnsureOwnerSubjectAsync(
+            tenant!, request.DisplayName.Trim(), normalizedUsername, ct);
+
+        try
+        {
+            var authRequest = await _oidcAuthService.GenerateSetupAuthorizationUrlAsync(
+                request.ProviderId, subjectId, tenant!.Slug);
+
+            SetOidcStateCookie(authRequest.State, authRequest.ExpiresAt);
+
+            return Ok(new SetupOwnerOidcResponse
+            {
+                AuthorizationUrl = authRequest.AuthorizationUrl,
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Failed to generate setup OIDC authorization URL");
+            return Problem(detail: ex.Message, statusCode: 400, title: "Provider Error");
+        }
+    }
+
+    /// <summary>
+    /// OIDC callback for setup owner creation. Called by the OIDC provider after authentication.
+    /// Links the identity, issues session cookies, and redirects to /setup.
+    /// </summary>
+    [HttpGet("oidc/callback")]
+    [AllowAnonymous]
+    [AllowDuringSetup]
+    [ProducesResponseType(StatusCodes.Status302Found)]
+    public async Task<IActionResult> OidcCallback(
+        [FromQuery] string? code,
+        [FromQuery] string? state,
+        [FromQuery] string? error,
+        [FromQuery] string? error_description,
+        CancellationToken ct)
+    {
+        if (!string.IsNullOrEmpty(error))
+        {
+            _logger.LogWarning("Setup OIDC provider returned error: {Error} - {Description}", error, error_description);
+            ClearOidcStateCookie();
+            return Redirect($"/setup?error={Uri.EscapeDataString(error)}");
+        }
+
+        if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(state))
+        {
+            ClearOidcStateCookie();
+            return Redirect("/setup?error=missing_parameters");
+        }
+
+        var expectedState = Request.Cookies[_oidcOptions.Cookie.StateCookieName];
+        ClearOidcStateCookie();
+
+        if (string.IsNullOrEmpty(expectedState))
+            return Redirect("/setup?error=missing_state");
+
+        var result = await _oidcAuthService.HandleSetupCallbackAsync(
+            code, state, expectedState,
+            ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString(),
+            userAgent: Request.Headers.UserAgent.ToString());
+
+        if (!result.Success)
+        {
+            _logger.LogWarning(
+                "Setup OIDC callback failed: {Error} - {Description}",
+                result.Error, result.ErrorDescription);
+            return Redirect($"/setup?error={Uri.EscapeDataString(result.Error ?? "unknown")}");
+        }
+
+        SetSessionCookies(result.Tokens!.AccessToken, result.Tokens.RefreshToken);
+
+        return Redirect(result.ReturnUrl ?? "/setup");
+    }
+
     #region Private Helpers
 
     /// <summary>
@@ -278,6 +431,80 @@ public class SetupController : ControllerBase
             return (null, Conflict(new { error = "owner_already_exists" }));
 
         return (tenant, null);
+    }
+
+    /// <summary>
+    /// Find or create the first non-system subject, ensure it is a member of the
+    /// given tenant with the owner role, and assign the global admin role.
+    /// Idempotent: safe to call on retries after a failed WebAuthn/OIDC ceremony,
+    /// and when reusing a subject created for a previously deleted tenant.
+    /// </summary>
+    private async Task<Guid> EnsureOwnerSubjectAsync(
+        TenantEntity tenant, string displayName, string username, CancellationToken ct)
+    {
+        await using var context = await _dbFactory.CreateDbContextAsync(ct);
+
+        await context.Database.ExecuteSqlRawAsync(
+            "SELECT set_config('app.current_tenant_id', {0}, false)",
+            tenant.Id.ToString());
+
+        var existingSubject = await context.Subjects
+            .FirstOrDefaultAsync(s => !s.IsSystemSubject && s.IsActive, ct);
+
+        Guid subjectId;
+        if (existingSubject != null)
+        {
+            subjectId = existingSubject.Id;
+            existingSubject.Name = displayName;
+            existingSubject.Username = username;
+            await context.SaveChangesAsync(ct);
+        }
+        else
+        {
+            subjectId = Guid.CreateVersion7();
+            context.Subjects.Add(new SubjectEntity
+            {
+                Id = subjectId,
+                Name = displayName,
+                Username = username,
+                IsActive = true,
+                IsSystemSubject = false,
+            });
+            await context.SaveChangesAsync(ct);
+
+            _logger.LogInformation(
+                "Setup: created owner {SubjectId} ({Username}) for tenant {TenantId}",
+                subjectId, username, tenant.Id);
+        }
+
+        // Ensure tenant membership with owner role — required when reusing a
+        // subject from a previously deleted tenant.
+        var ownerRole = await context.TenantRoles
+            .FirstOrDefaultAsync(r => r.TenantId == tenant.Id && r.Slug == "owner", ct);
+        if (ownerRole != null)
+        {
+            var isMember = await context.TenantMembers
+                .AnyAsync(m => m.TenantId == tenant.Id && m.SubjectId == subjectId, ct);
+            if (!isMember)
+                await _tenantService.AddMemberAsync(tenant.Id, subjectId, [ownerRole.Id], ct: ct);
+        }
+
+        // Set per-tenant username on the membership
+        await using var memberCtx = await _dbFactory.CreateDbContextAsync(ct);
+        await memberCtx.Database.ExecuteSqlRawAsync(
+            "SELECT set_config('app.current_tenant_id', {0}, false)",
+            tenant.Id.ToString());
+        var membership = await memberCtx.TenantMembers
+            .FirstOrDefaultAsync(m => m.TenantId == tenant.Id && m.SubjectId == subjectId, ct);
+        if (membership != null)
+        {
+            membership.Username = username;
+            await memberCtx.SaveChangesAsync(ct);
+        }
+
+        await _subjectService.AssignRoleAsync(subjectId, "admin");
+
+        return subjectId;
     }
 
     private void SetSessionCookies(string accessToken, string refreshToken)
@@ -320,14 +547,46 @@ public class SetupController : ControllerBase
         });
     }
 
+    private void SetOidcStateCookie(string state, DateTimeOffset expiresAt)
+    {
+        var cookieSameSite = _oidcOptions.Cookie.SameSite switch
+        {
+            SameSiteMode.Strict => Microsoft.AspNetCore.Http.SameSiteMode.Strict,
+            SameSiteMode.Lax => Microsoft.AspNetCore.Http.SameSiteMode.Lax,
+            SameSiteMode.None => Microsoft.AspNetCore.Http.SameSiteMode.None,
+            _ => Microsoft.AspNetCore.Http.SameSiteMode.Lax,
+        };
+
+        Response.Cookies.Append(_oidcOptions.Cookie.StateCookieName, state, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = _oidcOptions.Cookie.Secure,
+            SameSite = cookieSameSite,
+            Path = _oidcOptions.Cookie.Path,
+            Domain = _oidcOptions.Cookie.Domain,
+            Expires = expiresAt,
+        });
+    }
+
+    private void ClearOidcStateCookie()
+    {
+        Response.Cookies.Delete(_oidcOptions.Cookie.StateCookieName, new CookieOptions
+        {
+            Path = _oidcOptions.Cookie.Path,
+            Domain = _oidcOptions.Cookie.Domain,
+        });
+    }
+
     #endregion
 }
 
 #region Request/Response DTOs
 
+public record ValidateSlugRequest(string Slug);
+
 public record SetupTenantRequest(string Slug, string DisplayName);
 
-public record SetupTenantResponse(Guid TenantId, string ApiSecret);
+public record SetupTenantResponse(Guid TenantId);
 
 public class SetupOwnerOptionsRequest
 {
@@ -355,6 +614,18 @@ public class SetupOwnerCompleteResponse
     public string AccessToken { get; set; } = string.Empty;
     public string? RefreshToken { get; set; }
     public int ExpiresIn { get; set; }
+}
+
+public class SetupOwnerOidcRequest
+{
+    public string Username { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+    public Guid ProviderId { get; set; }
+}
+
+public class SetupOwnerOidcResponse
+{
+    public string AuthorizationUrl { get; set; } = string.Empty;
 }
 
 #endregion

@@ -431,22 +431,6 @@ app.MapDefaultEndpoints();
 var isNSwagGeneration = IsRunningInNSwagContext();
 if (!isNSwagGeneration && !app.Environment.IsEnvironment("Testing"))
 {
-    // Validate multitenancy configuration: multiple tenants require BaseDomain for subdomain routing.
-    {
-        using var scope = app.Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<NocturneDbContext>();
-        var multitenancyConfig = app.Services.GetRequiredService<IOptions<MultitenancyConfiguration>>();
-
-        var tenantCount = await dbContext.Tenants.CountAsync();
-        if (tenantCount > 1 && string.IsNullOrEmpty(multitenancyConfig.Value.BaseDomain))
-        {
-            throw new InvalidOperationException(
-                $"Multiple tenants exist ({tenantCount}) but Multitenancy:BaseDomain is not configured. " +
-                "Set the BaseDomain in configuration to enable subdomain-based routing, " +
-                "or remove extra tenants to run in single-tenant mode.");
-        }
-    }
-
     // Validate that the migrator connection string is present and uses a different role.
     if (string.IsNullOrWhiteSpace(migratorConnectionString))
     {
@@ -467,9 +451,6 @@ if (!isNSwagGeneration && !app.Environment.IsEnvironment("Testing"))
 
     // Validate RLS, ownership, default privileges, and NoResetOnClose under the app role.
     await app.Services.ValidateDatabaseConfigurationAsync();
-
-    // Revoke refresh tokens if BaseDomain was newly configured (single→multi-tenant transition)
-    await BaseDomainTransitionService.CheckAndRevokeAsync(app.Services);
 
     // Sync config-managed OIDC providers to the database (satisfies FK constraints)
     await OidcProviderService.SyncConfigProvidersAsync(app.Services);

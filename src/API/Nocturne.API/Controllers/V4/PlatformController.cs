@@ -79,26 +79,18 @@ public class PlatformController : ControllerBase
     }
 
     /// <summary>
-    /// Returns the current multitenancy transition status.
-    /// Used by the frontend to show a notice when BaseDomain is configured.
+    /// Returns the current multitenancy configuration status.
+    /// Used by the frontend to display subdomain URLs and transition notices.
     /// </summary>
     [HttpGet("transition-status")]
     [RemoteQuery]
     [ProducesResponseType(typeof(TransitionStatusDto), StatusCodes.Status200OK)]
     public IActionResult GetTransitionStatus()
     {
-        if (!string.IsNullOrWhiteSpace(_config.BaseDomain))
-        {
-            return Ok(new TransitionStatusDto(
-                MultitenancyEnabled: true,
-                BaseDomain: _config.BaseDomain,
-                Message: "Multitenancy is enabled. Apps must connect via subdomain URLs."));
-        }
-
         return Ok(new TransitionStatusDto(
-            MultitenancyEnabled: false,
-            BaseDomain: null,
-            Message: null));
+            MultitenancyEnabled: true,
+            BaseDomain: _config.BaseDomain,
+            Message: "Apps connect via subdomain URLs."));
     }
 }
 

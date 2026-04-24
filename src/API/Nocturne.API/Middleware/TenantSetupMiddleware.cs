@@ -11,14 +11,14 @@ namespace Nocturne.API.Middleware;
 /// passkey and no OIDC binding). Allows passkey setup, admin, and metadata
 /// endpoints through so setup/recovery flows can complete.
 ///
-/// Runs after TenantResolutionMiddleware in both single-tenant and
-/// multi-tenant modes. When no tenant is resolved (e.g. tenantless
-/// cross-tenant paths, or zero-tenant setup), the middleware passes through.
+/// Runs after TenantResolutionMiddleware. When no tenant is resolved
+/// (e.g. tenantless cross-tenant paths, or zero-tenant setup), the
+/// middleware passes through.
 /// </summary>
 /// <remarks>
 /// <para>
 /// Pipeline order (position 4 of 8 custom middleware):
-/// <see cref="JsonExtensionMiddleware"/>, <see cref="RecoveryModeMiddleware"/>,
+/// <see cref="JsonExtensionMiddleware"/>,
 /// <see cref="OidcCallbackRedirectMiddleware"/>, <see cref="Multitenancy.TenantResolutionMiddleware"/>,
 /// <b>TenantSetupMiddleware</b>, <see cref="AuthenticationMiddleware"/>,
 /// <see cref="MemberScopeMiddleware"/>, <see cref="SiteSecurityMiddleware"/>.
@@ -30,7 +30,6 @@ namespace Nocturne.API.Middleware;
 /// </para>
 /// </remarks>
 /// <seealso cref="AllowDuringSetupAttribute"/>
-/// <seealso cref="RecoveryModeMiddleware"/>
 /// <seealso cref="Multitenancy.TenantResolutionMiddleware"/>
 public class TenantSetupMiddleware
 {

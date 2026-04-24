@@ -31,6 +31,7 @@
     Loader2,
     Activity,
   } from "lucide-svelte";
+  import { coachmark } from "@nocturne/coach";
   import { tick, onMount } from "svelte";
   import { goto } from "$app/navigation";
   import { getAuthStore } from "$lib/stores/auth-store.svelte";
@@ -454,7 +455,7 @@
   <title>Notifications & Trackers - Settings - Nocturne</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-4xl p-6 space-y-6">
+<div class="container mx-auto max-w-4xl p-6 space-y-6" {@attach coachmark({ key: "power-user.trackers", title: "Custom trackers", description: "Create custom trackers for infusion sites, sensors, or any consumable." })}>
   <!-- Header -->
   <div class="mb-8">
     <div class="flex items-center gap-3 mb-2">

@@ -13,6 +13,7 @@
     Loader2,
   } from "lucide-svelte";
   import PermissionPicker from "$lib/components/rbac/PermissionPicker.svelte";
+  import { coachmark } from "@nocturne/coach";
   import { createInvite } from "$api/generated/tenants.generated.remote";
   import type { TenantRoleDto } from "$lib/api/generated/nocturne-api-client";
 
@@ -132,7 +133,11 @@
           </p>
         </div>
 
-        <div class="flex gap-2">
+        <div class="flex gap-2" {@attach coachmark({
+          key: "setup-invite.copy-link",
+          title: "Send the link",
+          description: "Copy this link and send it however you like \u2014 text, email, carrier pigeon.",
+        })}>
           <Input
             type="text"
             value={createdInviteUrl}
@@ -165,7 +170,11 @@
         </div>
 
         <!-- Role multi-select -->
-        <div class="space-y-2">
+        <div class="space-y-2" {@attach coachmark({
+          key: "setup-invite.roles",
+          title: "Choose their access",
+          description: "Roles control what they can see \u2014 most caretakers just need Viewer.",
+        })}>
           <Label>Roles</Label>
           <div class="grid gap-2 sm:grid-cols-2">
             {#each roles as role (role.id)}

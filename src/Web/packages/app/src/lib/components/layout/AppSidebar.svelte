@@ -2,6 +2,7 @@
   import { page } from "$app/state";
   import { browser } from "$app/environment";
 
+  import { coachmark } from "@nocturne/coach";
   import * as Sidebar from "$lib/components/ui/sidebar";
   import * as Collapsible from "$lib/components/ui/collapsible";
   import * as Select from "$lib/components/ui/select";
@@ -453,7 +454,11 @@
 
   <Sidebar.Content>
     <!-- Navigation -->
-    <Sidebar.Group>
+    <Sidebar.Group {@attach coachmark({
+      key: "quick-tour.sidebar",
+      title: "Everything else",
+      description: "Reports, calendar, meals, settings \u2014 it's all in the sidebar.",
+    })}>
       <Sidebar.GroupLabel>Navigation</Sidebar.GroupLabel>
       <Sidebar.GroupContent>
         <Sidebar.Menu>

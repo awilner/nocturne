@@ -103,6 +103,21 @@ public interface IOidcAuthService
         string code, string state, string expectedState,
         Guid authenticatedSubjectId,
         string? ipAddress = null, string? userAgent = null);
+
+    /// <summary>
+    /// Generate an authorization URL for OIDC-based owner creation during setup.
+    /// Encodes the pre-created subject ID in state so the callback can link the identity.
+    /// </summary>
+    Task<OidcAuthorizationRequest> GenerateSetupAuthorizationUrlAsync(
+        Guid providerId, Guid subjectId, string? tenantSlug = null);
+
+    /// <summary>
+    /// Handle the OIDC callback for setup owner creation.
+    /// Links the OIDC identity to the pre-created subject and issues session tokens.
+    /// </summary>
+    Task<OidcSetupCallbackResult> HandleSetupCallbackAsync(
+        string code, string state, string expectedState,
+        string? ipAddress = null, string? userAgent = null);
 }
 
 /// <summary>
@@ -353,4 +368,23 @@ public class OidcLogoutResult
     /// Create a failed result
     /// </summary>
     public static OidcLogoutResult Failed(string error) => new() { Success = false, Error = error };
+}
+
+/// <summary>
+/// Result of the setup OIDC callback flow.
+/// </summary>
+public class OidcSetupCallbackResult
+{
+    public bool Success { get; set; }
+    public string? Error { get; set; }
+    public string? ErrorDescription { get; set; }
+    public Guid? SubjectId { get; set; }
+    public OidcTokenResponse? Tokens { get; set; }
+    public string? ReturnUrl { get; set; }
+
+    public static OidcSetupCallbackResult Succeeded(Guid subjectId, OidcTokenResponse tokens, string? returnUrl = null) =>
+        new() { Success = true, SubjectId = subjectId, Tokens = tokens, ReturnUrl = returnUrl };
+
+    public static OidcSetupCallbackResult Failed(string error, string? description = null) =>
+        new() { Success = false, Error = error, ErrorDescription = description };
 }

@@ -53,6 +53,7 @@
   import { browser } from "$app/environment";
   import { WidgetId } from "$lib/api/generated/nocturne-api-client";
   import { page } from "$app/state";
+  import { coachmark } from "@nocturne/coach";
 
   const store = getSettingsStore();
   const realtimeStore = getRealtimeStore();
@@ -367,11 +368,18 @@
     </Card>
 
     <!-- Dashboard Widgets -->
-    <DashboardWidgetConfigurator
-      value={dashboardTopWidgets.current}
-      onchange={handleWidgetsChange}
-      maxWidgets={3}
-    />
+    <div {@attach coachmark({
+      key: "feature-intro.appearance-widgets",
+      title: "Widget order",
+      description: "Drag to reorder your dashboard widgets.",
+      completeOn: { event: "dragend" },
+    })}>
+      <DashboardWidgetConfigurator
+        value={dashboardTopWidgets.current}
+        onchange={handleWidgetsChange}
+        maxWidgets={3}
+      />
+    </div>
 
     <!-- Chart Options -->
     <Card>

@@ -33,6 +33,7 @@
     Zap,
   } from "lucide-svelte";
   import { goto } from "$app/navigation";
+  import { coachmark } from "@nocturne/coach";
   import RuleEditorSheet from "$lib/components/alerts/RuleEditorSheet.svelte";
   import AlertRuleRow from "$lib/components/alerts/AlertRuleRow.svelte";
   import AlertHistoryCard from "$lib/components/alerts/AlertHistoryCard.svelte";
@@ -169,6 +170,8 @@
     rules = Array.isArray(result) ? result : [];
   }
 
+  const alertsConfigured = $derived(rules.length > 0);
+
   onMount(() => {
     loadData();
   });
@@ -178,17 +181,25 @@
   <title>Alerts - Settings - Nocturne</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-4xl p-6 space-y-6">
+<div class="container mx-auto max-w-4xl p-6 space-y-6" {@attach coachmark({ key: "onboarding.alerts", title: "Alerts", description: "Get notified about highs and lows", completedWhen: () => alertsConfigured })}>
   <!-- Header -->
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between" {@attach coachmark({
+    key: "setup-alerts.overview",
+    title: "Your alert centre",
+    description: "Rules trigger notifications when glucose goes out of range.",
+  })}>
     <div>
       <h1 class="text-2xl font-bold tracking-tight">Alerts</h1>
       <p class="text-muted-foreground">
         Configure alert rules, schedules, and escalation chains
       </p>
     </div>
-    <div class="flex items-center gap-2">
-      <Button variant="outline" onclick={() => goto("/settings/alerts/setup")}>
+    <div class="flex items-center gap-2" {@attach coachmark({ key: "power-user.alert-rules", title: "Custom alert rules", description: "Build custom alert rules with threshold, rate-of-change, or signal-loss conditions." })}>
+      <Button variant="outline" onclick={() => goto("/settings/alerts/setup")} {@attach coachmark({
+        key: "setup-alerts.wizard",
+        title: "Quickest way to start",
+        description: "The wizard walks you through creating your first high and low alerts.",
+      })}>
         <Zap class="h-4 w-4 mr-2" />
         Setup Wizard
       </Button>

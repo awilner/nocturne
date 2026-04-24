@@ -9,7 +9,6 @@ import {
   AlertRulesClient,
   AlertsClient,
   AnalyticsClient,
-  ApiSecretClient,
   ApsSnapshotClient,
   AvatarClient,
   BackfillClient,
@@ -23,6 +22,7 @@ import {
   ChatIdentityClient,
   ChatIdentityDirectoryClient,
   ClockFacesClient,
+  CoachMarkClient,
   CompatibilityClient,
   CompressionLowClient,
   ConfigurationClient,
@@ -62,6 +62,7 @@ import {
   OidcProviderAdminClient,
   PasskeyClient,
   PatientRecordClient,
+  PlatformClient,
   PredictionClient,
   ProcessingClient,
   ProfileClient,
@@ -70,6 +71,7 @@ import {
   RoleClient,
   SensorGlucoseClient,
   ServicesClient,
+  SetupClient,
   StateSpansClient,
   StatisticsClient,
   StatusClient,
@@ -101,7 +103,6 @@ export class ApiClient {
   public readonly alertRules: AlertRulesClient;
   public readonly alerts: AlertsClient;
   public readonly analytics: AnalyticsClient;
-  public readonly apiSecret: ApiSecretClient;
   public readonly apsSnapshot: ApsSnapshotClient;
   public readonly avatar: AvatarClient;
   public readonly backfill: BackfillClient;
@@ -115,6 +116,7 @@ export class ApiClient {
   public readonly chatIdentity: ChatIdentityClient;
   public readonly chatIdentityDirectory: ChatIdentityDirectoryClient;
   public readonly clockFaces: ClockFacesClient;
+  public readonly coachMark: CoachMarkClient;
   public readonly compatibility: CompatibilityClient;
   public readonly compressionLow: CompressionLowClient;
   public readonly configuration: ConfigurationClient;
@@ -154,6 +156,7 @@ export class ApiClient {
   public readonly oidcProviderAdmin: OidcProviderAdminClient;
   public readonly passkey: PasskeyClient;
   public readonly patientRecord: PatientRecordClient;
+  public readonly platform: PlatformClient;
   public readonly predictions: PredictionClient;
   public readonly processing: ProcessingClient;
   public readonly profile: ProfileClient;
@@ -162,6 +165,7 @@ export class ApiClient {
   public readonly role: RoleClient;
   public readonly sensorGlucose: SensorGlucoseClient;
   public readonly services: ServicesClient;
+  public readonly setup: SetupClient;
   public readonly stateSpans: StateSpansClient;
   public readonly statistics: StatisticsClient;
   public readonly status: StatusClient;
@@ -193,7 +197,6 @@ export class ApiClient {
     this.alertRules = new AlertRulesClient(apiBaseUrl, http);
     this.alerts = new AlertsClient(apiBaseUrl, http);
     this.analytics = new AnalyticsClient(apiBaseUrl, http);
-    this.apiSecret = new ApiSecretClient(apiBaseUrl, http);
     this.apsSnapshot = new ApsSnapshotClient(apiBaseUrl, http);
     this.avatar = new AvatarClient(apiBaseUrl, http);
     this.backfill = new BackfillClient(apiBaseUrl, http);
@@ -207,6 +210,7 @@ export class ApiClient {
     this.chatIdentity = new ChatIdentityClient(apiBaseUrl, http);
     this.chatIdentityDirectory = new ChatIdentityDirectoryClient(apiBaseUrl, http);
     this.clockFaces = new ClockFacesClient(apiBaseUrl, http);
+    this.coachMark = new CoachMarkClient(apiBaseUrl, http);
     this.compatibility = new CompatibilityClient(apiBaseUrl, http);
     this.compressionLow = new CompressionLowClient(apiBaseUrl, http);
     this.configuration = new ConfigurationClient(apiBaseUrl, http);
@@ -246,6 +250,7 @@ export class ApiClient {
     this.oidcProviderAdmin = new OidcProviderAdminClient(apiBaseUrl, http);
     this.passkey = new PasskeyClient(apiBaseUrl, http);
     this.patientRecord = new PatientRecordClient(apiBaseUrl, http);
+    this.platform = new PlatformClient(apiBaseUrl, http);
     this.predictions = new PredictionClient(apiBaseUrl, http);
     this.processing = new ProcessingClient(apiBaseUrl, http);
     this.profile = new ProfileClient(apiBaseUrl, http);
@@ -254,6 +259,7 @@ export class ApiClient {
     this.role = new RoleClient(apiBaseUrl, http);
     this.sensorGlucose = new SensorGlucoseClient(apiBaseUrl, http);
     this.services = new ServicesClient(apiBaseUrl, http);
+    this.setup = new SetupClient(apiBaseUrl, http);
     this.stateSpans = new StateSpansClient(apiBaseUrl, http);
     this.statistics = new StatisticsClient(apiBaseUrl, http);
     this.status = new StatusClient(apiBaseUrl, http);

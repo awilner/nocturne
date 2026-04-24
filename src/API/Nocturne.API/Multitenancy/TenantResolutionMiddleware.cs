@@ -8,8 +8,9 @@ namespace Nocturne.API.Multitenancy;
 
 /// <summary>
 /// Middleware that resolves the current tenant from the request.
-/// In single-tenant mode (no BaseDomain), resolves the sole active tenant automatically.
-/// In multi-tenant mode (BaseDomain set), resolves from subdomain.
+/// Tenants are resolved by subdomain: <c>{slug}.{BaseDomain}</c>.
+/// Requests on the apex domain (no subdomain) are either tenantless-allowed
+/// cross-tenant paths or 404/503 depending on whether any tenants exist.
 /// Must run before AuthenticationMiddleware in the pipeline.
 /// </summary>
 public class TenantResolutionMiddleware
@@ -19,11 +20,6 @@ public class TenantResolutionMiddleware
     private readonly MultitenancyConfiguration _config;
     private readonly IMemoryCache _cache;
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
-
-    /// <summary>
-    /// Cache key used for the sole tenant in single-tenant mode (no BaseDomain).
-    /// </summary>
-    private const string SingleTenantCacheKey = "tenant:__single__";
 
     public TenantResolutionMiddleware(
         RequestDelegate next,
@@ -44,7 +40,6 @@ public class TenantResolutionMiddleware
     private static readonly string[] TenantlessAllowedPaths =
     [
         "/api/v4/me/tenants/validate-slug",
-        "/api/admin/tenants/validate-slug",
         "/api/v4/admin/tenants/validate-slug",
         "/api/metadata",
         "/api/v4/chat-identity/directory/resolve",
@@ -59,8 +54,9 @@ public class TenantResolutionMiddleware
     /// </summary>
     private static readonly string[] TenantlessAllowedPrefixes =
     [
-        "/api/admin/tenants",
+        "/api/auth/passkey/setup/",
         "/api/v4/admin/tenants",
+        "/api/v4/dev-only/",
         "/api/v4/platform/",
         "/api/v4/setup/",
     ];
@@ -77,98 +73,79 @@ public class TenantResolutionMiddleware
             TenantlessAllowedPaths.Any(p => path.Equals(p, StringComparison.OrdinalIgnoreCase)) ||
             TenantlessAllowedPrefixes.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase));
 
-        var isSingleTenantMode = string.IsNullOrEmpty(_config.BaseDomain);
-
-        if (!isSingleTenantMode)
+        // Tenantless-allowed paths on the apex (no slug) operate across tenants.
+        if (slug == null && isTenantlessAllowedPath)
         {
-            // Multi-tenant mode: BaseDomain is set
+            await _next(context);
+            return;
+        }
 
-            // Tenantless-allowed paths on the apex (no slug) operate across tenants.
-            if (slug == null && isTenantlessAllowedPath)
+        // Apex domain (no subdomain) with a non-tenantless path.
+        // If no tenants exist yet, return 503 setup_required so the
+        // frontend redirects to /setup instead of showing a 404.
+        // If exactly one tenant exists, auto-resolve to it (single-tenant mode).
+        if (slug == null)
+        {
+            var soleTenant = await GetSoleTenantAsync(context.RequestServices);
+            if (soleTenant == null)
+            {
+                var anyTenantExists = await AnyTenantExistsAsync(context.RequestServices);
+                if (!anyTenantExists)
+                {
+                    _logger.LogInformation("No tenants exist — returning 503 setup_required");
+                    context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsJsonAsync(new
+                    {
+                        error = "setup_required",
+                        setupRequired = true,
+                    });
+                    return;
+                }
+
+                // Multiple tenants but no subdomain — can't determine which one.
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                return;
+            }
+
+            // Single tenant: auto-resolve from the apex domain.
+            tenantAccessor.SetTenant(soleTenant);
+            context.Items["TenantContext"] = soleTenant;
+            await _next(context);
+            return;
+        }
+
+        // Subdomain present: resolve tenant by slug
+        var tenantContext = await ResolveTenantBySlugAsync(context.RequestServices, slug);
+
+        if (tenantContext == null)
+        {
+            if (isTenantlessAllowedPath)
             {
                 await _next(context);
                 return;
             }
 
-            // Apex domain (no subdomain) with a non-tenantless path: 404
-            if (slug == null)
-            {
-                context.Response.StatusCode = StatusCodes.Status404NotFound;
-                return;
-            }
-
-            // Subdomain present: resolve tenant by slug
-            var tenantContext = await ResolveTenantBySlugAsync(context.RequestServices, slug);
-
-            if (tenantContext == null)
-            {
-                if (isTenantlessAllowedPath)
-                {
-                    await _next(context);
-                    return;
-                }
-
-                _logger.LogWarning("Tenant not found for slug '{Slug}'", slug);
-                context.Response.StatusCode = StatusCodes.Status404NotFound;
-                return;
-            }
-
-            if (!tenantContext.IsActive)
-            {
-                _logger.LogWarning("Tenant '{Slug}' is inactive", slug);
-                context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                return;
-            }
-
-            tenantAccessor.SetTenant(tenantContext);
-            context.Items["TenantContext"] = tenantContext;
-
-            await _next(context);
+            _logger.LogWarning("Tenant not found for slug '{Slug}'", slug);
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
         }
-        else
+
+        if (!tenantContext.IsActive)
         {
-            // Single-tenant mode: no BaseDomain configured
-            var tenantContext = await ResolveSingleTenantAsync(context.RequestServices);
-
-            if (tenantContext == null)
-            {
-                // No tenant found (zero tenants exist) — allow tenantless paths, 503 others
-                if (isTenantlessAllowedPath)
-                {
-                    await _next(context);
-                    return;
-                }
-
-                _logger.LogInformation("No tenants exist — returning 503 setup_required");
-                context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
-                context.Response.ContentType = "application/json";
-                await context.Response.WriteAsJsonAsync(new
-                {
-                    error = "setup_required",
-                    setupRequired = true,
-                });
-                return;
-            }
-
-            if (!tenantContext.IsActive)
-            {
-                _logger.LogWarning("Single tenant '{Slug}' is inactive", tenantContext.Slug);
-                context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                return;
-            }
-
-            tenantAccessor.SetTenant(tenantContext);
-            context.Items["TenantContext"] = tenantContext;
-
-            await _next(context);
+            _logger.LogWarning("Tenant '{Slug}' is inactive", slug);
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return;
         }
+
+        tenantAccessor.SetTenant(tenantContext);
+        context.Items["TenantContext"] = tenantContext;
+
+        await _next(context);
     }
 
     private string? ExtractSubdomain(string hostname)
     {
-        if (string.IsNullOrEmpty(_config.BaseDomain))
-            return null;
-
         // Strip port from BaseDomain for hostname comparison
         // (Host.Host already excludes port, but BaseDomain may include it for frontend URL construction)
         var baseDomainHost = _config.BaseDomain.Split(':')[0];
@@ -181,7 +158,7 @@ public class TenantResolutionMiddleware
     }
 
     /// <summary>
-    /// Resolves a tenant by subdomain slug (multi-tenant mode).
+    /// Resolves a tenant by subdomain slug.
     /// </summary>
     private async Task<TenantContext?> ResolveTenantBySlugAsync(IServiceProvider services, string slug)
     {
@@ -205,12 +182,26 @@ public class TenantResolutionMiddleware
     }
 
     /// <summary>
-    /// Resolves the single active tenant in single-tenant mode (no BaseDomain).
-    /// Returns null if zero or more than one active tenant exists.
+    /// Checks whether any tenant exists at all (used to distinguish "no tenants
+    /// yet" from "tenant not found" on the apex domain).
     /// </summary>
-    private async Task<TenantContext?> ResolveSingleTenantAsync(IServiceProvider services)
+    private async Task<bool> AnyTenantExistsAsync(IServiceProvider services)
     {
-        if (_cache.TryGetValue(SingleTenantCacheKey, out TenantContext? cached))
+        var factory = services.GetRequiredService<IDbContextFactory<NocturneDbContext>>();
+        await using var context = await factory.CreateDbContextAsync();
+        return await context.Tenants.AsNoTracking().AnyAsync();
+    }
+
+    /// <summary>
+    /// Returns the sole active tenant if exactly one exists, enabling single-tenant
+    /// mode where the apex domain auto-resolves without a subdomain.
+    /// Returns null when zero or multiple tenants exist.
+    /// </summary>
+    private async Task<TenantContext?> GetSoleTenantAsync(IServiceProvider services)
+    {
+        var cacheKey = "tenant:__sole__";
+
+        if (_cache.TryGetValue(cacheKey, out TenantContext? cached))
             return cached;
 
         var factory = services.GetRequiredService<IDbContextFactory<NocturneDbContext>>();
@@ -226,7 +217,7 @@ public class TenantResolutionMiddleware
 
         var tenant = tenants[0];
         var tenantContext = new TenantContext(tenant.Id, tenant.Slug, tenant.DisplayName, tenant.IsActive);
-        _cache.Set(SingleTenantCacheKey, tenantContext, CacheDuration);
+        _cache.Set(cacheKey, tenantContext, CacheDuration);
         return tenantContext;
     }
 }

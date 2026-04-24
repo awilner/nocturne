@@ -10,6 +10,7 @@ using Nocturne.API.Services.Alerts.Webhooks;
 using Nocturne.API.Services.Analytics;
 using Nocturne.API.Services.Auth;
 using Nocturne.API.Services.BackgroundServices;
+using Nocturne.API.Services.CoachMarks;
 using Nocturne.API.Services.ChartData;
 using Nocturne.API.Services.ChartData.Stages;
 using Nocturne.API.Services.ConnectorPublishing;
@@ -35,6 +36,7 @@ using Nocturne.Connectors.Core.Interfaces;
 using Nocturne.Connectors.HomeAssistant.WriteBack;
 using Nocturne.Connectors.Nightscout.Services.WriteBack;
 using Nocturne.Core.Constants;
+using Nocturne.Core.Contracts.CoachMarks;
 using Nocturne.Core.Contracts.Alerts;
 using Nocturne.Core.Contracts.Analytics;
 using Nocturne.Core.Contracts.Connectors;
@@ -215,7 +217,7 @@ public static class ServiceRegistrationExtensions
         services.AddSingleton<IAuthHandler, DirectGrantTokenHandler>(); // Priority 150
         services.AddSingleton<IAuthHandler, LegacyJwtHandler>(); // Priority 200
         services.AddSingleton<IAuthHandler, AccessTokenHandler>(); // Priority 300
-        services.AddSingleton<IAuthHandler, ApiSecretHandler>(); // Priority 400
+        services.AddSingleton<IAuthHandler, ApiKeyHandler>(); // Priority 400
 
         // OIDC provider discovery HTTP client
         services.AddHttpClient(
@@ -410,6 +412,9 @@ public static class ServiceRegistrationExtensions
 
         // Device resolution
         services.AddScoped<IDeviceService, DeviceService>();
+
+        // Coach marks
+        services.AddScoped<ICoachMarkService, CoachMarkService>();
 
         // UI and display
         services.AddScoped<IUISettingsService, UISettingsService>();

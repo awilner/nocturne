@@ -22,6 +22,7 @@
     setMemberRoles,
     setMemberPermissions,
   } from "$lib/api/generated/memberInvites.generated.remote";
+  import { coachmark } from "@nocturne/coach";
   import CreateInviteCard from "$lib/components/members/CreateInviteCard.svelte";
   import PendingInvitesList from "$lib/components/members/PendingInvitesList.svelte";
   import MemberCard from "$lib/components/members/MemberCard.svelte";
@@ -56,6 +57,12 @@
   const invites = $derived(invitesQuery?.current ?? []);
   const activeInvites = $derived(invites.filter((i) => i.isValid));
   const allRoles = $derived(rolesQuery.current ?? []);
+
+  const publicMember = $derived(allMembers.find((m) => m.name === "Public"));
+  const sharingConfigured = $derived(
+    (publicMember?.roles ?? []).length > 0 ||
+      (publicMember?.directPermissions ?? []).length > 0,
+  );
 
   // --- UI state ---
   let showCreateInvite = $state(false);
@@ -110,7 +117,7 @@
   <title>Members - Settings - Nocturne</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-4xl p-6 space-y-6">
+<div class="container mx-auto max-w-4xl p-6 space-y-6" {@attach coachmark({ key: "onboarding.sharing", title: "Sharing & Privacy", description: "Control who can see your data", completedWhen: () => sharingConfigured })}>
   <div class="space-y-1">
     <h1 class="text-2xl font-bold tracking-tight">Members</h1>
     <p class="text-muted-foreground">
@@ -153,6 +160,11 @@
             variant="outline"
             size="sm"
             onclick={() => (showCreateInvite = true)}
+            {@attach coachmark({
+              key: "setup-invite.create-link",
+              title: "Start here",
+              description: "Create a shareable link to invite a caretaker, partner, or clinician.",
+            })}
           >
             <Link class="mr-1.5 h-3.5 w-3.5" />
             Create Invite Link

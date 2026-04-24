@@ -13,6 +13,12 @@
   import { browser } from "$app/environment";
   import * as Card from "$lib/components/ui/card";
   import AlertBanner from "$lib/components/alerts/AlertBanner.svelte";
+  import { CoachMarkProvider } from "@nocturne/coach";
+  import "@nocturne/coach/theme.css";
+  import "../../styles/coach-theme-overrides.css";
+  import { createCoachMarkAdapter } from "$lib/coach-marks/adapter";
+  import { sequences } from "$lib/coach-marks/sequences";
+  import CoachParamHandler from "$lib/coach-marks/CoachParamHandler.svelte";
 
   // LocalStorage key for title/favicon settings
   const SETTINGS_STORAGE_KEY = "nocturne-title-favicon-settings";
@@ -35,6 +41,8 @@
   // Create settings store in context for the entire app
   // This makes feature settings available on all pages including the main dashboard
   createSettingsStore();
+
+  const coachMarkAdapter = createCoachMarkAdapter();
 
   // Title/Favicon service for dynamic updates
   const titleFaviconService = getTitleFaviconService();
@@ -165,28 +173,31 @@
   });
 </script>
 
-<Sidebar.Provider>
-  <AppSidebar user={data.user} tenantCount={data.tenantCount} effectivePermissions={data.effectivePermissions} isPlatformAdmin={data.isPlatformAdmin} />
-  <MobileHeader />
-  <Sidebar.Inset>
-    <AlertBanner />
-    <main class="flex-1 overflow-auto">
-      <svelte:boundary>
-        {@render children()}
+<CoachMarkProvider adapter={coachMarkAdapter} {sequences}>
+  <CoachParamHandler />
+  <Sidebar.Provider>
+    <AppSidebar user={data.user} tenantCount={data.tenantCount} effectivePermissions={data.effectivePermissions} isPlatformAdmin={data.isPlatformAdmin} />
+    <MobileHeader />
+    <Sidebar.Inset>
+      <AlertBanner />
+      <main class="flex-1 overflow-auto">
+        <svelte:boundary>
+          {@render children()}
 
-        {#snippet failed(e)}
-          <Card.Root class="flex items-center justify-center h-full">
-            <Card.Header>
-              <Card.Title>Error</Card.Title>
-            </Card.Header>
-            <Card.Content
-              class="text-destructive grid place-items-center h-full max-w-2xl"
-            >
-              {e instanceof Error ? e.message : JSON.stringify(e)}
-            </Card.Content>
-          </Card.Root>
-        {/snippet}
-      </svelte:boundary>
-    </main>
-  </Sidebar.Inset>
-</Sidebar.Provider>
+          {#snippet failed(e)}
+            <Card.Root class="flex items-center justify-center h-full">
+              <Card.Header>
+                <Card.Title>Error</Card.Title>
+              </Card.Header>
+              <Card.Content
+                class="text-destructive grid place-items-center h-full max-w-2xl"
+              >
+                {e instanceof Error ? e.message : JSON.stringify(e)}
+              </Card.Content>
+            </Card.Root>
+          {/snippet}
+        </svelte:boundary>
+      </main>
+    </Sidebar.Inset>
+  </Sidebar.Provider>
+</CoachMarkProvider>

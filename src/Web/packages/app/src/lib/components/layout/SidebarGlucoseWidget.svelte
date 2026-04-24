@@ -19,6 +19,7 @@
     type PredictionData,
   } from "$api/predictions.remote";
   import { getDirectionInfo } from "$lib/utils";
+  import { coachmark } from "@nocturne/coach";
 
   const realtimeStore = tryGetRealtimeStore();
 
@@ -165,7 +166,11 @@
   const statusText = $derived(isDisconnected ? "Connection Error" : timeSince);
 </script>
 
-<div class="space-y-3 group-data-[collapsible=icon]:hidden">
+<div class="space-y-3 group-data-[collapsible=icon]:hidden" {@attach coachmark({
+  key: "dashboard-discovery.sidebar-glucose",
+  title: "Live glucose",
+  description: "Your current glucose and trend are always visible here.",
+})}>
   <!-- Current BG Display -->
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-2">

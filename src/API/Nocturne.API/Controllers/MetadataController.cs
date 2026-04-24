@@ -195,7 +195,7 @@ public class MetadataController : ControllerBase
         return Ok(new MultitenancyInfo
         {
             BaseDomain = config.Value.BaseDomain,
-            SubdomainResolution = !string.IsNullOrEmpty(config.Value.BaseDomain),
+            SubdomainResolution = true,
             AllowSelfServiceCreation = config.Value.AllowSelfServiceCreation,
             CurrentTenantSlug = tenantContext?.Slug,
             CurrentTenantId = tenantContext?.TenantId,

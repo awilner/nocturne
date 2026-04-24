@@ -20,6 +20,7 @@
   import CalendarHeader from "$lib/components/calendar/CalendarHeader.svelte";
   import CalendarMonthSummary from "$lib/components/calendar/CalendarMonthSummary.svelte";
   import CalendarDayCell from "$lib/components/calendar/CalendarDayCell.svelte";
+  import { coachmark } from "@nocturne/coach";
 
   // Infer DayStats type from the query result
   type DayStats = NonNullable<
@@ -330,16 +331,23 @@
   <CalendarSkeleton />
 {:then}
   <div class="flex flex-col h-full">
-    <CalendarHeader
-      {viewDate}
-      bind:viewMode
-      {isCurrentMonth}
-      {MONTH_NAMES}
-      {previousMonth}
-      {nextMonth}
-      {goToToday}
-      {setViewMode}
-    />
+    <div {@attach coachmark({
+      key: "feature-intro.calendar-views",
+      title: "View modes",
+      description: "Switch between Time in Range and Profile views to see different patterns.",
+      completeOn: { event: "click" },
+    })}>
+      <CalendarHeader
+        {viewDate}
+        bind:viewMode
+        {isCurrentMonth}
+        {MONTH_NAMES}
+        {previousMonth}
+        {nextMonth}
+        {goToToday}
+        {setViewMode}
+      />
+    </div>
 
     {#await Promise.all([trackersQuery, historyQuery, definitionsQuery])}
       <div class="flex-1 p-4">
@@ -360,7 +368,11 @@
               {/each}
             </div>
 
-            <div class="flex-1 grid grid-rows-6 gap-1">
+            <div class="flex-1 grid grid-rows-6 gap-1" {@attach coachmark({
+              key: "feature-intro.calendar-trackers",
+              title: "Tracker events",
+              description: "Tracker events appear on your calendar \u2014 colored by urgency.",
+            })}>
               {#each calendarGrid as week}
                 <div class="grid grid-cols-7 gap-1">
                   {#each week as day}

@@ -83,7 +83,7 @@
     if (foods.length === 1 && foods[0].foodName) {
       return foods[0].foodName;
     }
-    const date = new Date(meal.timestamp ?? Date.now());
+    const date = new Date(meal.carbIntakes?.[0]?.mills ?? Date.now());
     return getMealNameForTime(date);
   }
 
@@ -154,11 +154,11 @@
           {#each mealsByDay as day}
             {@const isDateCollapsed = collapsedDates.has(day.date)}
             {@const dayTotalCarbs = day.meals.reduce(
-              (sum: number, m: MealEvent) => sum + (m.totalCarbs ?? 0),
+              (sum, m) => sum + (m.totalCarbs ?? 0),
               0
             )}
             {@const dayTotalInsulin = day.meals.reduce(
-              (sum: number, m: MealEvent) => sum + (m.totalInsulin ?? 0),
+              (sum, m) => sum + (m.totalInsulin ?? 0),
               0
             )}
             <!-- Day separator row -->
@@ -240,7 +240,7 @@
                   </Table.Cell>
                   <Table.Cell class="py-3">
                     <div class="text-lg font-semibold tabular-nums">
-                      {formatTime(meal.timestamp?.getTime())}
+                      {formatTime(meal.carbIntakes?.[0]?.mills)}
                     </div>
                   </Table.Cell>
                   <Table.Cell class="py-3">

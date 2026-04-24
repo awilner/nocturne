@@ -540,6 +540,112 @@ public class OidcAuthService : IOidcAuthService
         return await AttachVerifiedIdentityAsync(stateData, provider, claims, authenticatedSubjectId);
     }
 
+    /// <inheritdoc />
+    public async Task<OidcAuthorizationRequest> GenerateSetupAuthorizationUrlAsync(
+        Guid providerId, Guid subjectId, string? tenantSlug = null)
+    {
+        var provider =
+            await _providerService.GetProviderByIdAsync(providerId)
+            ?? throw new InvalidOperationException($"OIDC provider {providerId} not found");
+
+        if (!provider.IsEnabled)
+            throw new InvalidOperationException($"OIDC provider {provider.Name} is not enabled");
+
+        var stateData = new OidcStateData
+        {
+            ProviderId = provider.Id,
+            ReturnUrl = "/setup",
+            Nonce = GenerateRandomString(32),
+            CreatedAt = DateTimeOffset.UtcNow,
+            ExpiresAt = DateTimeOffset.UtcNow.Add(_options.State.Lifetime),
+            Intent = "setup",
+            SubjectId = subjectId,
+            TenantSlug = tenantSlug,
+        };
+
+        return await BuildAuthorizationUrlAsync(provider, stateData, "/setup", callbackPath: SetupCallbackPath);
+    }
+
+    /// <inheritdoc />
+    public async Task<OidcSetupCallbackResult> HandleSetupCallbackAsync(
+        string code, string state, string expectedState,
+        string? ipAddress = null, string? userAgent = null)
+    {
+        var parsed = await ValidateCallbackAndParseIdTokenAsync(code, state, expectedState, SetupCallbackPath);
+        if (!parsed.Success)
+            return OidcSetupCallbackResult.Failed(parsed.Error ?? "callback_failed", parsed.ErrorDescription);
+
+        var stateData = parsed.StateData!;
+        var provider = parsed.Provider!;
+        var claims = parsed.Claims!;
+
+        if (stateData.Intent != "setup")
+            return OidcSetupCallbackResult.Failed("invalid_intent", "State was not issued for a setup flow");
+
+        if (!stateData.SubjectId.HasValue)
+            return OidcSetupCallbackResult.Failed("invalid_state", "No subject ID in setup state");
+
+        var subjectId = stateData.SubjectId.Value;
+
+        // Link OIDC identity to the pre-created admin subject
+        var (outcome, _) = await _subjectService.AttachOidcIdentityAsync(
+            subjectId,
+            provider.Id,
+            claims.Sub,
+            provider.IssuerUrl,
+            claims.Email);
+
+        if (outcome == OidcLinkOutcome.AlreadyLinkedToOther)
+            return OidcSetupCallbackResult.Failed(
+                "identity_already_linked",
+                "This provider account is already linked to another Nocturne user");
+
+        // Update subject email/name from OIDC claims if not already set
+        var subject = await _subjectService.GetSubjectByIdAsync(subjectId);
+        if (subject == null)
+            return OidcSetupCallbackResult.Failed("subject_not_found", "Pre-created setup subject not found");
+
+        await _subjectService.UpdateLastLoginAsync(subjectId);
+
+        // Issue session tokens
+        var permissions = await _subjectService.GetSubjectPermissionsAsync(subjectId);
+        var roles = await _subjectService.GetSubjectRolesAsync(subjectId);
+
+        var accessToken = _jwtService.GenerateAccessToken(
+            new SubjectInfo
+            {
+                Id = subject.Id,
+                Name = subject.Name,
+                Email = subject.Email ?? claims.Email,
+            },
+            permissions,
+            roles);
+
+        var refreshToken = await _refreshTokenService.CreateRefreshTokenAsync(
+            subjectId,
+            oidcSessionId: claims.SessionId,
+            deviceDescription: "Setup OIDC",
+            ipAddress: ipAddress,
+            userAgent: userAgent);
+
+        var tokens = new OidcTokenResponse
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            TokenType = "Bearer",
+            ExpiresIn = (int)_options.Session.AccessTokenLifetime.TotalSeconds,
+            RefreshExpiresIn = (int)_options.Session.RefreshTokenLifetime.TotalSeconds,
+            ExpiresAt = DateTimeOffset.UtcNow.Add(_options.Session.AccessTokenLifetime),
+            SubjectId = subjectId,
+        };
+
+        _logger.LogInformation(
+            "Setup OIDC: linked identity for subject {SubjectId} via provider {Provider}",
+            subjectId, provider.Name);
+
+        return OidcSetupCallbackResult.Succeeded(subjectId, tokens, stateData.ReturnUrl);
+    }
+
     /// <summary>
     /// Attaches a verified OIDC identity to an already-authenticated subject.
     /// Extracted from <see cref="HandleLinkCallbackAsync"/> to enable unit testing
@@ -588,6 +694,7 @@ public class OidcAuthService : IOidcAuthService
 
     private const string LoginCallbackPath = "/api/v4/oidc/callback";
     private const string LinkCallbackPath = "/api/v4/oidc/link/callback";
+    private const string SetupCallbackPath = "/api/v4/setup/oidc/callback";
 
     /// <summary>
     /// Builds the absolute redirect URI by combining the configured base URL with the specified callback path.

@@ -13,6 +13,7 @@
   import type { Food } from "$lib/api";
   import FoodDeleteDialog from "./FoodDeleteDialog.svelte";
   import { getFoodAttributionCount } from "$api/generated/foods.generated.remote";
+  import { coachmark } from "@nocturne/coach";
 
   // Create store with empty initial data - setContext must be called synchronously
   const foodState = new FoodState({
@@ -161,7 +162,13 @@
     <FoodEditor />
 
     <!-- Quick Picks Section -->
-    <QuickPicksList />
+    <div {@attach coachmark({
+      key: "feature-intro.food-quickpicks",
+      title: "Quick picks",
+      description: "Pin frequently-used foods here for fast meal logging.",
+    })}>
+      <QuickPicksList />
+    </div>
   {/if}
 </div>
 

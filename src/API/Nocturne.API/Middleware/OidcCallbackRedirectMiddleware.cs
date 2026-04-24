@@ -14,13 +14,12 @@ namespace Nocturne.API.Middleware;
 /// <remarks>
 /// <para>
 /// Pipeline order (position 3 of 8 custom middleware):
-/// <see cref="JsonExtensionMiddleware"/>, <see cref="RecoveryModeMiddleware"/>,
+/// <see cref="JsonExtensionMiddleware"/>,
 /// <b>OidcCallbackRedirectMiddleware</b>, <see cref="Multitenancy.TenantResolutionMiddleware"/>,
 /// <see cref="TenantSetupMiddleware"/>, <see cref="AuthenticationMiddleware"/>,
 /// <see cref="MemberScopeMiddleware"/>, <see cref="SiteSecurityMiddleware"/>.
 /// </para>
 /// <para>
-/// Only active when <see cref="MultitenancyConfiguration.BaseDomain"/> is configured.
 /// Extracts the tenant slug from the base64-encoded OIDC <c>state</c> query parameter
 /// and issues a 302 redirect to the correct <c>{slug}.{baseDomain}</c> URL.
 /// </para>
@@ -63,7 +62,7 @@ public partial class OidcCallbackRedirectMiddleware
     /// <returns>A task that completes when the middleware has finished processing.</returns>
     public async Task InvokeAsync(HttpContext context)
     {
-        if (string.IsNullOrEmpty(_config.BaseDomain) || !IsOidcCallbackPath(context.Request.Path))
+        if (!IsOidcCallbackPath(context.Request.Path))
         {
             await _next(context);
             return;

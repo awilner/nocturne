@@ -1081,6 +1081,51 @@ namespace Nocturne.Infrastructure.Data.Migrations
                     b.ToTable("clock_faces");
                 });
 
+            modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.CoachMarkStateEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<string>("MarkKey")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("mark_key");
+
+                    b.Property<DateTime?>("SeenAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("seen_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("subject_id");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("SubjectId", "MarkKey")
+                        .IsUnique();
+
+                    b.ToTable("coach_mark_states");
+                });
+
             modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.CompressionLowSuggestionEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2934,6 +2979,11 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("last_used_user_agent");
 
+                    b.Property<string>("LegacySecretHash")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("legacy_secret_hash");
+
                     b.Property<DateTime?>("RevokedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("revoked_at");
@@ -4064,11 +4114,6 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("allow_access_requests");
 
-                    b.Property<string>("ApiSecretHash")
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)")
-                        .HasColumnName("api_secret_hash");
-
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -4177,6 +4222,11 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
+                    b.Property<string>("Username")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("username");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedFromInviteId");
@@ -4188,6 +4238,11 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_tenant_members_tenant_subject")
                         .HasFilter("revoked_at IS NULL");
+
+                    b.HasIndex("TenantId", "Username")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tenant_members_tenant_username")
+                        .HasFilter("username IS NOT NULL AND revoked_at IS NULL");
 
                     b.ToTable("tenant_members");
                 });
@@ -7295,6 +7350,15 @@ namespace Nocturne.Infrastructure.Data.Migrations
                 });
 
             modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.ClockFaceEntity", b =>
+                {
+                    b.HasOne("Nocturne.Infrastructure.Data.Entities.TenantEntity", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.CoachMarkStateEntity", b =>
                 {
                     b.HasOne("Nocturne.Infrastructure.Data.Entities.TenantEntity", null)
                         .WithMany()

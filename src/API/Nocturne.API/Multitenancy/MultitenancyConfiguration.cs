@@ -10,10 +10,10 @@ public class MultitenancyConfiguration
 
     /// <summary>
     /// Base domain for subdomain tenant resolution.
-    /// e.g. "nocturnecgm.com" - requests to rhys.nocturnecgm.com resolve tenant "rhys".
-    /// When null or empty, all requests resolve to the default tenant (self-hosted mode).
+    /// e.g. "nocturnecgm.com" — requests to rhys.nocturnecgm.com resolve tenant "rhys".
+    /// Aspire always injects this (either the custom domain or localhost:port).
     /// </summary>
-    public string? BaseDomain { get; set; }
+    public string BaseDomain { get; set; } = "";
 
     /// <summary>
     /// Whether authenticated users can create their own tenants.
@@ -27,4 +27,11 @@ public class MultitenancyConfiguration
     /// Used by SaaS operators to enforce custom naming rules or billing checks.
     /// </summary>
     public string? SlugValidationWebhookUrl { get; set; }
+
+    /// <summary>
+    /// Optional webhook URL for custom username validation.
+    /// When configured, Nocturne POSTs { "username": "xxx" } and expects { "isValid": bool, "message"?: string }.
+    /// Used by SaaS operators to enforce custom username rules (e.g. additional reserved words).
+    /// </summary>
+    public string? UsernameValidationWebhookUrl { get; set; }
 }

@@ -492,6 +492,10 @@ public class NocturneDbContext : DbContext
     /// </summary>
     public DbSet<SubjectOidcIdentityEntity> SubjectOidcIdentities { get; set; }
 
+    /// <summary>
+    /// Gets or sets the CoachMarkStates table for per-user coach mark progression
+    /// </summary>
+    public DbSet<CoachMarkStateEntity> CoachMarkStates { get; set; }
 
     /// <summary>
     /// Configure the database model and relationships
@@ -2454,6 +2458,7 @@ public class NocturneDbContext : DbContext
                 .Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .ValueGeneratedOnAddOrUpdate();
+
         });
 
         modelBuilder.Entity<SubjectAvatarEntity>(entity =>
@@ -2721,6 +2726,12 @@ public class NocturneDbContext : DbContext
             .IsUnique()
             .HasFilter("revoked_at IS NULL");
 
+        modelBuilder.Entity<TenantMemberEntity>()
+            .HasIndex(e => new { e.TenantId, e.Username })
+            .HasDatabaseName("ix_tenant_members_tenant_username")
+            .IsUnique()
+            .HasFilter("username IS NOT NULL AND revoked_at IS NULL");
+
         // Configure TenantRole entity
         modelBuilder.Entity<TenantRoleEntity>(entity =>
         {
@@ -2908,6 +2919,12 @@ public class NocturneDbContext : DbContext
             entity.HasIndex(e => e.SubjectId);
             entity.HasOne(e => e.Subject).WithMany().HasForeignKey(e => e.SubjectId);
         });
+
+        // CoachMarkStateEntity
+        modelBuilder
+            .Entity<CoachMarkStateEntity>()
+            .HasIndex(e => new { e.SubjectId, e.MarkKey })
+            .IsUnique();
 
     }
 

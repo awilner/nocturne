@@ -16,7 +16,7 @@ namespace Nocturne.API.Services.Auth;
 /// request/response bodies (stateless challenge flow — no server-side session required).
 /// </summary>
 /// <remarks>
-/// For multi-tenant wildcard subdomain deployments, the service dynamically adds tenant origins
+/// The service dynamically adds tenant subdomain origins
 /// to the FIDO2 allowed-origins list when the browser's WebAuthn origin is a valid subdomain
 /// of the configured <c>rpId</c>. Maximum passkeys per subject is capped at 20.
 /// Challenge tokens expire after 5 minutes.
@@ -63,7 +63,7 @@ public class PasskeyService : IPasskeyService
     /// <summary>
     /// Extracts the origin from the WebAuthn clientDataJSON and, if it is a
     /// subdomain of the configured rpId, adds it to the FIDO2 allowed origins.
-    /// This is required for multi-tenant wildcard subdomains where the browser
+    /// This is required for tenant subdomains where the browser
     /// origin (e.g. https://rhys.nocturne.run) isn't known at startup.
     /// </summary>
     private void AllowOriginFromClientData(byte[] clientDataJson)
