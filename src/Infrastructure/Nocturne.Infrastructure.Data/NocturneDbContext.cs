@@ -2458,6 +2458,7 @@ public class NocturneDbContext : DbContext
                 .Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .ValueGeneratedOnAddOrUpdate();
+
         });
 
         modelBuilder.Entity<SubjectAvatarEntity>(entity =>
@@ -2724,6 +2725,12 @@ public class NocturneDbContext : DbContext
             .HasDatabaseName("ix_tenant_members_tenant_subject")
             .IsUnique()
             .HasFilter("revoked_at IS NULL");
+
+        modelBuilder.Entity<TenantMemberEntity>()
+            .HasIndex(e => new { e.TenantId, e.Username })
+            .HasDatabaseName("ix_tenant_members_tenant_username")
+            .IsUnique()
+            .HasFilter("username IS NOT NULL AND revoked_at IS NULL");
 
         // Configure TenantRole entity
         modelBuilder.Entity<TenantRoleEntity>(entity =>
