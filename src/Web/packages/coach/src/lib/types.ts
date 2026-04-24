@@ -37,6 +37,7 @@ export interface SequenceDefinition {
   priority: number;
   steps: string[];
   prerequisite?: string;
+  completesKeys?: string[];
 }
 
 export interface SequenceConfig {
