@@ -44,6 +44,10 @@ public static class OAuthScopes
     public const string StepCountRead = "stepcount.read";
     /// <summary>Read and write access to step count data.</summary>
     public const string StepCountReadWrite = "stepcount.readwrite";
+    /// <summary>Read-only access to food records.</summary>
+    public const string FoodRead = "food.read";
+    /// <summary>Read and write access to food records.</summary>
+    public const string FoodReadWrite = "food.readwrite";
 
     // Platform feature scopes
 
@@ -94,6 +98,8 @@ public static class OAuthScopes
         HeartRateReadWrite,
         StepCountRead,
         StepCountReadWrite,
+        FoodRead,
+        FoodReadWrite,
         SharingReadWrite,
     };
 
@@ -118,6 +124,7 @@ public static class OAuthScopes
         ProfileRead,
         HeartRateRead,
         StepCountRead,
+        FoodRead,
     };
 
     /// <summary>
@@ -131,6 +138,7 @@ public static class OAuthScopes
         ProfileReadWrite,
         HeartRateReadWrite,
         StepCountReadWrite,
+        FoodReadWrite,
     };
 
     /// <summary>
@@ -146,6 +154,7 @@ public static class OAuthScopes
         [NotificationsReadWrite] = NotificationsRead,
         [HeartRateReadWrite] = HeartRateRead,
         [StepCountReadWrite] = StepCountRead,
+        [FoodReadWrite] = FoodRead,
     };
 
     /// <summary>
