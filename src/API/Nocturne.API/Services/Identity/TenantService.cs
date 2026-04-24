@@ -125,6 +125,7 @@ public partial class TenantService : ITenantService
             .FirstAsync(r => r.TenantId == tenant.Id && r.Slug == "owner", ct);
         await AddMemberAsync(tenant.Id, creatorSubjectId, [ownerRole.Id], ct: ct);
 
+        _cache.Remove("tenant:__sole__");
         return ToCreatedDto(tenant, plaintextSecret);
     }
 
@@ -158,6 +159,7 @@ public partial class TenantService : ITenantService
         // Seed bundled known OAuth clients (Trio, xDrip+, etc.)
         await SeedKnownOAuthClientsAsync(context, tenant.Id, ct);
 
+        _cache.Remove("tenant:__sole__");
         return ToCreatedDto(tenant, plaintextSecret);
     }
 
@@ -229,6 +231,7 @@ public partial class TenantService : ITenantService
 
         // Invalidate cached tenant context
         _cache.Remove($"tenant:{tenant.Slug}");
+        _cache.Remove("tenant:__sole__");
 
         return ToDto(tenant);
     }
@@ -244,6 +247,7 @@ public partial class TenantService : ITenantService
 
         // Invalidate cached tenant context
         _cache.Remove($"tenant:{tenant.Slug}");
+        _cache.Remove("tenant:__sole__");
     }
 
     public async Task AddMemberAsync(
@@ -376,6 +380,7 @@ public partial class TenantService : ITenantService
         await context.SaveChangesAsync(ct);
 
         _cache.Remove($"tenant:{tenant.Slug}");
+        _cache.Remove("tenant:__sole__");
 
         return newApiSecret;
     }

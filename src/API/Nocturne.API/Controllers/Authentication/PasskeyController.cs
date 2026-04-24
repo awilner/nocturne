@@ -484,7 +484,9 @@ public class PasskeyController : ControllerBase
 
         var hasCredentials = await _dbContext.TenantMembers
             .Where(m => m.TenantId == tenantId)
-            .AnyAsync(m => _dbContext.PasskeyCredentials.Any(c => c.SubjectId == m.SubjectId));
+            .AnyAsync(m =>
+                _dbContext.PasskeyCredentials.Any(c => c.SubjectId == m.SubjectId) ||
+                _dbContext.SubjectOidcIdentities.Any(o => o.SubjectId == m.SubjectId));
         var setupRequired = !hasCredentials;
 
         bool recoveryMode;
@@ -560,6 +562,22 @@ public class PasskeyController : ControllerBase
             existingSubject.Name = request.DisplayName.Trim();
             existingSubject.Username = request.Username.Trim().ToLowerInvariant();
             await _dbContext.SaveChangesAsync();
+
+            // Ensure the subject is a member of the current tenant.
+            // When a tenant is deleted and recreated, the subject persists but
+            // the TenantMember is cascade-deleted with the old tenant.
+            var isMember = await _dbContext.TenantMembers
+                .AnyAsync(tm => tm.TenantId == tenantId && tm.SubjectId == subjectId);
+            if (!isMember)
+            {
+                var ownerRole = await _dbContext.TenantRoles
+                    .FirstOrDefaultAsync(r => r.TenantId == tenantId && r.Slug == "owner");
+                if (ownerRole != null)
+                {
+                    await _tenantService.AddMemberAsync(tenantId, subjectId, [ownerRole.Id]);
+                }
+                await _subjectService.AssignRoleAsync(subjectId, "admin");
+            }
         }
         else
         {
