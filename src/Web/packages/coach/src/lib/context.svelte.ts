@@ -23,8 +23,8 @@ export class CoachMarkContext {
   private _settleTimer: ReturnType<typeof setTimeout> | null = null;
   private _initialized = $state(false);
 
-  private _forcedSequence: string | null = null;
-  private _quietUntilNavigation = false;
+  private _forcedSequence = $state<string | null>(null);
+  private _quietUntilNavigation = $state(false);
 
   activeKey = $derived(this._activeSelection?.key ?? null);
   activeStep = $derived(this._activeSelection?.step ?? null);
@@ -166,6 +166,7 @@ export class CoachMarkContext {
     return this.seenDwellMs;
   }
 
+  /** Force-activate a named sequence, overriding quiet mode if set. */
   startSequence(name: string): void {
     const seq = this.sequences[name];
     if (!seq) {
@@ -174,6 +175,7 @@ export class CoachMarkContext {
     }
 
     this._forcedSequence = name;
+    // Intentionally overrides quiet mode — a new forced sequence always wins
     this._quietUntilNavigation = false;
     this._activeSelection = null;
     this.activateNextForcedStep();
