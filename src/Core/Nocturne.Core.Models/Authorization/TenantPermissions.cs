@@ -54,6 +54,8 @@ public static class TenantPermissions
     public const string AuditRead = "audit.read";
     /// <summary>Permission to manage audit settings (retention, export).</summary>
     public const string AuditManage = "audit.manage";
+    /// <summary>Permission to create temporary guest access links.</summary>
+    public const string SharingGuest = "sharing.guest";
     /// <summary>Superuser permission that satisfies all other permissions.</summary>
     public const string Superuser = "*";
 
@@ -77,6 +79,7 @@ public static class TenantPermissions
         SharingManage,
         AuditRead,
         AuditManage,
+        SharingGuest,
     ];
 
     /// <summary>
@@ -103,7 +106,7 @@ public static class TenantPermissions
             EntriesReadWrite, TreatmentsReadWrite, DeviceStatusReadWrite,
             ProfileReadWrite, NotificationsReadWrite, ReportsRead,
             HealthRead, IdentityRead,
-            MembersInvite, MembersManage, TenantSettings, RolesManage, SharingManage,
+            MembersInvite, MembersManage, TenantSettings, RolesManage, SharingManage, SharingGuest,
             AuditRead,
         ],
         [SeedRoles.Caretaker] =
