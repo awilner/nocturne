@@ -38,27 +38,47 @@
 </script>
 
 <div class="@container p-3 @md:p-6 space-y-3 @md:space-y-6">
-  <CurrentBGDisplay />
+  <div {@attach coachmark({
+    key: "quick-tour.current-bg",
+    title: "Your glucose, live",
+    description: "This updates in real-time as new readings arrive from your CGM.",
+  })}>
+    <CurrentBGDisplay />
+  </div>
 
   <OnboardingProgress />
 
   {#if isMainEnabled(WidgetId.Statistics)}
-    <div {@attach coachmark({
-      key: "dashboard-discovery.widgets",
-      title: "Your stats at a glance",
-      description: "These widgets show your key stats at a glance \u2014 customize them in Appearance settings.",
-    })}>
+    <div {@attach coachmark([
+      {
+        key: "dashboard-discovery.widgets",
+        title: "Your stats at a glance",
+        description: "These widgets show your key stats at a glance \u2014 customize them in Appearance settings.",
+      },
+      {
+        key: "quick-tour.widgets",
+        title: "Key stats",
+        description: "Time in range, average, variability \u2014 customize these in Appearance settings.",
+      },
+    ])}>
       <WidgetGrid widgets={topWidgets} maxWidgets={3} />
     </div>
   {/if}
 
   {#if isMainEnabled(WidgetId.GlucoseChart)}
-    <div {@attach coachmark({
-      key: "dashboard-discovery.chart-timerange",
-      title: "Time range",
-      description: "Adjust the time window to see more or less glucose history.",
-      completeOn: { event: "click" },
-    })}>
+    <div {@attach coachmark([
+      {
+        key: "dashboard-discovery.chart-timerange",
+        title: "Time range",
+        description: "Adjust the time window to see more or less glucose history.",
+        completeOn: { event: "click" },
+      },
+      {
+        key: "quick-tour.chart",
+        title: "Your glucose history",
+        description: "Drag the time range to zoom in or out. Tap any point for details.",
+      },
+    ])}>
     <GlucoseChartCard
       showPredictions={isMainEnabled(WidgetId.Predictions) && predictionEnabled}
       defaultFocusHours={focusHours}
