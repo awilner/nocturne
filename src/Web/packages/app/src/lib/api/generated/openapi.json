@@ -38474,6 +38474,10 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "isLegacy": {
+            "type": "boolean",
+            "description": "True when this grant was created from a migrated Nightscout API secret\nrather than as a scoped noc_ token."
           }
         }
       },

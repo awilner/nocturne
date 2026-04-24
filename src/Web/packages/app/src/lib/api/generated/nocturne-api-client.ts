@@ -28382,6 +28382,9 @@ export interface DirectGrantDto {
     scopes?: string[];
     createdAt?: Date;
     lastUsedAt?: Date | undefined;
+    /** True when this grant was created from a migrated Nightscout API secret
+rather than as a scoped noc_ token. */
+    isLegacy?: boolean;
 }
 
 /** OAuth 2.0 token response (RFC 6749 Section 5.1) */
