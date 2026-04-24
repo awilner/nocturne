@@ -136,7 +136,7 @@
         <div class="flex gap-2" {@attach coachmark({
           key: "setup-invite.copy-link",
           title: "Send the link",
-          description: "Copy this link and send it however you like \u2014 text, email, carrier pigeon.",
+          description: "The link expires in 7 days. They'll need to sign in or create an account to accept.",
         })}>
           <Input
             type="text"

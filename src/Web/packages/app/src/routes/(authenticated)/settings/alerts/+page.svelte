@@ -181,13 +181,9 @@
   <title>Alerts - Settings - Nocturne</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-4xl p-6 space-y-6" {@attach coachmark({ key: "onboarding.alerts", title: "Alerts", description: "Get notified about highs and lows", completedWhen: () => alertsConfigured })}>
+<div class="container mx-auto max-w-4xl p-6 space-y-6" {@attach coachmark({ key: "onboarding.alerts", title: "Don't miss highs or lows", description: "Set up at least one alert rule so Nocturne can notify you when glucose goes out of range. Use the Setup Wizard for the fastest start.", completedWhen: () => alertsConfigured })}>
   <!-- Header -->
-  <div class="flex items-center justify-between" {@attach coachmark({
-    key: "setup-alerts.overview",
-    title: "Your alert centre",
-    description: "Rules trigger notifications when glucose goes out of range.",
-  })}>
+  <div class="flex items-center justify-between">
     <div>
       <h1 class="text-2xl font-bold tracking-tight">Alerts</h1>
       <p class="text-muted-foreground">
