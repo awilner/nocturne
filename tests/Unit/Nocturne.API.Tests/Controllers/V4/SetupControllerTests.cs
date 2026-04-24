@@ -346,6 +346,62 @@ public class SetupControllerTests : IDisposable
     // integration test — it requires PostgreSQL's set_config() function
     // which is not available in SQLite.
 
+    // ── ValidateUsername ──────────────────────────────────────────────────
+    // Tests that hit the DB after format checks (valid usernames) are skipped
+    // because ValidateUsername calls ExecuteSqlRawAsync("set_config(...)"),
+    // a PostgreSQL-only function not available in SQLite.
+
+    [Theory]
+    [InlineData("ab")]           // too short
+    [InlineData("-bad")]         // leading hyphen
+    [InlineData("bad-")]         // trailing hyphen
+    [InlineData(".bad")]         // leading dot
+    [InlineData("bad.")]         // trailing dot
+    [InlineData("has spaces")]   // spaces
+    public async Task ValidateUsername_WhenInvalidFormat_ReturnsError(string username)
+    {
+        _dbContext.Set<TenantEntity>().Add(new TenantEntity
+        {
+            Id = Guid.CreateVersion7(), Slug = "test", DisplayName = "Test",
+        });
+        await _dbContext.SaveChangesAsync();
+
+        var result = await _controller.ValidateUsername(username, CancellationToken.None);
+
+        var ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        var validation = ok.Value.Should().BeOfType<SlugValidationResult>().Subject;
+        validation.IsValid.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("admin")]
+    [InlineData("system")]
+    public async Task ValidateUsername_WhenReserved_ReturnsError(string username)
+    {
+        _dbContext.Set<TenantEntity>().Add(new TenantEntity
+        {
+            Id = Guid.CreateVersion7(), Slug = "test", DisplayName = "Test",
+        });
+        await _dbContext.SaveChangesAsync();
+
+        var result = await _controller.ValidateUsername(username, CancellationToken.None);
+
+        var ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        var validation = ok.Value.Should().BeOfType<SlugValidationResult>().Subject;
+        validation.IsValid.Should().BeFalse();
+        validation.Message.Should().Contain("reserved");
+    }
+
+    [Fact]
+    public async Task ValidateUsername_WhenEmpty_ReturnsError()
+    {
+        var result = await _controller.ValidateUsername("", CancellationToken.None);
+
+        var ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        var validation = ok.Value.Should().BeOfType<SlugValidationResult>().Subject;
+        validation.IsValid.Should().BeFalse();
+    }
+
     // ── OwnerOidc ────────────────────────────────────────────────────────
 
     [Fact]

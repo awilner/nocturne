@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +27,7 @@ namespace Nocturne.API.Controllers.V4;
 [Produces("application/json")]
 [AllowAnonymous]
 [AllowDuringSetup]
-public class SetupController : ControllerBase
+public partial class SetupController : ControllerBase
 {
     private readonly ITenantService _tenantService;
     private readonly IPasskeyService _passkeyService;
@@ -63,6 +64,11 @@ public class SetupController : ControllerBase
         _logger = logger;
     }
 
+    [GeneratedRegex(@"^[a-z0-9][a-z0-9._\-]{1,30}[a-z0-9]$")]
+    private static partial Regex UsernamePattern();
+
+    private static readonly HashSet<string> ReservedUsernames = ["admin", "system"];
+
     /// <summary>
     /// Create the first tenant on a fresh install. Only succeeds when zero tenants exist.
     /// </summary>
@@ -93,6 +99,46 @@ public class SetupController : ControllerBase
     }
 
     /// <summary>
+    /// Check whether a username is available for the owner account.
+    /// </summary>
+    [HttpGet("validate-username")]
+    [RemoteQuery]
+    [ProducesResponseType(typeof(SlugValidationResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ValidateUsername(
+        [FromQuery] string username, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+            return Ok(new SlugValidationResult(false, "Username is required"));
+
+        var normalized = username.ToLowerInvariant().Trim();
+
+        if (!UsernamePattern().IsMatch(normalized))
+            return Ok(new SlugValidationResult(false,
+                "Username must be 3-32 characters: letters, numbers, dots, underscores, and hyphens"));
+
+        if (ReservedUsernames.Contains(normalized))
+            return Ok(new SlugValidationResult(false, "This username is reserved"));
+
+        await using var context = await _dbFactory.CreateDbContextAsync(ct);
+
+        var tenant = await context.Tenants.AsNoTracking().FirstOrDefaultAsync(ct);
+        if (tenant == null)
+            return Ok(new SlugValidationResult(false, "No tenant exists"));
+
+        await context.Database.ExecuteSqlRawAsync(
+            "SELECT set_config('app.current_tenant_id', {0}, false)",
+            tenant.Id.ToString());
+
+        var exists = await context.TenantMembers.AsNoTracking()
+            .AnyAsync(m => m.TenantId == tenant.Id && m.Username == normalized && m.RevokedAt == null, ct);
+
+        if (exists)
+            return Ok(new SlugValidationResult(false, "This username is already taken"));
+
+        return Ok(new SlugValidationResult(true));
+    }
+
+    /// <summary>
     /// Generate passkey registration options for the first owner account.
     /// Guard: exactly one tenant must exist with zero non-system members.
     /// </summary>
@@ -111,53 +157,16 @@ public class SetupController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.DisplayName))
             return Problem(detail: "Username and display name are required", statusCode: 400, title: "Bad Request");
 
-        await using var context = await _dbFactory.CreateDbContextAsync(ct);
+        var normalizedUsername = request.Username.Trim().ToLowerInvariant();
+        if (!UsernamePattern().IsMatch(normalizedUsername))
+            return Problem(detail: "Username must be 3-32 characters: letters, numbers, dots, underscores, and hyphens",
+                statusCode: 400, title: "Bad Request");
 
-        // Set RLS context so we can query tenant-scoped tables
-        await context.Database.ExecuteSqlRawAsync(
-            "SELECT set_config('app.current_tenant_id', {0}, false)",
-            tenant!.Id.ToString());
+        if (ReservedUsernames.Contains(normalizedUsername))
+            return Problem(detail: "This username is reserved", statusCode: 400, title: "Bad Request");
 
-        // Idempotent: reuse existing setup subject if the WebAuthn ceremony
-        // failed on a previous attempt
-        var existingSubject = await context.Subjects
-            .FirstOrDefaultAsync(s => !s.IsSystemSubject && s.IsActive, ct);
-
-        Guid subjectId;
-        if (existingSubject != null)
-        {
-            subjectId = existingSubject.Id;
-            existingSubject.Name = request.DisplayName.Trim();
-            existingSubject.Username = request.Username.Trim().ToLowerInvariant();
-            await context.SaveChangesAsync(ct);
-        }
-        else
-        {
-            subjectId = Guid.CreateVersion7();
-            context.Subjects.Add(new SubjectEntity
-            {
-                Id = subjectId,
-                Name = request.DisplayName.Trim(),
-                Username = request.Username.Trim().ToLowerInvariant(),
-                IsActive = true,
-                IsSystemSubject = false,
-            });
-            await context.SaveChangesAsync(ct);
-
-            // Add as owner of the tenant
-            var ownerRole = await context.TenantRoles
-                .FirstOrDefaultAsync(r => r.TenantId == tenant!.Id && r.Slug == "owner", ct);
-
-            if (ownerRole != null)
-                await _tenantService.AddMemberAsync(tenant!.Id, subjectId, [ownerRole.Id], ct: ct);
-
-            // Assign admin role
-            await _subjectService.AssignRoleAsync(subjectId, "admin");
-
-            _logger.LogInformation(
-                "Setup: created first owner {SubjectId} ({Username}) for tenant {TenantId}",
-                subjectId, request.Username.Trim(), tenant!.Id);
-        }
+        var subjectId = await EnsureOwnerSubjectAsync(
+            tenant!, request.DisplayName.Trim(), request.Username.Trim(), ct);
 
         var result = await _passkeyService.GenerateRegistrationOptionsAsync(
             subjectId, request.Username.Trim(), tenant!.Id);
@@ -262,55 +271,19 @@ public class SetupController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.DisplayName))
             return Problem(detail: "Username and display name are required", statusCode: 400, title: "Bad Request");
 
+        var normalizedUsername = request.Username.Trim().ToLowerInvariant();
+        if (!UsernamePattern().IsMatch(normalizedUsername))
+            return Problem(detail: "Username must be 3-32 characters: letters, numbers, dots, underscores, and hyphens",
+                statusCode: 400, title: "Bad Request");
+
+        if (ReservedUsernames.Contains(normalizedUsername))
+            return Problem(detail: "This username is reserved", statusCode: 400, title: "Bad Request");
+
         if (request.ProviderId == Guid.Empty)
             return Problem(detail: "Provider ID is required", statusCode: 400, title: "Bad Request");
 
-        await using var context = await _dbFactory.CreateDbContextAsync(ct);
-
-        // Set RLS context so we can query tenant-scoped tables
-        await context.Database.ExecuteSqlRawAsync(
-            "SELECT set_config('app.current_tenant_id', {0}, false)",
-            tenant!.Id.ToString());
-
-        // Idempotent: reuse existing setup subject if a previous attempt failed
-        var existingSubject = await context.Subjects
-            .FirstOrDefaultAsync(s => !s.IsSystemSubject && s.IsActive, ct);
-
-        Guid subjectId;
-        if (existingSubject != null)
-        {
-            subjectId = existingSubject.Id;
-            existingSubject.Name = request.DisplayName.Trim();
-            existingSubject.Username = request.Username.Trim().ToLowerInvariant();
-            await context.SaveChangesAsync(ct);
-        }
-        else
-        {
-            subjectId = Guid.CreateVersion7();
-            context.Subjects.Add(new SubjectEntity
-            {
-                Id = subjectId,
-                Name = request.DisplayName.Trim(),
-                Username = request.Username.Trim().ToLowerInvariant(),
-                IsActive = true,
-                IsSystemSubject = false,
-            });
-            await context.SaveChangesAsync(ct);
-
-            // Add as owner of the tenant
-            var ownerRole = await context.TenantRoles
-                .FirstOrDefaultAsync(r => r.TenantId == tenant!.Id && r.Slug == "owner", ct);
-
-            if (ownerRole != null)
-                await _tenantService.AddMemberAsync(tenant!.Id, subjectId, [ownerRole.Id], ct: ct);
-
-            // Assign admin role
-            await _subjectService.AssignRoleAsync(subjectId, "admin");
-
-            _logger.LogInformation(
-                "Setup OIDC: created first owner {SubjectId} ({Username}) for tenant {TenantId}",
-                subjectId, request.Username.Trim(), tenant!.Id);
-        }
+        var subjectId = await EnsureOwnerSubjectAsync(
+            tenant!, request.DisplayName.Trim(), request.Username.Trim(), ct);
 
         try
         {
@@ -421,6 +394,82 @@ public class SetupController : ControllerBase
             return (null, Conflict(new { error = "owner_already_exists" }));
 
         return (tenant, null);
+    }
+
+    /// <summary>
+    /// Find or create the first non-system subject, ensure it is a member of the
+    /// given tenant with the owner role, and assign the global admin role.
+    /// Idempotent: safe to call on retries after a failed WebAuthn/OIDC ceremony,
+    /// and when reusing a subject created for a previously deleted tenant.
+    /// </summary>
+    private async Task<Guid> EnsureOwnerSubjectAsync(
+        TenantEntity tenant, string displayName, string username, CancellationToken ct)
+    {
+        await using var context = await _dbFactory.CreateDbContextAsync(ct);
+
+        await context.Database.ExecuteSqlRawAsync(
+            "SELECT set_config('app.current_tenant_id', {0}, false)",
+            tenant.Id.ToString());
+
+        var normalizedUsername = username.ToLowerInvariant();
+
+        var existingSubject = await context.Subjects
+            .FirstOrDefaultAsync(s => !s.IsSystemSubject && s.IsActive, ct);
+
+        Guid subjectId;
+        if (existingSubject != null)
+        {
+            subjectId = existingSubject.Id;
+            existingSubject.Name = displayName;
+            existingSubject.Username = normalizedUsername;
+            await context.SaveChangesAsync(ct);
+        }
+        else
+        {
+            subjectId = Guid.CreateVersion7();
+            context.Subjects.Add(new SubjectEntity
+            {
+                Id = subjectId,
+                Name = displayName,
+                Username = normalizedUsername,
+                IsActive = true,
+                IsSystemSubject = false,
+            });
+            await context.SaveChangesAsync(ct);
+
+            _logger.LogInformation(
+                "Setup: created owner {SubjectId} ({Username}) for tenant {TenantId}",
+                subjectId, normalizedUsername, tenant.Id);
+        }
+
+        // Ensure tenant membership with owner role — required when reusing a
+        // subject from a previously deleted tenant.
+        var ownerRole = await context.TenantRoles
+            .FirstOrDefaultAsync(r => r.TenantId == tenant.Id && r.Slug == "owner", ct);
+        if (ownerRole != null)
+        {
+            var isMember = await context.TenantMembers
+                .AnyAsync(m => m.TenantId == tenant.Id && m.SubjectId == subjectId, ct);
+            if (!isMember)
+                await _tenantService.AddMemberAsync(tenant.Id, subjectId, [ownerRole.Id], ct: ct);
+        }
+
+        // Set per-tenant username on the membership
+        await using var memberCtx = await _dbFactory.CreateDbContextAsync(ct);
+        await memberCtx.Database.ExecuteSqlRawAsync(
+            "SELECT set_config('app.current_tenant_id', {0}, false)",
+            tenant.Id.ToString());
+        var membership = await memberCtx.TenantMembers
+            .FirstOrDefaultAsync(m => m.TenantId == tenant.Id && m.SubjectId == subjectId, ct);
+        if (membership != null)
+        {
+            membership.Username = normalizedUsername;
+            await memberCtx.SaveChangesAsync(ct);
+        }
+
+        await _subjectService.AssignRoleAsync(subjectId, "admin");
+
+        return subjectId;
     }
 
     private void SetSessionCookies(string accessToken, string refreshToken)
