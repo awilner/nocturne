@@ -23,6 +23,11 @@ public class ReadAccessLogEntity : ITenantScoped
     [Column("subject_id")]
     public Guid? SubjectId { get; set; }
 
+    /// <summary>Display name of the authenticated user, denormalized for historical retention.</summary>
+    [Column("subject_name")]
+    [MaxLength(128)]
+    public string? SubjectName { get; set; }
+
     /// <summary>Authentication mechanism used (e.g. "Bearer", "ApiSecret").</summary>
     [Column("auth_type")]
     [MaxLength(50)]

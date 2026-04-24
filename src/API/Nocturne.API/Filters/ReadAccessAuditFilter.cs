@@ -90,6 +90,7 @@ public class ReadAccessAuditFilter : IAsyncResultFilter
                 Id = Guid.CreateVersion7(),
                 TenantId = tenantContext.TenantId,
                 SubjectId = _auditContext.SubjectId,
+                SubjectName = _auditContext.SubjectName,
                 AuthType = _auditContext.AuthType,
                 TokenId = _auditContext.TokenId,
                 ApiSecretHashPrefix = apiSecretHashPrefix,
