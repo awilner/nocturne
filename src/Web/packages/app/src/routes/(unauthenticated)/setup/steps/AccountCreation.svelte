@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { AlertTriangle, Loader2, UserPlus } from "lucide-svelte";
+  import { AlertTriangle, Fingerprint, Loader2, UserPlus } from "lucide-svelte";
   import { startRegistration } from "@simplewebauthn/browser";
   import {
     setupOptions,
@@ -10,9 +10,12 @@
     getOidcProviders,
     setAuthCookies,
   } from "$routes/(unauthenticated)/auth/auth.remote";
+  import { setupOwnerOidc } from "../setup.remote";
   import RecoveryCodes from "$lib/components/auth/RecoveryCodes.svelte";
   import OidcProviderButtons from "$lib/components/auth/OidcProviderButtons.svelte";
-  import PasskeyRegistrationForm from "$lib/components/auth/PasskeyRegistrationForm.svelte";
+  import { Button } from "$lib/components/ui/button";
+  import { Input } from "$lib/components/ui/input";
+  import { Label } from "$lib/components/ui/label";
 
   let {
     onComplete,
@@ -37,17 +40,37 @@
     }
   });
 
+  // ── Shared form fields ───────────────────────────────────────────
+  let displayName = $state("");
+  let username = $state("");
+
+  const canSubmit = $derived(
+    displayName.trim().length > 0 && username.trim().length > 0,
+  );
+
   // ── OIDC login ───────────────────────────────────────────────────
   let isRedirecting = $state(false);
   let selectedProvider = $state<string | null>(null);
+  let oidcError = $state<string | null>(null);
 
-  function loginWithProvider(providerId: string) {
+  async function loginWithProvider(providerId: string) {
+    if (!canSubmit) return;
     isRedirecting = true;
     selectedProvider = providerId;
-    const params = new URLSearchParams();
-    params.set("provider", providerId);
-    params.set("returnUrl", "/setup");
-    window.location.href = `/api/v4/oidc/login?${params.toString()}`;
+    oidcError = null;
+
+    try {
+      const result = await setupOwnerOidc({
+        username: username.trim(),
+        displayName: displayName.trim(),
+        providerId,
+      });
+      window.location.href = result.authorizationUrl ?? "/setup";
+    } catch (err) {
+      oidcError = err instanceof Error ? err.message : "Failed to start OIDC login.";
+      isRedirecting = false;
+      selectedProvider = null;
+    }
   }
 
   // ── Passkey registration ─────────────────────────────────────────
@@ -56,17 +79,15 @@
   let recoveryCodes = $state<string[]>([]);
   let passkeyError = $state<string | null>(null);
 
-  async function handlePasskeyRegister(
-    username: string,
-    displayName: string,
-  ) {
+  async function handlePasskeyRegister() {
+    if (!canSubmit) return;
     isRegistering = true;
     passkeyError = null;
 
     try {
       const response = await setupOptions({
-        username,
-        displayName,
+        username: username.trim(),
+        displayName: displayName.trim(),
       });
       const options = JSON.parse(response.options ?? "");
       const challengeToken = response.challengeToken ?? "";
@@ -95,6 +116,9 @@
       isRegistering = false;
     }
   }
+
+  // ── Combined error display ───────────────────────────────────────
+  const errorMessage = $derived(passkeyError ?? oidcError);
 </script>
 
 <div class="flex flex-col items-center gap-10 px-4 py-8">
@@ -141,30 +165,69 @@
       </div>
     {:else if !isAuthenticated}
       <div class="space-y-4">
-        {#if passkeyError}
+        {#if errorMessage}
           <div
             class="flex items-start gap-3 rounded-lg border border-red-500/20 bg-red-500/5 p-4"
           >
             <AlertTriangle class="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
-            <p class="text-sm text-red-400">{passkeyError}</p>
+            <p class="text-sm text-red-400">{errorMessage}</p>
           </div>
         {/if}
 
+        <!-- Shared form fields -->
+        <div class="space-y-2">
+          <Label for="display-name">Display name</Label>
+          <Input
+            id="display-name"
+            type="text"
+            placeholder="Your name"
+            bind:value={displayName}
+            disabled={isRedirecting || isRegistering}
+          />
+          <p class="text-xs text-muted-foreground">
+            This is how you will appear to others.
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <Label for="pk-username">Username</Label>
+          <Input
+            id="pk-username"
+            type="text"
+            placeholder="your-username"
+            bind:value={username}
+            disabled={isRedirecting || isRegistering}
+          />
+          <p class="text-xs text-muted-foreground">
+            A unique identifier for your account.
+          </p>
+        </div>
+
+        <!-- Auth method buttons -->
         {#if hasOidc && oidc}
           <OidcProviderButtons
             providers={oidc.providers}
-            disabled={isRedirecting || isRegistering}
+            disabled={!canSubmit || isRedirecting || isRegistering}
             onLogin={loginWithProvider}
             {isRedirecting}
             {selectedProvider}
           />
         {/if}
 
-        <PasskeyRegistrationForm
-          onRegister={handlePasskeyRegister}
-          disabled={isRedirecting}
-          {isRegistering}
-        />
+        <Button
+          class="w-full"
+          size="lg"
+          disabled={!canSubmit || isRedirecting || isRegistering}
+          onclick={handlePasskeyRegister}
+        >
+          {#if isRegistering}
+            <Loader2 class="mr-2 h-5 w-5 animate-spin" />
+            Waiting for passkey...
+          {:else}
+            <Fingerprint class="mr-2 h-5 w-5" />
+            Create account with passkey
+          {/if}
+        </Button>
       </div>
     {/if}
   </div>
