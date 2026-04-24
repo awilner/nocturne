@@ -393,11 +393,6 @@
           <div
             class="mb-8"
             in:fly={{ y: 30, duration: 700, delay: 200, easing: cubicOut }}
-            {@attach coachmark({
-              key: "setup-reports.metrics",
-              title: "Your snapshot",
-              description: "Time in range, estimated A1C, and variability \u2014 all at a glance.",
-            })}
           >
             <div
               class="relative overflow-hidden rounded-3xl bg-white p-8 shadow-xl shadow-slate-200/50 dark:bg-slate-900 dark:shadow-none dark:ring-1 dark:ring-white/10"
@@ -532,11 +527,6 @@
           <div
             class="rounded-2xl bg-white p-6 shadow-lg shadow-slate-200/30 dark:bg-slate-900/80 dark:shadow-none dark:ring-1 dark:ring-white/5"
             in:fly={{ y: 30, duration: 600, delay: 350, easing: cubicOut }}
-            {@attach coachmark({
-              key: "setup-reports.agp",
-              title: "Your typical day",
-              description: "This ambulatory glucose profile shows your glucose patterns over 24 hours.",
-            })}
           >
             <div class="mb-4 flex items-center justify-between">
               <div>
@@ -627,19 +617,12 @@
         </p>
       </div>
 
-      <div class="grid gap-6 md:grid-cols-2" {@attach coachmark([
-        {
-          key: "dashboard-discovery.reports",
-          title: "Your reports",
-          description: "Your reports are organized by category \u2014 start with the Executive Summary.",
-          completeOn: { event: "click" },
-        },
-        {
-          key: "setup-reports.categories",
-          title: "Dig deeper",
-          description: "Organized by category \u2014 start with the Executive Summary for your next clinic visit.",
-        },
-      ])}>
+      <div class="grid gap-6 md:grid-cols-2" {@attach coachmark({
+        key: "setup-reports.categories",
+        title: "Start with Executive Summary",
+        description: "It combines your key metrics into a single page \u2014 great for clinic visits or sharing with your endo.",
+        completeOn: { event: "click" },
+      })}>
         {#each reportCategories as category, categoryIndex}
           {@const CategoryIcon = category.icon}
           {@const styles = categoryVariants({

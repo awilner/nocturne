@@ -390,11 +390,7 @@
     </p>
   </div>
 
-  <div {@attach coachmark({
-    key: "feature-intro.meals-attribution",
-    title: "Meal attribution",
-    description: "Link foods to meals to track carb attribution over time.",
-  })}>
+  <div>
     <MealsFilterBar
       bind:dateRange
       bind:filterMode

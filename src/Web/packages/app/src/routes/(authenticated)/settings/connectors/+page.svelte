@@ -368,7 +368,7 @@
   <title>Connectors & Apps - Settings - Nocturne</title>
 </svelte:head>
 
-<div class="container mx-auto max-w-4xl p-6 space-y-6" {@attach coachmark({ key: "power-user.connectors", title: "Data sources", description: "Connect data sources to pull glucose, insulin, and pump data automatically." })}>
+<div class="container mx-auto max-w-4xl p-6 space-y-6">
   <!-- Header -->
   <div class="flex items-center justify-between">
     <div>
@@ -404,8 +404,8 @@
     <!-- Active Data Sources -->
     <Card {@attach coachmark({
       key: "setup-connectors.sources",
-      title: "Your data sources",
-      description: "Devices and apps sending data appear here \u2014 you'll see your first source once it connects.",
+      title: "Waiting for data",
+      description: "Once you set up an uploader app or cloud connector below, your data source will appear here automatically.",
     })}>
       <CardHeader>
         <CardTitle class="flex items-center gap-2">
