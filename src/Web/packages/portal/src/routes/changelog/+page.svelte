@@ -51,6 +51,8 @@
         }
     }
 
+    marked.use({ breaks: true });
+
     function renderMarkdown(body: string | null): string {
         if (!body) return "";
         return marked.parse(body, { async: false }) as string;
@@ -76,6 +78,11 @@
     // Initial load
     loadChangelog();
 </script>
+
+<svelte:head>
+    <title>Changelog - Nocturne</title>
+    <meta name="description" content="All the latest updates, improvements, and fixes to Nocturne." />
+</svelte:head>
 
 <div class="container mx-auto px-4 py-12">
     <!-- Hero -->
@@ -138,7 +145,7 @@
         <!-- Releases -->
         <div class="max-w-4xl mx-auto">
             {#each releases as release, i (release.id)}
-                <div class="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-4 md:gap-8 {i < releases.length - 1 ? 'mb-0' : ''}">
+                <div class="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-4 md:gap-8">
                     <!-- Sticky version label (left column) -->
                     <div class="md:sticky md:top-20 md:self-start">
                         <div class="flex md:flex-col items-baseline md:items-start gap-2 md:gap-1 mb-2 md:mb-0">
