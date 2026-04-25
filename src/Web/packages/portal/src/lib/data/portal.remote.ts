@@ -156,6 +156,21 @@ const githubReleaseSchema = z.object({
 
 export type ChangelogRelease = z.infer<typeof githubReleaseSchema>;
 
+// Community data schemas
+const githubContributorSchema = z.object({
+  login: z.string(),
+  avatar_url: z.string(),
+  html_url: z.string(),
+  contributions: z.number(),
+});
+
+const githubRepoSchema = z.object({
+  stargazers_count: z.number(),
+  forks_count: z.number(),
+});
+
+export type GitHubContributor = z.infer<typeof githubContributorSchema>;
+
 const changelogInputSchema = z.object({
   page: z.number().optional().default(1),
   per_page: z.number().optional().default(30),
@@ -192,4 +207,70 @@ export const getChangelog = query(changelogInputSchema, async ({ page, per_page 
 
   setCache(cacheKey, published);
   return published;
+});
+
+// Fetch community data (repo stats, contributors, latest release)
+export const getCommunityData = query(emptySchema, async () => {
+  const cacheKey = "community-data";
+  const cached = getCached<{
+    stars: number;
+    forks: number;
+    contributors: GitHubContributor[];
+    latestRelease: string | null;
+  }>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const headers: HeadersInit = {
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    "User-Agent": "Nocturne-Portal",
+  };
+
+  const [repoResponse, contributorsResponse, releasesResponse] =
+    await Promise.all([
+      fetch(`${GITHUB_API_BASE}/repos/${GITHUB_OWNER}/${GITHUB_REPO}`, {
+        headers,
+        signal: AbortSignal.timeout(10000),
+      }),
+      fetch(
+        `${GITHUB_API_BASE}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contributors?per_page=100`,
+        { headers, signal: AbortSignal.timeout(10000) }
+      ),
+      fetch(
+        `${GITHUB_API_BASE}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases?per_page=1`,
+        { headers, signal: AbortSignal.timeout(10000) }
+      ),
+    ]);
+
+  if (!repoResponse.ok || !contributorsResponse.ok) {
+    throw new Error(
+      `Failed to fetch community data: repo=${repoResponse.status} contributors=${contributorsResponse.status}`
+    );
+  }
+
+  const repoData = githubRepoSchema.parse(await repoResponse.json());
+  const contributorsData = z
+    .array(githubContributorSchema)
+    .parse(await contributorsResponse.json());
+
+  let latestRelease: string | null = null;
+  if (releasesResponse.ok) {
+    const releases = z
+      .array(githubReleaseSchema)
+      .parse(await releasesResponse.json());
+    const published = releases.find((r) => !r.draft);
+    latestRelease = published?.tag_name ?? null;
+  }
+
+  const result = {
+    stars: repoData.stargazers_count,
+    forks: repoData.forks_count,
+    contributors: contributorsData,
+    latestRelease,
+  };
+
+  setCache(cacheKey, result);
+  return result;
 });
