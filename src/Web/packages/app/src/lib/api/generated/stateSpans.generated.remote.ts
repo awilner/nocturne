@@ -9,10 +9,10 @@ import { CreateStateSpanRequestSchema, UpdateStateSpanRequestSchema } from '$lib
 import { StateSpanCategory, type CreateStateSpanRequest, type UpdateStateSpanRequest } from '$api';
 
 /** Query all state spans with optional filtering */
-export const getStateSpans = query(z.object({ category: z.enum(StateSpanCategory).optional(), state: z.string().optional(), from: z.coerce.date().optional(), to: z.coerce.date().optional(), source: z.string().optional(), active: z.boolean().optional(), count: z.number().optional(), skip: z.number().optional() }).optional(), async (params) => {
+export const getStateSpans = query(z.object({ category: z.enum(StateSpanCategory).optional(), state: z.string().optional(), from: z.coerce.date().optional(), to: z.coerce.date().optional(), source: z.string().optional(), active: z.boolean().optional(), limit: z.number().optional(), offset: z.number().optional(), sort: z.string().optional() }).optional(), async (params) => {
   const apiClient = getRequestEvent().locals.apiClient;
   try {
-    return await apiClient.stateSpans.getStateSpans(params?.category, params?.state, params?.from, params?.to, params?.source, params?.active, params?.count, params?.skip);
+    return await apiClient.stateSpans.getStateSpans(params?.category, params?.state, params?.from, params?.to, params?.source, params?.active, params?.limit, params?.offset, params?.sort);
   } catch (err) {
     const status = (err as any)?.status;
     if (status === 401) { const { url } = getRequestEvent(); throw redirect(302, `/auth/login?returnUrl=${encodeURIComponent(url.pathname + url.search)}`); }
