@@ -76,6 +76,7 @@ public class ActiveProfileResolverTests : IDisposable
                 It.IsAny<bool?>(),
                 It.IsAny<int>(),
                 It.IsAny<int>(),
+                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(spans);
     }
@@ -256,6 +257,7 @@ public class ActiveProfileResolverTests : IDisposable
                     It.IsAny<bool?>(),
                     It.IsAny<int>(),
                     It.IsAny<int>(),
+                    It.IsAny<bool>(),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
         }
@@ -283,6 +285,7 @@ public class ActiveProfileResolverTests : IDisposable
                     It.IsAny<bool?>(),
                     It.IsAny<int>(),
                     It.IsAny<int>(),
+                    It.IsAny<bool>(),
                     It.IsAny<CancellationToken>()),
                 Times.Exactly(2));
         }
