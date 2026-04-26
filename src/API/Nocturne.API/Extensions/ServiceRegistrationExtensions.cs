@@ -28,6 +28,8 @@ using Nocturne.API.Services.Notifications;
 using Nocturne.API.Services.NotificationTemplates;
 using Nocturne.API.Services.Platform;
 using Nocturne.API.Services.Profiles;
+using Nocturne.API.Services.Profiles.Resolvers;
+using Nocturne.Core.Contracts.Profiles.Resolvers;
 using Nocturne.API.Services.Realtime;
 using Nocturne.API.Services.Treatments;
 using Nocturne.API.Services.V4;
@@ -120,7 +122,6 @@ public static class ServiceRegistrationExtensions
         }
 
         services.AddScoped<ICobService, CobService>();
-        services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IAr2Service, Ar2Service>();
         services.AddScoped<IBolusWizardService, BolusWizardService>();
 
@@ -357,7 +358,7 @@ public static class ServiceRegistrationExtensions
 
         // Core domain services
         services.AddScoped<ITreatmentService, TreatmentService>();
-        services.AddScoped<ITreatmentStore, Nocturne.API.Services.Treatments.DualPathTreatmentStore>();
+        services.AddScoped<ITreatmentStore, Nocturne.API.Services.Treatments.TreatmentReadService>();
         services.AddScoped<ITreatmentCache, Nocturne.API.Services.Treatments.TreatmentCacheAdapter>();
         services.AddScoped<SignalRTreatmentEventSink>();
         services.AddScoped<IDataEventSink<Treatment>>(sp =>
@@ -369,7 +370,7 @@ public static class ServiceRegistrationExtensions
                 sp.GetService<ILogger<CompositeDataEventSink<Treatment>>>()));
         services.AddScoped<IWriteSideEffects, WriteSideEffectsService>();
         services.AddScoped<IEntryService, EntryService>();
-        services.AddScoped<IEntryStore, Nocturne.API.Services.Entries.DualPathEntryStore>();
+        services.AddScoped<IEntryStore, Nocturne.API.Services.Entries.EntryReadService>();
         services.AddScoped<IEntryCache, Nocturne.API.Services.Entries.EntryCacheAdapter>();
         services.AddScoped<SignalREntryEventSink>();
         services.AddScoped<IDataEventSink<Entry>>(sp =>
@@ -389,13 +390,21 @@ public static class ServiceRegistrationExtensions
                 sp.GetService<ILogger<CompositeDataEventSink<Entry>>>());
         });
         services.AddScoped<IStateSpanService, StateSpanService>();
-        services.AddScoped<IDeviceStatusService, DeviceStatusService>();
+        services.AddScoped<DeviceStatusProjectionService>();
         services.AddScoped<IDataEventSink<DeviceStatus>>(sp =>
             new CompositeDataEventSink<DeviceStatus>(
                 [sp.GetRequiredService<NightscoutDeviceStatusWriteBackSink>()],
                 sp.GetService<ILogger<CompositeDataEventSink<DeviceStatus>>>()));
         services.AddScoped<IBatteryService, BatteryService>();
-        services.AddScoped<IProfileDataService, ProfileDataService>();
+        services.AddScoped<IProfileWriteService, ProfileWriteService>();
+        services.AddScoped<IActiveProfileResolver, ActiveProfileResolver>();
+        services.AddScoped<IBasalRateResolver, BasalRateResolver>();
+        services.AddScoped<ISensitivityResolver, SensitivityResolver>();
+        services.AddScoped<ICarbRatioResolver, CarbRatioResolver>();
+        services.AddScoped<ITargetRangeResolver, TargetRangeResolver>();
+        services.AddScoped<ITherapySettingsResolver, TherapySettingsResolver>();
+        services.AddScoped<ITempBasalResolver, TempBasalResolver>();
+        services.AddScoped<IProfileProjectionService, ProfileProjectionService>();
         services.AddScoped<IDataEventSink<Profile>>(sp =>
             new CompositeDataEventSink<Profile>(
                 [sp.GetRequiredService<NightscoutProfileWriteBackSink>()],
@@ -489,6 +498,7 @@ public static class ServiceRegistrationExtensions
         services.AddScoped<IApsSnapshotRepository, ApsSnapshotRepository>();
         services.AddScoped<IPumpSnapshotRepository, PumpSnapshotRepository>();
         services.AddScoped<IUploaderSnapshotRepository, UploaderSnapshotRepository>();
+        services.AddScoped<IDeviceStatusExtrasRepository, DeviceStatusExtrasRepository>();
 
         // V4 Profile Repositories
         services.AddScoped<ITherapySettingsRepository, TherapySettingsRepository>();
@@ -501,6 +511,10 @@ public static class ServiceRegistrationExtensions
         services.AddScoped<IPatientRecordRepository, PatientRecordRepository>();
         services.AddScoped<IPatientDeviceRepository, PatientDeviceRepository>();
         services.AddScoped<IPatientInsulinRepository, PatientInsulinRepository>();
+
+        // Glucose processing
+        services.AddScoped<IGlucoseProcessingConfigProvider, GlucoseProcessingConfigProvider>();
+        services.AddScoped<IGlucoseProcessingResolver, GlucoseProcessingResolver>();
 
         // AID Detection Strategies and Metrics Service
         services.AddSingleton<IAidDetectionStrategy, ApsSnapshotStrategy>();
@@ -532,8 +546,6 @@ public static class ServiceRegistrationExtensions
             (IDecomposer<Profile>)sp.GetRequiredService<IProfileDecomposer>()
         );
         services.AddScoped<IDecompositionPipeline, DecompositionPipeline>();
-
-        services.AddScoped<V4BackfillService>();
 
         return services;
     }

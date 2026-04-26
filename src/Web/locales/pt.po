@@ -229,6 +229,7 @@ msgstr ""
 #: src/lib/components/settings/ConnectedApps.svelte
 #: src/lib/components/settings/ConnectorConfigForm.svelte
 #: src/lib/components/settings/CustomSoundUpload.svelte
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
 #: src/lib/components/settings/LinkedOidcIdentities.svelte
 #: src/lib/components/settings/LinkedOidcIdentities.svelte
 #: src/lib/components/settings/notifications/webhooks/WebhookSettingsModal.svelte
@@ -2412,6 +2413,7 @@ msgstr ""
 
 #: src/lib/components/admin/RoleDialog.svelte
 #: src/lib/components/admin/SubjectEditDialog.svelte
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
 #: src/lib/components/settings/notifications/webhooks/WebhookSettingsModal.svelte
 #: src/lib/components/trackers/TrackerEditorDialog.svelte
 #: src/lib/components/trackers/TrackerEditorDialog.svelte
@@ -3658,6 +3660,8 @@ msgstr ""
 #: src/lib/components/dashboard/glucose-chart/dialogs/DeliveryInspectionDialog.svelte
 #: src/lib/components/dashboard/glucose-chart/dialogs/DeliveryInspectionDialog.svelte
 #: src/routes/(authenticated)/settings/alerts/setup/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
 #: src/routes/(authenticated)/settings/integrations/discord/+page.svelte
 #: src/routes/(authenticated)/settings/profile/+page.svelte
 #: src/routes/(fullscreen)/setup/profile/+page.svelte
@@ -6160,6 +6164,8 @@ msgstr ""
 msgid "Activity"
 msgstr ""
 
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
 #: src/lib/components/status-pills/IOBPill.svelte
 msgid "Device"
 msgstr ""
@@ -14326,8 +14332,9 @@ msgstr ""
 msgid "Step 1"
 msgstr ""
 
-#~ msgid "Configure"
-#~ msgstr ""
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Configure"
+msgstr ""
 
 #~ msgid ""
 #~ "Choose your setup type and configure your data sources through our\n"
@@ -28395,6 +28402,186 @@ msgstr ""
 msgid "No read access records found for the selected period."
 msgstr ""
 
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Smoothed"
+msgstr ""
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+msgid "Source Default Rules"
+msgstr ""
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+msgid "Configure glucose processing defaults per uploading client. Rules are evaluated top-to-bottom; first match wins."
+msgstr ""
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+msgid "No rules configured."
+msgstr ""
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+msgid "Add a rule to set processing defaults based on the uploading client."
+msgstr ""
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+msgid "App"
+msgstr ""
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+msgid "Prefix to match..."
+msgstr ""
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Unsmoothed"
+msgstr ""
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+msgid "<0/> Add rule"
+msgstr ""
+
+#: src/lib/components/layout/GuestBanner.svelte
+msgid "Guest access — read only"
+msgstr ""
+
+#: src/lib/components/members/GuestLinksSection.svelte
+msgid "Revoked"
+msgstr ""
+
+#: src/lib/components/members/GuestLinksSection.svelte
+msgid "Failed to create guest link. Please try again."
+msgstr ""
+
+#: src/lib/components/members/GuestLinksSection.svelte
+msgid "<0/> Temporary Guest Links"
+msgstr ""
+
+#: src/lib/components/members/GuestLinksSection.svelte
+msgid "Share read-only access with someone who doesn't have an account"
+msgstr ""
+
+#: src/lib/components/members/GuestLinksSection.svelte
+msgid "<0/> Create Guest Link"
+msgstr ""
+
+#: src/lib/components/members/GuestLinksSection.svelte
+msgid "Create Guest Link"
+msgstr ""
+
+#: src/lib/components/members/GuestLinksSection.svelte
+msgid ""
+"Generate a temporary code or link for read-only access. It expires in\n"
+"48 hours and can only be used once."
+msgstr ""
+
+#: src/lib/components/members/GuestLinksSection.svelte
+msgid "Guest link created successfully."
+msgstr ""
+
+#: src/lib/components/members/GuestLinksSection.svelte
+msgid "Code"
+msgstr ""
+
+#: src/lib/components/members/GuestLinksSection.svelte
+msgid "Link"
+msgstr ""
+
+#: src/lib/components/members/GuestLinksSection.svelte
+msgid ""
+"Share this code or link. It expires in 48 hours and can only be\n"
+"used once."
+msgstr ""
+
+#: src/lib/components/members/GuestLinksSection.svelte
+msgid "Who is this for?"
+msgstr ""
+
+#: src/lib/components/members/GuestLinksSection.svelte
+msgid "No guest links yet. Create one to share temporary read-only access."
+msgstr ""
+
+#. placeholder {0}: formatDate(link.expiresAt)
+#: src/lib/components/members/GuestLinksSection.svelte
+msgid "Expires {0}"
+msgstr ""
+
+#. placeholder {0}: maskIp(link.activatedIp)
+#: src/lib/components/members/GuestLinksSection.svelte
+msgid "Activated from {0}"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "<0/> Glucose Processing"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Choose how glucose values are displayed when both smoothed and unsmoothed readings are available"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Display preference"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid ""
+"This only affects values where both smoothed and unsmoothed readings are present.\n"
+"\"Default\" uses the value as reported by the data source."
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Client upload source defaults"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "No source rules configured. All uploads use the default processing."
+msgstr ""
+
+#. placeholder {0}: sourceDefaults.length
+#. placeholder {1}: sourceDefaults.length === 1 ? '' : 's'
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "{0} rule{1} configured"
+msgstr ""
+
+#: src/lib/components/rbac/PermissionPicker.svelte
+msgid "Audit"
+msgstr ""
+
+#: src/lib/components/rbac/PermissionPicker.svelte
+msgid "View Audit Logs"
+msgstr ""
+
+#: src/lib/components/rbac/PermissionPicker.svelte
+msgid "Manage Audit Settings"
+msgstr ""
+
+#: src/routes/(unauthenticated)/guest/[[code]]/+page.svelte
+msgid "Invalid or expired code"
+msgstr ""
+
+#: src/routes/(unauthenticated)/guest/[[code]]/+page.svelte
+msgid "Guest Access - Nocturne"
+msgstr ""
+
+#: src/routes/(unauthenticated)/guest/[[code]]/+page.svelte
+msgid "Enter guest code"
+msgstr ""
+
+#: src/routes/(unauthenticated)/guest/[[code]]/+page.svelte
+msgid "Enter the code shared with you to view health data"
+msgstr ""
+
+#: src/routes/(unauthenticated)/guest/[[code]]/+page.svelte
+msgid "<0/> Access Data"
 #: src/lib/components/rbac/PermissionPicker.svelte
 msgid "Audit"
 msgstr ""

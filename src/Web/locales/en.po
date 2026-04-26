@@ -1081,6 +1081,8 @@ msgstr "Unnamed Schedule"
 #: src/lib/components/dashboard/glucose-chart/dialogs/DeliveryInspectionDialog.svelte
 #: src/lib/components/dashboard/glucose-chart/dialogs/DeliveryInspectionDialog.svelte
 #: src/routes/(authenticated)/settings/alerts/setup/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
 #: src/routes/(authenticated)/settings/integrations/discord/+page.svelte
 #: src/routes/(authenticated)/settings/profile/+page.svelte
 msgid "Default"
@@ -1200,6 +1202,7 @@ msgstr "<0/> Add Schedule"
 #: src/lib/components/settings/ConnectedApps.svelte
 #: src/lib/components/settings/ConnectorConfigForm.svelte
 #: src/lib/components/settings/CustomSoundUpload.svelte
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
 #: src/lib/components/settings/LinkedOidcIdentities.svelte
 #: src/lib/components/settings/LinkedOidcIdentities.svelte
 #: src/lib/components/settings/notifications/webhooks/WebhookSettingsModal.svelte
@@ -1395,6 +1398,7 @@ msgstr "Create"
 
 #: src/lib/components/admin/RoleDialog.svelte
 #: src/lib/components/admin/SubjectEditDialog.svelte
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
 #: src/lib/components/settings/notifications/webhooks/WebhookSettingsModal.svelte
 #: src/lib/components/trackers/TrackerEditorDialog.svelte
 #: src/lib/components/trackers/TrackerEditorDialog.svelte
@@ -7313,6 +7317,8 @@ msgstr "Activity"
 msgid "Source"
 msgstr "Source"
 
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
 #: src/lib/components/status-pills/IOBPill.svelte
 msgid "Device"
 msgstr "Device"
@@ -17777,6 +17783,10 @@ msgstr "Guest access — read only"
 msgid "Audit Log"
 msgstr "Audit Log"
 
+#: src/lib/components/layout/GuestBanner.svelte
+msgid "Guest access — read only"
+msgstr "Guest access — read only"
+
 #: src/lib/components/members/GuestLinksSection.svelte
 msgid "Revoked"
 msgstr "Revoked"
@@ -17858,6 +17868,92 @@ msgstr "View Audit Logs"
 #: src/lib/components/rbac/PermissionPicker.svelte
 msgid "Manage Audit Settings"
 msgstr "Manage Audit Settings"
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Smoothed"
+msgstr "Smoothed"
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+msgid "Source Default Rules"
+msgstr "Source Default Rules"
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+msgid "Configure glucose processing defaults per uploading client. Rules are evaluated top-to-bottom; first match wins."
+msgstr "Configure glucose processing defaults per uploading client. Rules are evaluated top-to-bottom; first match wins."
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+msgid "No rules configured."
+msgstr "No rules configured."
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+msgid "Add a rule to set processing defaults based on the uploading client."
+msgstr "Add a rule to set processing defaults based on the uploading client."
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+msgid "App"
+msgstr "App"
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+msgid "Prefix to match..."
+msgstr "Prefix to match..."
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Unsmoothed"
+msgstr "Unsmoothed"
+
+#: src/lib/components/settings/GlucoseSourceDefaultsDialog.svelte
+msgid "<0/> Add rule"
+msgstr "<0/> Add rule"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "<0/> Glucose Processing"
+msgstr "<0/> Glucose Processing"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Choose how glucose values are displayed when both smoothed and unsmoothed readings are available"
+msgstr "Choose how glucose values are displayed when both smoothed and unsmoothed readings are available"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Display preference"
+msgstr "Display preference"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid ""
+"This only affects values where both smoothed and unsmoothed readings are present.\n"
+"\"Default\" uses the value as reported by the data source."
+msgstr ""
+"This only affects values where both smoothed and unsmoothed readings are present.\n"
+"\"Default\" uses the value as reported by the data source."
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Client upload source defaults"
+msgstr "Client upload source defaults"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "No source rules configured. All uploads use the default processing."
+msgstr "No source rules configured. All uploads use the default processing."
+
+#. placeholder {0}: sourceDefaults.length
+#. placeholder {1}: sourceDefaults.length === 1 ? '' : 's'
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "{0} rule{1} configured"
+msgstr "{0} rule{1} configured"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Configure"
+msgstr "Configure"
 
 #: src/routes/(authenticated)/settings/audit/+page.svelte
 msgid "View data changes and access history for compliance."

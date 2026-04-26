@@ -23,106 +23,6 @@ namespace Nocturne.Infrastructure.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.ActivityEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("AdditionalPropertiesJson")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("additional_properties");
-
-                    b.Property<string>("CreatedAt")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("DateString")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("date_string");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
-                    b.Property<double?>("Duration")
-                        .HasColumnType("double precision")
-                        .HasColumnName("duration");
-
-                    b.Property<string>("EnteredBy")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("entered_by");
-
-                    b.Property<string>("Intensity")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("intensity");
-
-                    b.Property<long>("Mills")
-                        .HasColumnType("bigint")
-                        .HasColumnName("mills");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text")
-                        .HasColumnName("notes");
-
-                    b.Property<string>("OriginalId")
-                        .HasMaxLength(24)
-                        .HasColumnType("character varying(24)")
-                        .HasColumnName("original_id");
-
-                    b.Property<DateTime>("SysCreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("sys_created_at");
-
-                    b.Property<DateTime>("SysUpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("sys_updated_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.Property<long?>("Timestamp")
-                        .HasColumnType("bigint")
-                        .HasColumnName("timestamp");
-
-                    b.Property<string>("Type")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("type");
-
-                    b.Property<int?>("UtcOffset")
-                        .HasColumnType("integer")
-                        .HasColumnName("utc_offset");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Mills")
-                        .IsDescending()
-                        .HasDatabaseName("ix_activities_mills");
-
-                    b.HasIndex("SysCreatedAt")
-                        .HasDatabaseName("ix_activities_sys_created_at");
-
-                    b.HasIndex("TenantId");
-
-                    b.HasIndex("Type")
-                        .HasDatabaseName("ix_activities_type");
-
-                    b.HasIndex("Type", "Mills")
-                        .IsDescending(false, true)
-                        .HasDatabaseName("ix_activities_type_timestamp");
-
-                    b.ToTable("activities");
-                });
-
             modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.AlertCustomSoundEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1325,10 +1225,6 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("logged_at");
 
-                    b.Property<Guid?>("MatchedTreatmentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("matched_treatment_id");
-
                     b.Property<string>("MealName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -1386,8 +1282,6 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasDatabaseName("ix_connector_food_entries_external_entry_id");
 
                     b.HasIndex("FoodId");
-
-                    b.HasIndex("MatchedTreatmentId");
 
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_connector_food_entries_status");
@@ -1453,146 +1347,6 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasDatabaseName("ix_data_source_metadata_tenant_device");
 
                     b.ToTable("data_source_metadata");
-                });
-
-            modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.DeviceStatusEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("AdditionalPropertiesJson")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("additional_properties");
-
-                    b.Property<string>("CgmJson")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("null")
-                        .HasColumnName("cgm");
-
-                    b.Property<string>("ConnectJson")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("null")
-                        .HasColumnName("connect");
-
-                    b.Property<string>("CreatedAt")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Device")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("device");
-
-                    b.Property<string>("InsulinPenJson")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("null")
-                        .HasColumnName("insulin_pen");
-
-                    b.Property<bool?>("IsCharging")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_charging");
-
-                    b.Property<string>("LoopJson")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("null")
-                        .HasColumnName("loop");
-
-                    b.Property<string>("MeterJson")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("null")
-                        .HasColumnName("meter");
-
-                    b.Property<long>("Mills")
-                        .HasColumnType("bigint")
-                        .HasColumnName("mills");
-
-                    b.Property<string>("OpenApsJson")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("null")
-                        .HasColumnName("openaps");
-
-                    b.Property<string>("OriginalId")
-                        .HasMaxLength(24)
-                        .HasColumnType("character varying(24)")
-                        .HasColumnName("original_id");
-
-                    b.Property<string>("OverrideJson")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("null")
-                        .HasColumnName("override");
-
-                    b.Property<string>("PumpJson")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("null")
-                        .HasColumnName("pump");
-
-                    b.Property<string>("RadioAdapterJson")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("null")
-                        .HasColumnName("radio_adapter");
-
-                    b.Property<DateTime>("SysCreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("sys_created_at");
-
-                    b.Property<DateTime>("SysUpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("sys_updated_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.Property<string>("UploaderJson")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("null")
-                        .HasColumnName("uploader");
-
-                    b.Property<int?>("UtcOffset")
-                        .HasColumnType("integer")
-                        .HasColumnName("utc_offset");
-
-                    b.Property<string>("XDripJsJson")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("null")
-                        .HasColumnName("xdripjs");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Device")
-                        .HasDatabaseName("ix_devicestatus_device");
-
-                    b.HasIndex("Mills")
-                        .IsDescending()
-                        .HasDatabaseName("ix_devicestatus_timestamp");
-
-                    b.HasIndex("SysCreatedAt")
-                        .HasDatabaseName("ix_devicestatus_sys_created_at");
-
-                    b.HasIndex("TenantId");
-
-                    b.HasIndex("Device", "Mills")
-                        .IsDescending(false, true)
-                        .HasDatabaseName("ix_devicestatus_device_timestamp");
-
-                    b.ToTable("devicestatus");
                 });
 
             modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.DiscrepancyAnalysisEntity", b =>
@@ -1790,208 +1544,6 @@ namespace Nocturne.Infrastructure.Data.Migrations
                     b.HasIndex("TenantId");
 
                     b.ToTable("discrepancy_details");
-                });
-
-            modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.EntryEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("AdditionalPropertiesJson")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("additional_properties");
-
-                    b.Property<string>("App")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("app");
-
-                    b.Property<string>("CreatedAt")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("DataSource")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("data_source");
-
-                    b.Property<string>("DateString")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("date_string");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<double?>("Delta")
-                        .HasColumnType("double precision")
-                        .HasColumnName("delta");
-
-                    b.Property<string>("Device")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("device");
-
-                    b.Property<string>("Direction")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("direction");
-
-                    b.Property<double?>("Filtered")
-                        .HasColumnType("double precision")
-                        .HasColumnName("filtered");
-
-                    b.Property<double?>("Intercept")
-                        .HasColumnType("double precision")
-                        .HasColumnName("intercept");
-
-                    b.Property<bool>("IsCalibration")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_calibration");
-
-                    b.Property<bool?>("IsReadOnly")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_read_only");
-
-                    b.Property<bool?>("IsValid")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_valid");
-
-                    b.Property<string>("MetaJson")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("{}")
-                        .HasColumnName("meta");
-
-                    b.Property<double>("Mgdl")
-                        .HasColumnType("double precision")
-                        .HasColumnName("mgdl");
-
-                    b.Property<long>("Mills")
-                        .HasColumnType("bigint")
-                        .HasColumnName("mills");
-
-                    b.Property<double?>("Mmol")
-                        .HasColumnType("double precision")
-                        .HasColumnName("mmol");
-
-                    b.Property<DateTime?>("ModifiedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("modified_at");
-
-                    b.Property<int?>("Noise")
-                        .HasColumnType("integer")
-                        .HasColumnName("noise");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text")
-                        .HasColumnName("notes");
-
-                    b.Property<string>("OriginalId")
-                        .HasMaxLength(24)
-                        .HasColumnType("character varying(24)")
-                        .HasColumnName("original_id");
-
-                    b.Property<int?>("Rssi")
-                        .HasColumnType("integer")
-                        .HasColumnName("rssi");
-
-                    b.Property<double?>("Scale")
-                        .HasColumnType("double precision")
-                        .HasColumnName("scale");
-
-                    b.Property<string>("ScaledJson")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValue("null")
-                        .HasColumnName("scaled");
-
-                    b.Property<double?>("Sgv")
-                        .HasColumnType("double precision")
-                        .HasColumnName("sgv");
-
-                    b.Property<double?>("Slope")
-                        .HasColumnType("double precision")
-                        .HasColumnName("slope");
-
-                    b.Property<DateTime>("SysCreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("sys_created_at");
-
-                    b.Property<string>("SysTime")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("sys_time");
-
-                    b.Property<DateTime>("SysUpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("sys_updated_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.Property<int?>("Trend")
-                        .HasColumnType("integer")
-                        .HasColumnName("trend");
-
-                    b.Property<double?>("TrendRate")
-                        .HasColumnType("double precision")
-                        .HasColumnName("trend_rate");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasDefaultValue("sgv")
-                        .HasColumnName("type");
-
-                    b.Property<double?>("Unfiltered")
-                        .HasColumnType("double precision")
-                        .HasColumnName("unfiltered");
-
-                    b.Property<string>("Units")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("units");
-
-                    b.Property<int?>("UtcOffset")
-                        .HasColumnType("integer")
-                        .HasColumnName("utc_offset");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DeletedAt")
-                        .HasDatabaseName("ix_entries_deleted_at")
-                        .HasFilter("deleted_at IS NOT NULL");
-
-                    b.HasIndex("Mills")
-                        .IsDescending()
-                        .HasDatabaseName("ix_entries_mills");
-
-                    b.HasIndex("SysCreatedAt")
-                        .HasDatabaseName("ix_entries_sys_created_at");
-
-                    b.HasIndex("TenantId");
-
-                    b.HasIndex("Type")
-                        .HasDatabaseName("ix_entries_type");
-
-                    b.HasIndex("Type", "Mills")
-                        .IsDescending(false, true)
-                        .HasDatabaseName("ix_entries_type_timestamp");
-
-                    b.HasIndex("Device", "Type", "Sgv", "Mills")
-                        .HasDatabaseName("ix_entries_duplicate_detection");
-
-                    b.ToTable("entries");
                 });
 
             modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.FoodEntity", b =>
@@ -2948,6 +2500,19 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTime?>("ActivatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("activated_at");
+
+                    b.Property<string>("ActivatedIp")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
+                        .HasColumnName("activated_ip");
+
+                    b.Property<string>("ActivatedUserAgent")
+                        .HasColumnType("text")
+                        .HasColumnName("activated_user_agent");
+
                     b.Property<Guid?>("ClientEntityId")
                         .HasColumnType("uuid")
                         .HasColumnName("client_id");
@@ -2957,6 +2522,14 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Guid?>("CreatedBySubjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_subject_id");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
 
                     b.Property<string>("GrantType")
                         .IsRequired()
@@ -3015,6 +2588,8 @@ namespace Nocturne.Infrastructure.Data.Migrations
 
                     b.HasIndex("ClientEntityId")
                         .HasDatabaseName("ix_oauth_grants_client_id");
+
+                    b.HasIndex("CreatedBySubjectId");
 
                     b.HasIndex("RevokedAt")
                         .HasDatabaseName("ix_oauth_grants_revoked_at")
@@ -3243,105 +2818,6 @@ namespace Nocturne.Infrastructure.Data.Migrations
                     b.HasIndex("SubjectId");
 
                     b.ToTable("passkey_credentials");
-                });
-
-            modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.ProfileEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("AdditionalPropertiesJson")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("additional_properties");
-
-                    b.Property<string>("CreatedAt")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTime>("CreatedAtPg")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at_pg")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<string>("DefaultProfile")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasDefaultValue("Default")
-                        .HasColumnName("default_profile");
-
-                    b.Property<string>("EnteredBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("entered_by");
-
-                    b.Property<string>("LoopSettingsJson")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("loop_settings_json");
-
-                    b.Property<long>("Mills")
-                        .HasColumnType("bigint")
-                        .HasColumnName("mills");
-
-                    b.Property<string>("OriginalId")
-                        .HasMaxLength(24)
-                        .HasColumnType("character varying(24)")
-                        .HasColumnName("original_id");
-
-                    b.Property<string>("StartDate")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("start_date");
-
-                    b.Property<string>("StoreJson")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
-                        .HasDefaultValue("{}")
-                        .HasColumnName("store_json");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.Property<string>("Units")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)")
-                        .HasDefaultValue("mg/dl")
-                        .HasColumnName("units");
-
-                    b.Property<DateTime>("UpdatedAtPg")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at_pg")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAtPg")
-                        .HasDatabaseName("ix_profiles_sys_created_at");
-
-                    b.HasIndex("DefaultProfile")
-                        .HasDatabaseName("ix_profiles_default_profile");
-
-                    b.HasIndex("Mills")
-                        .IsDescending()
-                        .HasDatabaseName("ix_profiles_mills");
-
-                    b.HasIndex("TenantId");
-
-                    b.HasIndex("Units")
-                        .HasDatabaseName("ix_profiles_units");
-
-                    b.ToTable("profiles");
                 });
 
             modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.ReadAccessLogEntity", b =>
@@ -4838,180 +4314,6 @@ namespace Nocturne.Infrastructure.Data.Migrations
                     b.ToTable("tracker_presets");
                 });
 
-            modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.TreatmentEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("AdditionalPropertiesJson")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("additional_properties");
-
-                    b.Property<double?>("Carbs")
-                        .HasColumnType("double precision")
-                        .HasColumnName("carbs");
-
-                    b.Property<string>("Created_at")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("CuttedBy")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("cuttedby");
-
-                    b.Property<string>("Cutting")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("cutting");
-
-                    b.Property<string>("DataSource")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("data_source");
-
-                    b.Property<long?>("Date")
-                        .HasColumnType("bigint")
-                        .HasColumnName("date");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<double?>("Duration")
-                        .HasColumnType("double precision")
-                        .HasColumnName("duration");
-
-                    b.Property<bool?>("End")
-                        .HasColumnType("boolean")
-                        .HasColumnName("end");
-
-                    b.Property<string>("EnteredBy")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("entered_by");
-
-                    b.Property<string>("EventTime")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("event_time");
-
-                    b.Property<string>("EventType")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("event_type");
-
-                    b.Property<bool?>("First")
-                        .HasColumnType("boolean")
-                        .HasColumnName("first");
-
-                    b.Property<double?>("Insulin")
-                        .HasColumnType("double precision")
-                        .HasColumnName("insulin");
-
-                    b.Property<string>("InsulinContextJson")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("insulin_context");
-
-                    b.Property<bool?>("IsAnnouncement")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_announcement");
-
-                    b.Property<long>("Mills")
-                        .HasColumnType("bigint")
-                        .HasColumnName("mills");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text")
-                        .HasColumnName("notes");
-
-                    b.Property<string>("NsClientId")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("nsclient_id");
-
-                    b.Property<string>("OriginalId")
-                        .HasMaxLength(24)
-                        .HasColumnType("character varying(24)")
-                        .HasColumnName("original_id");
-
-                    b.Property<string>("Reason")
-                        .HasColumnType("text")
-                        .HasColumnName("reason");
-
-                    b.Property<string>("Split")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("split");
-
-                    b.Property<string>("Status")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("status");
-
-                    b.Property<DateTime>("SysCreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("sys_created_at");
-
-                    b.Property<DateTime>("SysUpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("sys_updated_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<double?>("TargetBottom")
-                        .HasColumnType("double precision")
-                        .HasColumnName("target_bottom");
-
-                    b.Property<double?>("TargetTop")
-                        .HasColumnType("double precision")
-                        .HasColumnName("target_top");
-
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.Property<long?>("Timestamp")
-                        .HasColumnType("bigint")
-                        .HasColumnName("timestamp");
-
-                    b.Property<string>("TransmitterId")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("transmitter_id");
-
-                    b.Property<int?>("UtcOffset")
-                        .HasColumnType("integer")
-                        .HasColumnName("utc_offset");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DeletedAt")
-                        .HasDatabaseName("ix_treatments_deleted_at")
-                        .HasFilter("deleted_at IS NOT NULL");
-
-                    b.HasIndex("EventType")
-                        .HasDatabaseName("ix_treatments_event_type");
-
-                    b.HasIndex("Mills")
-                        .IsDescending()
-                        .HasDatabaseName("ix_treatments_mills");
-
-                    b.HasIndex("SysCreatedAt")
-                        .HasDatabaseName("ix_treatments_sys_created_at");
-
-                    b.HasIndex("TenantId");
-
-                    b.HasIndex("EventType", "Mills")
-                        .IsDescending(false, true)
-                        .HasDatabaseName("ix_treatments_event_type_timestamp");
-
-                    b.ToTable("treatments");
-                });
-
             modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.TreatmentFoodEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -5135,6 +4437,11 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(32)")
                         .HasColumnName("aps_system");
 
+                    b.Property<string>("AidVersion")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("aid_version");
+
                     b.Property<double?>("BasalIob")
                         .HasColumnType("double precision")
                         .HasColumnName("basal_iob");
@@ -5146,6 +4453,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
                     b.Property<double?>("Cob")
                         .HasColumnType("double precision")
                         .HasColumnName("cob");
+
+                    b.Property<Guid?>("CorrelationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("correlation_id");
 
                     b.Property<double?>("CurrentBg")
                         .HasColumnType("double precision")
@@ -5188,6 +4499,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
                         .HasColumnName("legacy_id");
+
+                    b.Property<string>("LoopJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("loop_json");
 
                     b.Property<string>("PredictedCobJson")
                         .HasColumnType("jsonb")
@@ -5997,17 +5312,11 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(128)")
                         .HasColumnName("source_record_id");
 
-                    b.Property<Guid?>("SourceTreatmentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("source_treatment_id");
-
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("SourceTreatmentId");
 
                     b.HasIndex("TenantId");
 
@@ -6151,6 +5460,47 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasFilter("legacy_id IS NOT NULL");
 
                     b.ToTable("device_events");
+                });
+
+            modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.V4.DeviceStatusExtrasEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("correlation_id");
+
+                    b.Property<string>("ExtrasJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("extras");
+
+                    b.Property<DateTime>("SysCreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sys_created_at");
+
+                    b.Property<DateTime>("SysUpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sys_updated_at");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("timestamp");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CorrelationId")
+                        .HasDatabaseName("ix_device_status_extras_correlation_id");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("device_status_extras");
                 });
 
             modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.V4.MeterGlucoseEntity", b =>
@@ -6573,6 +5923,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("double precision")
                         .HasColumnName("battery_voltage");
 
+                    b.Property<double?>("BolusIob")
+                        .HasColumnType("double precision")
+                        .HasColumnName("bolus_iob");
+
                     b.Property<bool?>("Bolusing")
                         .HasColumnType("boolean")
                         .HasColumnName("bolusing");
@@ -6582,6 +5936,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("clock");
 
+                    b.Property<Guid?>("CorrelationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("correlation_id");
+
                     b.Property<string>("Device")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
@@ -6590,6 +5948,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
                     b.Property<Guid?>("DeviceId")
                         .HasColumnType("uuid")
                         .HasColumnName("device_id");
+
+                    b.Property<double?>("Iob")
+                        .HasColumnType("double precision")
+                        .HasColumnName("iob");
 
                     b.Property<string>("LegacyId")
                         .HasMaxLength(64)
@@ -6789,6 +6151,11 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("double precision")
                         .HasColumnName("filtered");
 
+                    b.Property<string>("GlucoseProcessing")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("glucose_processing");
+
                     b.Property<string>("LegacyId")
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
@@ -6801,6 +6168,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
                     b.Property<int?>("Noise")
                         .HasColumnType("integer")
                         .HasColumnName("noise");
+
+                    b.Property<double?>("SmoothedMgdl")
+                        .HasColumnType("double precision")
+                        .HasColumnName("smoothed_mgdl");
 
                     b.Property<DateTime>("SysCreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -6825,6 +6196,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
                     b.Property<double?>("Unfiltered")
                         .HasColumnType("double precision")
                         .HasColumnName("unfiltered");
+
+                    b.Property<double?>("UnsmoothedMgdl")
+                        .HasColumnType("double precision")
+                        .HasColumnName("unsmoothed_mgdl");
 
                     b.Property<int?>("UtcOffset")
                         .HasColumnType("integer")
@@ -7215,6 +6590,10 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("double precision")
                         .HasColumnName("battery_voltage");
 
+                    b.Property<Guid?>("CorrelationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("correlation_id");
+
                     b.Property<string>("Device")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)")
@@ -7281,15 +6660,6 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasDatabaseName("ix_uploader_snapshots_timestamp");
 
                     b.ToTable("uploader_snapshots");
-                });
-
-            modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.ActivityEntity", b =>
-                {
-                    b.HasOne("Nocturne.Infrastructure.Data.Entities.TenantEntity", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.AlertCustomSoundEntity", b =>
@@ -7538,11 +6908,6 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasForeignKey("FoodId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Nocturne.Infrastructure.Data.Entities.TreatmentEntity", "MatchedTreatment")
-                        .WithMany()
-                        .HasForeignKey("MatchedTreatmentId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("Nocturne.Infrastructure.Data.Entities.TenantEntity", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
@@ -7550,20 +6915,9 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Food");
-
-                    b.Navigation("MatchedTreatment");
                 });
 
             modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.DataSourceMetadataEntity", b =>
-                {
-                    b.HasOne("Nocturne.Infrastructure.Data.Entities.TenantEntity", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.DeviceStatusEntity", b =>
                 {
                     b.HasOne("Nocturne.Infrastructure.Data.Entities.TenantEntity", null)
                         .WithMany()
@@ -7596,15 +6950,6 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Analysis");
-                });
-
-            modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.EntryEntity", b =>
-                {
-                    b.HasOne("Nocturne.Infrastructure.Data.Entities.TenantEntity", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.FoodEntity", b =>
@@ -7739,6 +7084,11 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasForeignKey("ClientEntityId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("Nocturne.Infrastructure.Data.Entities.SubjectEntity", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedBySubjectId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Nocturne.Infrastructure.Data.Entities.SubjectEntity", "Subject")
                         .WithMany()
                         .HasForeignKey("SubjectId")
@@ -7752,6 +7102,8 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Client");
+
+                    b.Navigation("CreatedBy");
 
                     b.Navigation("Subject");
                 });
@@ -7783,15 +7135,6 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Subject");
-                });
-
-            modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.ProfileEntity", b =>
-                {
-                    b.HasOne("Nocturne.Infrastructure.Data.Entities.TenantEntity", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.ReadAccessLogEntity", b =>
@@ -8060,373 +7403,6 @@ namespace Nocturne.Infrastructure.Data.Migrations
                     b.Navigation("Definition");
                 });
 
-            modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.TreatmentEntity", b =>
-                {
-                    b.HasOne("Nocturne.Infrastructure.Data.Entities.TenantEntity", null)
-                        .WithMany()
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.OwnsOne("Nocturne.Infrastructure.Data.Entities.OwnedTypes.TreatmentAapsData", "Aaps", b1 =>
-                        {
-                            b1.Property<Guid>("TreatmentEntityId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<long?>("EndId")
-                                .HasColumnType("bigint")
-                                .HasColumnName("end_id");
-
-                            b1.Property<bool?>("IsBasalInsulin")
-                                .HasColumnType("boolean")
-                                .HasColumnName("is_basal_insulin");
-
-                            b1.Property<bool?>("IsReadOnly")
-                                .HasColumnType("boolean")
-                                .HasColumnName("is_read_only");
-
-                            b1.Property<bool?>("IsValid")
-                                .HasColumnType("boolean")
-                                .HasColumnName("is_valid");
-
-                            b1.Property<string>("OriginalCustomizedName")
-                                .HasMaxLength(255)
-                                .HasColumnType("character varying(255)")
-                                .HasColumnName("original_customized_name");
-
-                            b1.Property<int?>("OriginalDuration")
-                                .HasColumnType("integer")
-                                .HasColumnName("original_duration");
-
-                            b1.Property<long?>("OriginalEnd")
-                                .HasColumnType("bigint")
-                                .HasColumnName("original_end");
-
-                            b1.Property<int?>("OriginalPercentage")
-                                .HasColumnType("integer")
-                                .HasColumnName("original_percentage");
-
-                            b1.Property<string>("OriginalProfileName")
-                                .HasMaxLength(255)
-                                .HasColumnType("character varying(255)")
-                                .HasColumnName("original_profile_name");
-
-                            b1.Property<int?>("OriginalTimeshift")
-                                .HasColumnType("integer")
-                                .HasColumnName("original_timeshift");
-
-                            b1.Property<long?>("PumpId")
-                                .HasColumnType("bigint")
-                                .HasColumnName("pump_id");
-
-                            b1.Property<string>("PumpSerial")
-                                .HasMaxLength(255)
-                                .HasColumnType("character varying(255)")
-                                .HasColumnName("pump_serial");
-
-                            b1.Property<string>("PumpType")
-                                .HasMaxLength(100)
-                                .HasColumnType("character varying(100)")
-                                .HasColumnName("pump_type");
-
-                            b1.HasKey("TreatmentEntityId");
-
-                            b1.ToTable("treatments");
-
-                            b1.WithOwner()
-                                .HasForeignKey("TreatmentEntityId");
-                        });
-
-                    b.OwnsOne("Nocturne.Infrastructure.Data.Entities.OwnedTypes.TreatmentBasalData", "Basal", b1 =>
-                        {
-                            b1.Property<Guid>("TreatmentEntityId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<double?>("Absolute")
-                                .HasColumnType("double precision")
-                                .HasColumnName("absolute");
-
-                            b1.Property<long?>("DurationInMilliseconds")
-                                .HasColumnType("bigint")
-                                .HasColumnName("duration_in_milliseconds");
-
-                            b1.Property<string>("DurationType")
-                                .HasMaxLength(50)
-                                .HasColumnType("character varying(50)")
-                                .HasColumnName("durationType");
-
-                            b1.Property<long?>("EndMills")
-                                .HasColumnType("bigint")
-                                .HasColumnName("endmills");
-
-                            b1.Property<double?>("Percent")
-                                .HasColumnType("double precision")
-                                .HasColumnName("percent");
-
-                            b1.Property<double?>("Rate")
-                                .HasColumnType("double precision")
-                                .HasColumnName("rate");
-
-                            b1.Property<double?>("Relative")
-                                .HasColumnType("double precision")
-                                .HasColumnName("relative");
-
-                            b1.HasKey("TreatmentEntityId");
-
-                            b1.ToTable("treatments");
-
-                            b1.WithOwner()
-                                .HasForeignKey("TreatmentEntityId");
-                        });
-
-                    b.OwnsOne("Nocturne.Infrastructure.Data.Entities.OwnedTypes.TreatmentBolusCalcData", "BolusCalc", b1 =>
-                        {
-                            b1.Property<Guid>("TreatmentEntityId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<double?>("BloodGlucoseInput")
-                                .HasColumnType("double precision")
-                                .HasColumnName("blood_glucose_input");
-
-                            b1.Property<string>("BloodGlucoseInputSource")
-                                .HasMaxLength(50)
-                                .HasColumnType("character varying(50)")
-                                .HasColumnName("blood_glucose_input_source");
-
-                            b1.Property<string>("BolusCalcJson")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("jsonb")
-                                .HasDefaultValue("{}")
-                                .HasColumnName("boluscalc");
-
-                            b1.Property<string>("BolusCalculatorResult")
-                                .HasColumnType("text")
-                                .HasColumnName("bolus_calculator_result");
-
-                            b1.Property<double?>("CR")
-                                .HasColumnType("double precision")
-                                .HasColumnName("CR");
-
-                            b1.Property<string>("CalculationType")
-                                .HasMaxLength(20)
-                                .HasColumnType("character varying(20)")
-                                .HasColumnName("calculation_type");
-
-                            b1.Property<double?>("EnteredInsulin")
-                                .HasColumnType("double precision")
-                                .HasColumnName("enteredinsulin");
-
-                            b1.Property<double?>("InsulinDelivered")
-                                .HasColumnType("double precision")
-                                .HasColumnName("insulin_delivered");
-
-                            b1.Property<double?>("InsulinOnBoard")
-                                .HasColumnType("double precision")
-                                .HasColumnName("insulin_on_board");
-
-                            b1.Property<double?>("InsulinProgrammed")
-                                .HasColumnType("double precision")
-                                .HasColumnName("insulin_programmed");
-
-                            b1.Property<double?>("InsulinRecommendationForCarbs")
-                                .HasColumnType("double precision")
-                                .HasColumnName("insulin_recommendation_for_carbs");
-
-                            b1.Property<double?>("InsulinRecommendationForCorrection")
-                                .HasColumnType("double precision")
-                                .HasColumnName("insulin_recommendation_for_correction");
-
-                            b1.Property<double?>("PreBolus")
-                                .HasColumnType("double precision")
-                                .HasColumnName("preBolus");
-
-                            b1.Property<double?>("SplitExt")
-                                .HasColumnType("double precision")
-                                .HasColumnName("splitExt");
-
-                            b1.Property<double?>("SplitNow")
-                                .HasColumnType("double precision")
-                                .HasColumnName("splitNow");
-
-                            b1.HasKey("TreatmentEntityId");
-
-                            b1.ToTable("treatments");
-
-                            b1.WithOwner()
-                                .HasForeignKey("TreatmentEntityId");
-                        });
-
-                    b.OwnsOne("Nocturne.Infrastructure.Data.Entities.OwnedTypes.TreatmentGlucoseData", "GlucoseData", b1 =>
-                        {
-                            b1.Property<Guid>("TreatmentEntityId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<double?>("Glucose")
-                                .HasColumnType("double precision")
-                                .HasColumnName("glucose");
-
-                            b1.Property<string>("GlucoseType")
-                                .HasMaxLength(50)
-                                .HasColumnType("character varying(50)")
-                                .HasColumnName("glucoseType");
-
-                            b1.Property<double?>("Mgdl")
-                                .HasColumnType("double precision")
-                                .HasColumnName("mgdl");
-
-                            b1.Property<double?>("Mmol")
-                                .HasColumnType("double precision")
-                                .HasColumnName("mmol");
-
-                            b1.Property<string>("Units")
-                                .HasMaxLength(10)
-                                .HasColumnType("character varying(10)")
-                                .HasColumnName("units");
-
-                            b1.HasKey("TreatmentEntityId");
-
-                            b1.ToTable("treatments");
-
-                            b1.WithOwner()
-                                .HasForeignKey("TreatmentEntityId");
-                        });
-
-                    b.OwnsOne("Nocturne.Infrastructure.Data.Entities.OwnedTypes.TreatmentLoopData", "Loop", b1 =>
-                        {
-                            b1.Property<Guid>("TreatmentEntityId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<string>("Otp")
-                                .HasMaxLength(255)
-                                .HasColumnType("character varying(255)")
-                                .HasColumnName("otp");
-
-                            b1.Property<string>("ReasonDisplay")
-                                .HasMaxLength(255)
-                                .HasColumnType("character varying(255)")
-                                .HasColumnName("reasonDisplay");
-
-                            b1.Property<double?>("RemoteAbsorption")
-                                .HasColumnType("double precision")
-                                .HasColumnName("remoteAbsorption");
-
-                            b1.Property<double?>("RemoteBolus")
-                                .HasColumnType("double precision")
-                                .HasColumnName("remoteBolus");
-
-                            b1.Property<double?>("RemoteCarbs")
-                                .HasColumnType("double precision")
-                                .HasColumnName("remoteCarbs");
-
-                            b1.HasKey("TreatmentEntityId");
-
-                            b1.ToTable("treatments");
-
-                            b1.WithOwner()
-                                .HasForeignKey("TreatmentEntityId");
-                        });
-
-                    b.OwnsOne("Nocturne.Infrastructure.Data.Entities.OwnedTypes.TreatmentNutritionalData", "Nutritional", b1 =>
-                        {
-                            b1.Property<Guid>("TreatmentEntityId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<int?>("AbsorptionTime")
-                                .HasColumnType("integer")
-                                .HasColumnName("absorptionTime");
-
-                            b1.Property<int?>("CarbTime")
-                                .HasColumnType("integer")
-                                .HasColumnName("carbTime");
-
-                            b1.Property<double?>("Fat")
-                                .HasColumnType("double precision")
-                                .HasColumnName("fat");
-
-                            b1.Property<string>("FoodType")
-                                .HasMaxLength(255)
-                                .HasColumnType("character varying(255)")
-                                .HasColumnName("foodType");
-
-                            b1.Property<double?>("Protein")
-                                .HasColumnType("double precision")
-                                .HasColumnName("protein");
-
-                            b1.HasKey("TreatmentEntityId");
-
-                            b1.ToTable("treatments");
-
-                            b1.WithOwner()
-                                .HasForeignKey("TreatmentEntityId");
-                        });
-
-                    b.OwnsOne("Nocturne.Infrastructure.Data.Entities.OwnedTypes.TreatmentProfileData", "ProfileData", b1 =>
-                        {
-                            b1.Property<Guid>("TreatmentEntityId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<bool?>("CircadianPercentageProfile")
-                                .HasColumnType("boolean")
-                                .HasColumnName("CircadianPercentageProfile");
-
-                            b1.Property<string>("EndProfile")
-                                .HasMaxLength(255)
-                                .HasColumnType("character varying(255)")
-                                .HasColumnName("endprofile");
-
-                            b1.Property<double?>("InsulinNeedsScaleFactor")
-                                .HasColumnType("double precision")
-                                .HasColumnName("insulinNeedsScaleFactor");
-
-                            b1.Property<double?>("Percentage")
-                                .HasColumnType("double precision")
-                                .HasColumnName("percentage");
-
-                            b1.Property<string>("Profile")
-                                .HasMaxLength(255)
-                                .HasColumnType("character varying(255)")
-                                .HasColumnName("profile");
-
-                            b1.Property<string>("ProfileJson")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("jsonb")
-                                .HasDefaultValue("null")
-                                .HasColumnName("profileJson");
-
-                            b1.Property<double?>("Timeshift")
-                                .HasColumnType("double precision")
-                                .HasColumnName("timeshift");
-
-                            b1.HasKey("TreatmentEntityId");
-
-                            b1.ToTable("treatments");
-
-                            b1.WithOwner()
-                                .HasForeignKey("TreatmentEntityId");
-                        });
-
-                    b.Navigation("Aaps")
-                        .IsRequired();
-
-                    b.Navigation("Basal")
-                        .IsRequired();
-
-                    b.Navigation("BolusCalc")
-                        .IsRequired();
-
-                    b.Navigation("GlucoseData")
-                        .IsRequired();
-
-                    b.Navigation("Loop")
-                        .IsRequired();
-
-                    b.Navigation("Nutritional")
-                        .IsRequired();
-
-                    b.Navigation("ProfileData")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.TreatmentFoodEntity", b =>
                 {
                     b.HasOne("Nocturne.Infrastructure.Data.Entities.V4.CarbIntakeEntity", "CarbIntake")
@@ -8592,11 +7568,6 @@ namespace Nocturne.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.V4.DecompositionBatchEntity", b =>
                 {
-                    b.HasOne("Nocturne.Infrastructure.Data.Entities.TreatmentEntity", null)
-                        .WithMany()
-                        .HasForeignKey("SourceTreatmentId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("Nocturne.Infrastructure.Data.Entities.TenantEntity", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
@@ -8620,6 +7591,15 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasForeignKey("CorrelationId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("Nocturne.Infrastructure.Data.Entities.TenantEntity", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Nocturne.Infrastructure.Data.Entities.V4.DeviceStatusExtrasEntity", b =>
+                {
                     b.HasOne("Nocturne.Infrastructure.Data.Entities.TenantEntity", null)
                         .WithMany()
                         .HasForeignKey("TenantId")

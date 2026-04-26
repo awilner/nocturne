@@ -3067,375 +3067,6 @@ export class NutritionClient {
     }
 }
 
-export class TreatmentsClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
-    }
-
-    /**
-     * Get treatments with optional filtering and pagination.
-    Unlike V1-V3 endpoints, this does NOT include StateSpan-derived basal data.
-    For basal delivery, query /api/v4/state-spans?category=BasalDelivery instead.
-     * @param eventType (optional) Optional filter by event type
-     * @param count (optional) Maximum number of treatments to return (default: 100)
-     * @param skip (optional) Number of treatments to skip for pagination (default: 0)
-     * @param findQuery (optional) Optional MongoDB-style query filter for advanced filtering
-     * @return Array of treatments ordered by most recent first
-     */
-    getTreatments(eventType?: string | null | undefined, count?: number | undefined, skip?: number | undefined, findQuery?: string | null | undefined, signal?: AbortSignal): Promise<Treatment[]> {
-        let url_ = this.baseUrl + "/api/v4/treatments?";
-        if (eventType !== undefined && eventType !== null)
-            url_ += "eventType=" + encodeURIComponent("" + eventType) + "&";
-        if (count === null)
-            throw new globalThis.Error("The parameter 'count' cannot be null.");
-        else if (count !== undefined)
-            url_ += "count=" + encodeURIComponent("" + count) + "&";
-        if (skip === null)
-            throw new globalThis.Error("The parameter 'skip' cannot be null.");
-        else if (skip !== undefined)
-            url_ += "skip=" + encodeURIComponent("" + skip) + "&";
-        if (findQuery !== undefined && findQuery !== null)
-            url_ += "find=" + encodeURIComponent("" + findQuery) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            signal,
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetTreatments(_response);
-        });
-    }
-
-    protected processGetTreatments(response: Response): Promise<Treatment[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as Treatment[];
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<Treatment[]>(null as any);
-    }
-
-    /**
-     * Create a treatment with tracker integration.
-    If the treatment's event type matches a tracker's trigger event types,
-    the tracker instance will be automatically started/restarted.
-     */
-    createTreatment(treatment: Treatment, signal?: AbortSignal): Promise<Treatment> {
-        let url_ = this.baseUrl + "/api/v4/treatments";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(treatment);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            signal,
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCreateTreatment(_response);
-        });
-    }
-
-    protected processCreateTreatment(response: Response): Promise<Treatment> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 201) {
-            return response.text().then((_responseText) => {
-            let result201: any = null;
-            result201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as Treatment;
-            return result201;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            let result400: any = null;
-            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<Treatment>(null as any);
-    }
-
-    /**
-     * Create multiple treatments with tracker integration.
-     */
-    createTreatments(treatments: Treatment[], signal?: AbortSignal): Promise<Treatment[]> {
-        let url_ = this.baseUrl + "/api/v4/treatments/bulk";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(treatments);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            signal,
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCreateTreatments(_response);
-        });
-    }
-
-    protected processCreateTreatments(response: Response): Promise<Treatment[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 201) {
-            return response.text().then((_responseText) => {
-            let result201: any = null;
-            result201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as Treatment[];
-            return result201;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            let result400: any = null;
-            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<Treatment[]>(null as any);
-    }
-
-    /**
-     * Get a specific treatment by ID
-     */
-    getTreatment(id: string, signal?: AbortSignal): Promise<Treatment> {
-        let url_ = this.baseUrl + "/api/v4/treatments/{id}";
-        if (id === undefined || id === null)
-            throw new globalThis.Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            signal,
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetTreatment(_response);
-        });
-    }
-
-    protected processGetTreatment(response: Response): Promise<Treatment> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as Treatment;
-            return result200;
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            let result404: any = null;
-            result404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<Treatment>(null as any);
-    }
-
-    /**
-     * Update an existing treatment by ID
-     */
-    updateTreatment(id: string, treatment: Treatment, signal?: AbortSignal): Promise<Treatment> {
-        let url_ = this.baseUrl + "/api/v4/treatments/{id}";
-        if (id === undefined || id === null)
-            throw new globalThis.Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(treatment);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "PUT",
-            signal,
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processUpdateTreatment(_response);
-        });
-    }
-
-    protected processUpdateTreatment(response: Response): Promise<Treatment> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as Treatment;
-            return result200;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            let result400: any = null;
-            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            let result404: any = null;
-            result404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<Treatment>(null as any);
-    }
-
-    /**
-     * Delete a treatment by ID
-     */
-    deleteTreatment(id: string, signal?: AbortSignal): Promise<void> {
-        let url_ = this.baseUrl + "/api/v4/treatments/{id}";
-        if (id === undefined || id === null)
-            throw new globalThis.Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "DELETE",
-            signal,
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteTreatment(_response);
-        });
-    }
-
-    protected processDeleteTreatment(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 204) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            let result404: any = null;
-            result404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-}
-
-export class BackfillClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
-    }
-
-    /**
-     * Triggers a backfill operation to reprocess all legacy entries and treatments into V4 granular tables.
-    Only one backfill may run at a time; concurrent calls return 409 Conflict.
-     * @return BackfillResult with processed counts on success;
-    409 if already running; 500 on internal error.
-     */
-    triggerBackfill(signal?: AbortSignal): Promise<BackfillResult> {
-        let url_ = this.baseUrl + "/api/v4/admin/backfill";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "POST",
-            signal,
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processTriggerBackfill(_response);
-        });
-    }
-
-    protected processTriggerBackfill(response: Response): Promise<BackfillResult> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as BackfillResult;
-            return result200;
-            });
-        } else if (status === 409) {
-            return response.text().then((_responseText) => {
-            let result409: any = null;
-            result409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result409);
-            });
-        } else if (status === 500) {
-            return response.text().then((_responseText) => {
-            return throwException("A server side error occurred.", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<BackfillResult>(null as any);
-    }
-}
-
 export class CompressionLowClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -5571,6 +5202,155 @@ export class ClockFacesClient {
             });
         }
         return Promise.resolve<ClockFace>(null as any);
+    }
+}
+
+export class GlucoseProcessingSettingsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getPreference(signal?: AbortSignal): Promise<GlucoseProcessingPreferenceResponse> {
+        let url_ = this.baseUrl + "/api/v4/settings/glucose-processing/preference";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetPreference(_response);
+        });
+    }
+
+    protected processGetPreference(response: Response): Promise<GlucoseProcessingPreferenceResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as GlucoseProcessingPreferenceResponse;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GlucoseProcessingPreferenceResponse>(null as any);
+    }
+
+    setPreference(request: SetGlucoseProcessingPreferenceRequest, signal?: AbortSignal): Promise<void> {
+        let url_ = this.baseUrl + "/api/v4/settings/glucose-processing/preference";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            signal,
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSetPreference(_response);
+        });
+    }
+
+    protected processSetPreference(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    getSourceDefaults(signal?: AbortSignal): Promise<GlucoseProcessingSourceDefaultsResponse> {
+        let url_ = this.baseUrl + "/api/v4/settings/glucose-processing/source-defaults";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetSourceDefaults(_response);
+        });
+    }
+
+    protected processGetSourceDefaults(response: Response): Promise<GlucoseProcessingSourceDefaultsResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as GlucoseProcessingSourceDefaultsResponse;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GlucoseProcessingSourceDefaultsResponse>(null as any);
+    }
+
+    setSourceDefaults(request: SetGlucoseProcessingSourceDefaultsRequest, signal?: AbortSignal): Promise<void> {
+        let url_ = this.baseUrl + "/api/v4/settings/glucose-processing/source-defaults";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            signal,
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSetSourceDefaults(_response);
+        });
+    }
+
+    protected processSetSourceDefaults(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 }
 
@@ -12106,6 +11886,197 @@ export class ConnectedAppsClient {
     }
 }
 
+export class GuestLinkClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * Create a new guest link for temporary read-only data sharing.
+     */
+    createGuestLink(request: CreateGuestLinkRequest, signal?: AbortSignal): Promise<GuestLinkCreationResult> {
+        let url_ = this.baseUrl + "/api/v4/guest-links";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            signal,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateGuestLink(_response);
+        });
+    }
+
+    protected processCreateGuestLink(response: Response): Promise<GuestLinkCreationResult> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as GuestLinkCreationResult;
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            result403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result403);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GuestLinkCreationResult>(null as any);
+    }
+
+    /**
+     * List guest links for the current user's effective subject.
+     */
+    getGuestLinks(signal?: AbortSignal): Promise<GuestLinkInfo[]> {
+        let url_ = this.baseUrl + "/api/v4/guest-links";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetGuestLinks(_response);
+        });
+    }
+
+    protected processGetGuestLinks(response: Response): Promise<GuestLinkInfo[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as GuestLinkInfo[];
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GuestLinkInfo[]>(null as any);
+    }
+
+    /**
+     * Revoke an active guest link.
+     */
+    revokeGuestLink(grantId: string, signal?: AbortSignal): Promise<void> {
+        let url_ = this.baseUrl + "/api/v4/guest-links/{grantId}";
+        if (grantId === undefined || grantId === null)
+            throw new globalThis.Error("The parameter 'grantId' must be defined.");
+        url_ = url_.replace("{grantId}", encodeURIComponent("" + grantId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            signal,
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRevokeGuestLink(_response);
+        });
+    }
+
+    protected processRevokeGuestLink(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            result404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Activate a guest link by code and receive a session cookie.
+     */
+    activateGuestLink(request: ActivateGuestLinkRequest, signal?: AbortSignal): Promise<ActivateGuestLinkResponse> {
+        let url_ = this.baseUrl + "/api/v4/guest-links/activate";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            signal,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processActivateGuestLink(_response);
+        });
+    }
+
+    protected processActivateGuestLink(response: Response): Promise<ActivateGuestLinkResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ActivateGuestLinkResponse;
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ActivateGuestLinkResponse;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ActivateGuestLinkResponse>(null as any);
+    }
+}
+
 export class LinkedPlatformsClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -15055,10 +15026,6 @@ export class SensorGlucoseClient {
         return Promise.resolve<PaginatedResponseOfSensorGlucose>(null as any);
     }
 
-    /**
-     * Creates a new record and returns it with a `Location` header pointing to the created resource.
-     * @param request The data used to create the record.
-     */
     create(request: UpsertSensorGlucoseRequest, signal?: AbortSignal): Promise<SensorGlucose> {
         let url_ = this.baseUrl + "/api/v4/glucose/sensor";
         url_ = url_.replace(/[?&]$/, "");
@@ -15103,58 +15070,6 @@ export class SensorGlucoseClient {
         return Promise.resolve<SensorGlucose>(null as any);
     }
 
-    /**
-     * Create multiple sensor glucose readings in bulk (max 1000).
-     */
-    createSensorGlucoseBulk(requests: UpsertSensorGlucoseRequest[], signal?: AbortSignal): Promise<SensorGlucose[]> {
-        let url_ = this.baseUrl + "/api/v4/glucose/sensor/bulk";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(requests);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            signal,
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCreateSensorGlucoseBulk(_response);
-        });
-    }
-
-    protected processCreateSensorGlucoseBulk(response: Response): Promise<SensorGlucose[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 201) {
-            return response.text().then((_responseText) => {
-            let result201: any = null;
-            result201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SensorGlucose[];
-            return result201;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            let result400: any = null;
-            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<SensorGlucose[]>(null as any);
-    }
-
-    /**
-     * Updates an existing record by ID and returns the updated record.
-     * @param id The unique identifier of the record to update.
-     * @param request The data to apply to the existing record.
-     */
     update(id: string, request: UpsertSensorGlucoseRequest, signal?: AbortSignal): Promise<SensorGlucose> {
         let url_ = this.baseUrl + "/api/v4/glucose/sensor/{id}";
         if (id === undefined || id === null)
@@ -15297,6 +15212,53 @@ export class SensorGlucoseClient {
             });
         }
         return Promise.resolve<SensorGlucose>(null as any);
+    }
+
+    /**
+     * Create multiple sensor glucose readings in bulk (max 1000).
+     */
+    createSensorGlucoseBulk(requests: UpsertSensorGlucoseRequest[], signal?: AbortSignal): Promise<SensorGlucose[]> {
+        let url_ = this.baseUrl + "/api/v4/glucose/sensor/bulk";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(requests);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            signal,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateSensorGlucoseBulk(_response);
+        });
+    }
+
+    protected processCreateSensorGlucoseBulk(response: Response): Promise<SensorGlucose[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            result201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SensorGlucose[];
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SensorGlucose[]>(null as any);
     }
 }
 
@@ -23658,7 +23620,6 @@ export interface ConnectorFoodEntry {
     servings?: number;
     servingDescription?: string | undefined;
     status?: ConnectorFoodEntryStatus;
-    matchedTreatmentId?: string | undefined;
     resolvedAt?: Date | undefined;
 }
 
@@ -23965,11 +23926,86 @@ export interface MealEvent {
     isAttributed?: boolean;
 }
 
+export interface CompressionLowSuggestion {
+    id?: string;
+    startMills?: number;
+    endMills?: number;
+    confidence?: number;
+    status?: CompressionLowStatus;
+    nightOf?: Date;
+    createdAt?: number;
+    reviewedAt?: number | undefined;
+    stateSpanId?: string | undefined;
+    lowestGlucose?: number | undefined;
+    dropRate?: number | undefined;
+    recoveryMinutes?: number | undefined;
+}
+
+export enum CompressionLowStatus {
+    Pending = "Pending",
+    Accepted = "Accepted",
+    Dismissed = "Dismissed",
+}
+
+export interface CompressionLowSuggestionWithEntries {
+    suggestion?: CompressionLowSuggestion;
+    entries?: Entry[];
+    treatments?: Treatment[];
+}
+
 export interface ProcessableDocumentBase {
     id?: string | undefined;
     createdAt?: string | undefined;
     mills?: number;
     utcOffset?: number | undefined;
+}
+
+export interface Entry extends ProcessableDocumentBase {
+    _id?: string | undefined;
+    mills?: number;
+    dateString?: string | undefined;
+    mgdl?: number;
+    mbg?: number | undefined;
+    mmol?: number | undefined;
+    sgv?: number | undefined;
+    direction?: string | undefined;
+    trend?: number | undefined;
+    trendRate?: number | undefined;
+    isCalibration?: boolean;
+    type?: string;
+    device?: string | undefined;
+    notes?: string | undefined;
+    delta?: number | undefined;
+    scaled?: any | undefined;
+    sysTime?: string | undefined;
+    utcOffset?: number | undefined;
+    noise?: number | undefined;
+    filtered?: number | undefined;
+    unfiltered?: number | undefined;
+    rssi?: number | undefined;
+    slope?: number | undefined;
+    intercept?: number | undefined;
+    scale?: number | undefined;
+    created_at?: string | undefined;
+    modified_at?: Date | undefined;
+    data_source?: string | undefined;
+    meta?: { [key: string]: any; } | undefined;
+    canonicalId?: string | undefined;
+    sources?: string[] | undefined;
+    app?: string | undefined;
+    units?: string | undefined;
+    isValid?: boolean | undefined;
+    isReadOnly?: boolean | undefined;
+    identifier?: string | undefined;
+    srvModified?: number | undefined;
+    srvCreated?: number | undefined;
+    subject?: string | undefined;
+
+    [key: string]: any;
+}
+
+export function isEntry(object: any): object is Entry {
+    return object && object[''] === 'Entry';
 }
 
 export interface Treatment extends ProcessableDocumentBase {
@@ -24093,93 +24129,6 @@ export interface TreatmentInsulinContext {
     peak?: number;
     curve?: string;
     concentration?: number;
-}
-
-/** Result of a V4 backfill operation */
-export interface BackfillResult {
-    /** Number of entries successfully decomposed into v4 records */
-    entriesProcessed?: number;
-    /** Number of entries that failed decomposition */
-    entriesFailed?: number;
-    /** Number of treatments successfully decomposed into v4 records */
-    treatmentsProcessed?: number;
-    /** Number of treatments that failed decomposition */
-    treatmentsFailed?: number;
-    /** Number of treatments skipped (temp basals, profile switches) */
-    treatmentsSkipped?: number;
-}
-
-export interface CompressionLowSuggestion {
-    id?: string;
-    startMills?: number;
-    endMills?: number;
-    confidence?: number;
-    status?: CompressionLowStatus;
-    nightOf?: Date;
-    createdAt?: number;
-    reviewedAt?: number | undefined;
-    stateSpanId?: string | undefined;
-    lowestGlucose?: number | undefined;
-    dropRate?: number | undefined;
-    recoveryMinutes?: number | undefined;
-}
-
-export enum CompressionLowStatus {
-    Pending = "Pending",
-    Accepted = "Accepted",
-    Dismissed = "Dismissed",
-}
-
-export interface CompressionLowSuggestionWithEntries {
-    suggestion?: CompressionLowSuggestion;
-    entries?: Entry[];
-    treatments?: Treatment[];
-}
-
-export interface Entry extends ProcessableDocumentBase {
-    _id?: string | undefined;
-    mills?: number;
-    dateString?: string | undefined;
-    mgdl?: number;
-    mbg?: number | undefined;
-    mmol?: number | undefined;
-    sgv?: number | undefined;
-    direction?: string | undefined;
-    trend?: number | undefined;
-    trendRate?: number | undefined;
-    isCalibration?: boolean;
-    type?: string;
-    device?: string | undefined;
-    notes?: string | undefined;
-    delta?: number | undefined;
-    scaled?: any | undefined;
-    sysTime?: string | undefined;
-    utcOffset?: number | undefined;
-    noise?: number | undefined;
-    filtered?: number | undefined;
-    unfiltered?: number | undefined;
-    rssi?: number | undefined;
-    slope?: number | undefined;
-    intercept?: number | undefined;
-    scale?: number | undefined;
-    created_at?: string | undefined;
-    modified_at?: Date | undefined;
-    data_source?: string | undefined;
-    meta?: { [key: string]: any; } | undefined;
-    canonicalId?: string | undefined;
-    sources?: string[] | undefined;
-    app?: string | undefined;
-    units?: string | undefined;
-    isValid?: boolean | undefined;
-    isReadOnly?: boolean | undefined;
-    identifier?: string | undefined;
-    srvModified?: number | undefined;
-    srvCreated?: number | undefined;
-    subject?: string | undefined;
-}
-
-export function isEntry(object: any): object is Entry {
-    return object && object[''] === 'Entry';
 }
 
 export interface StateSpan {
@@ -24776,6 +24725,33 @@ export interface CreateClockFaceRequest {
 export interface UpdateClockFaceRequest {
     name?: string | undefined;
     config?: ClockFaceConfig | undefined;
+}
+
+export interface GlucoseProcessingPreferenceResponse {
+    preferredGlucoseProcessing?: string | undefined;
+}
+
+export interface SetGlucoseProcessingPreferenceRequest {
+    preferredGlucoseProcessing?: string | undefined;
+}
+
+export interface GlucoseProcessingSourceDefaultsResponse {
+    rules?: GlucoseProcessingSourceDefault[];
+}
+
+export interface GlucoseProcessingSourceDefault {
+    match?: string;
+    field?: string;
+    processing?: GlucoseProcessing;
+}
+
+export enum GlucoseProcessing {
+    Smoothed = "Smoothed",
+    Unsmoothed = "Unsmoothed",
+}
+
+export interface SetGlucoseProcessingSourceDefaultsRequest {
+    rules?: GlucoseProcessingSourceDefault[] | undefined;
 }
 
 export interface MyFitnessPalMatchingSettings {
@@ -26401,6 +26377,50 @@ export interface ConnectedAppDto {
     lastUsedAt?: Date | undefined;
 }
 
+export interface GuestLinkCreationResult {
+    code?: string;
+    fullUrl?: string;
+    info?: GuestLinkInfo;
+}
+
+export interface GuestLinkInfo {
+    id?: string;
+    dataOwnerSubjectId?: string;
+    createdBySubjectId?: string;
+    label?: string;
+    scopes?: string[];
+    createdAt?: Date;
+    expiresAt?: Date;
+    activatedAt?: Date | undefined;
+    activatedIp?: string | undefined;
+    revokedAt?: Date | undefined;
+    status?: GuestLinkStatus;
+}
+
+export enum GuestLinkStatus {
+    Pending = 0,
+    Active = 1,
+    Expired = 2,
+    Revoked = 3,
+}
+
+/** Request body for creating a guest link. */
+export interface CreateGuestLinkRequest {
+    label?: string;
+    scopes?: string[] | undefined;
+}
+
+/** Response from guest link activation. */
+export interface ActivateGuestLinkResponse {
+    expiresAt?: Date | undefined;
+    error?: string | undefined;
+}
+
+/** Request body for activating a guest link. */
+export interface ActivateGuestLinkRequest {
+    code?: string;
+}
+
 export interface LinkedPlatformsResponse {
     platforms?: string[];
 }
@@ -26782,6 +26802,11 @@ export interface SensorGlucose {
     filtered?: number | undefined;
     unfiltered?: number | undefined;
     delta?: number | undefined;
+    glucoseProcessing?: GlucoseProcessing | undefined;
+    smoothedMgdl?: number | undefined;
+    smoothedMmol?: number | undefined;
+    unsmoothedMgdl?: number | undefined;
+    unsmoothedMmol?: number | undefined;
     additionalProperties?: { [key: string]: any; } | undefined;
 }
 
@@ -26837,6 +26862,13 @@ export interface UpsertSensorGlucoseRequest {
     unfiltered?: number | undefined;
     /** Glucose delta in mg/dL over the last 5 minutes */
     delta?: number | undefined;
+    /** Whether this glucose value is smoothed or unsmoothed.
+Accepted values: "Smoothed", "Unsmoothed". Case-insensitive. Null for unknown. */
+    glucoseProcessing?: string | undefined;
+    /** Smoothed glucose value in mg/dL, when known. */
+    smoothedMgdl?: number | undefined;
+    /** Unsmoothed (raw) glucose value in mg/dL, when known. */
+    unsmoothedMgdl?: number | undefined;
 }
 
 /** Top-level snapshot of all tenants and their associated identity/config data. Used for dev-only export/import of non-clinical setup state. */
@@ -27058,6 +27090,8 @@ export interface ApsSnapshot {
     predictedUamJson?: string | undefined;
     predictedStartTimestamp?: Date | undefined;
     predictedStartMills?: number | undefined;
+    loopJson?: string | undefined;
+    aidVersion?: string | undefined;
     additionalProperties?: { [key: string]: any; } | undefined;
 }
 
@@ -27259,6 +27293,8 @@ export interface PumpSnapshot {
     pumpStatus?: string | undefined;
     clock?: string | undefined;
     deviceId?: string | undefined;
+    iob?: number | undefined;
+    bolusIob?: number | undefined;
     additionalProperties?: { [key: string]: any; } | undefined;
 }
 

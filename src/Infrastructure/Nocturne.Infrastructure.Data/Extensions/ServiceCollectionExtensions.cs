@@ -116,12 +116,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDeduplicationService, DeduplicationService>();
 
         // Register all repositories via their port interfaces
-        services.AddScoped<IEntryRepository, EntryRepository>();
-        services.AddScoped<ITreatmentRepository, TreatmentRepository>();
-        services.AddScoped<IProfileRepository, ProfileRepository>();
-        services.AddScoped<IDeviceStatusRepository, DeviceStatusRepository>();
         services.AddScoped<IFoodRepository, FoodRepository>();
-        services.AddScoped<IActivityRepository, ActivityRepository>();
+
         services.AddScoped<ISettingsRepository, SettingsRepository>();
 
         // Register Nightscout query parser
@@ -254,12 +250,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDeduplicationService, DeduplicationService>();
 
         // Register all repositories via their port interfaces
-        services.AddScoped<IEntryRepository, EntryRepository>();
-        services.AddScoped<ITreatmentRepository, TreatmentRepository>();
-        services.AddScoped<IProfileRepository, ProfileRepository>();
-        services.AddScoped<IDeviceStatusRepository, DeviceStatusRepository>();
         services.AddScoped<IFoodRepository, FoodRepository>();
-        services.AddScoped<IActivityRepository, ActivityRepository>();
+
         services.AddScoped<ISettingsRepository, SettingsRepository>();
 
         // Register Nightscout query parser
@@ -323,10 +315,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITrackerRepository, TrackerRepository>();
         services.AddScoped<IStateSpanRepository, StateSpanRepository>();
         services.AddScoped<ISystemEventRepository, SystemEventRepository>();
-        services.AddScoped<ITreatmentFoodRepository, TreatmentFoodRepository>();
         services.AddScoped<IUserFoodFavoriteRepository, UserFoodFavoriteRepository>();
-        services.AddScoped<EntryRepository>();
-        services.AddScoped<TreatmentRepository>();
+        services.AddScoped<ITreatmentFoodRepository, TreatmentFoodRepository>();
         return services;
     }
 }

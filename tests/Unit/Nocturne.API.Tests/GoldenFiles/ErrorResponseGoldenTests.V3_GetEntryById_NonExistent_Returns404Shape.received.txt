@@ -1,5 +1,0 @@
-﻿{
-  StatusCode: 404,
-  ContentType: application/problem+json; charset=utf-8,
-  Body: {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.5","title":"Not Found","status":404,"traceId": "{scrubbed}"}
-}
