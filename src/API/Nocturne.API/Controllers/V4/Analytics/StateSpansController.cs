@@ -27,6 +27,7 @@ namespace Nocturne.API.Controllers.V4.Analytics;
 /// <seealso cref="StateSpan"/>
 /// <seealso cref="StateSpanCategory"/>
 [ApiController]
+[Tags("State Spans")]
 [Route("api/v4/state-spans")]
 [Authorize]
 public class StateSpansController : ControllerBase

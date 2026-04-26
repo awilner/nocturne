@@ -10,10 +10,10 @@ using OpenApi.Remote.Attributes;
 namespace Nocturne.API.Controllers.V4.Health;
 
 /// <summary>
-/// Controller for step count data recorded by xDrip via the PebbleMovement protocol.
+/// Controller for step count data from diabetes apps and wearables.
 /// </summary>
 /// <remarks>
-/// Step count readings are ingested from xDrip and stored as time-series observations.
+/// Step count readings are stored as time-series observations.
 /// All operations delegate to <see cref="IStepCountService"/>. Callers must hold the
 /// appropriate scope (<c>read:health</c> or <c>write:health</c>).
 /// </remarks>

@@ -186,6 +186,7 @@ builder.Services.AddOpenApiDocument(config =>
 
     config.OperationProcessors.Add(new RemoteFunctionOperationProcessor());
     config.OperationProcessors.Add(new ControllerNameTagOperationProcessor());
+    config.OperationProcessors.Add(new SummaryToDescriptionOperationProcessor());
 
     config.PostProcess = document =>
     {
@@ -206,6 +207,7 @@ builder.Services.AddOpenApi("nocturne", options =>
             || ns.Contains(".Controllers.Authentication")
             || ns == "Nocturne.API.Controllers";
     };
+    options.AddOperationTransformer<SummaryToDescriptionOperationTransformer>();
     options.AddOperationTransformer<FolderBasedTagOperationTransformer>();
     options.AddOperationTransformer<SecurityRequirementOperationTransformer>();
     options.AddDocumentTransformer<TagDescriptionDocumentTransformer>();
@@ -226,6 +228,7 @@ builder.Services.AddOpenApi("nightscout", options =>
             || ns.Contains(".Controllers.V3.")
             || ns.EndsWith(".Controllers.V3", StringComparison.Ordinal);
     };
+    options.AddOperationTransformer<SummaryToDescriptionOperationTransformer>();
     options.AddOperationTransformer<FolderBasedTagOperationTransformer>();
     options.AddOperationTransformer<SecurityRequirementOperationTransformer>();
     options.AddDocumentTransformer<TagDescriptionDocumentTransformer>();
