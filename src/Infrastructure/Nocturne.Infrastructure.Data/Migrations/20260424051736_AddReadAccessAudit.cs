@@ -11,32 +11,22 @@ namespace Nocturne.Infrastructure.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "is_default",
-                table: "tenants");
+            migrationBuilder.Sql("ALTER TABLE tenants DROP COLUMN IF EXISTS is_default;");
 
-            migrationBuilder.CreateTable(
-                name: "coach_mark_states",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    tenant_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    subject_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    mark_key = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    seen_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    completed_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_coach_mark_states", x => x.id);
-                    table.ForeignKey(
-                        name: "FK_coach_mark_states_tenants_tenant_id",
-                        column: x => x.tenant_id,
-                        principalTable: "tenants",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+            // coach_mark_states may already exist from AddCoachMarkStates migration
+            migrationBuilder.Sql("""
+                CREATE TABLE IF NOT EXISTS coach_mark_states (
+                    id uuid NOT NULL,
+                    tenant_id uuid NOT NULL,
+                    subject_id uuid NOT NULL,
+                    mark_key character varying(255) NOT NULL,
+                    status character varying(50) NOT NULL,
+                    seen_at timestamp with time zone,
+                    completed_at timestamp with time zone,
+                    CONSTRAINT "PK_coach_mark_states" PRIMARY KEY (id),
+                    CONSTRAINT "FK_coach_mark_states_tenants_tenant_id" FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+                );
+                """);
 
             migrationBuilder.CreateTable(
                 name: "read_access_log",
@@ -92,16 +82,12 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_coach_mark_states_subject_id_mark_key",
-                table: "coach_mark_states",
-                columns: new[] { "subject_id", "mark_key" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_coach_mark_states_tenant_id",
-                table: "coach_mark_states",
-                column: "tenant_id");
+            migrationBuilder.Sql("""
+                CREATE UNIQUE INDEX IF NOT EXISTS "IX_coach_mark_states_subject_id_mark_key"
+                    ON coach_mark_states (subject_id, mark_key);
+                CREATE INDEX IF NOT EXISTS "IX_coach_mark_states_tenant_id"
+                    ON coach_mark_states (tenant_id);
+                """);
 
             migrationBuilder.CreateIndex(
                 name: "ix_read_access_log_correlation",

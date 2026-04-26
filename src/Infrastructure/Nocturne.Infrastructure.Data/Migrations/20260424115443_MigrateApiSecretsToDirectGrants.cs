@@ -20,7 +20,9 @@ namespace Nocturne.Infrastructure.Data.Migrations
                     FOR r IN
                         SELECT t.id AS tenant_id, t.api_secret_hash, tm.subject_id AS owner_id
                         FROM tenants t
-                        INNER JOIN tenant_memberships tm ON tm.tenant_id = t.id AND tm.is_owner = true
+                        INNER JOIN tenant_members tm ON tm.tenant_id = t.id AND tm.revoked_at IS NULL
+                        INNER JOIN tenant_member_roles tmr ON tmr.tenant_member_id = tm.id
+                        INNER JOIN tenant_roles tr ON tr.id = tmr.tenant_role_id AND tr.slug = 'owner'
                         WHERE t.api_secret_hash IS NOT NULL
                     LOOP
                         PERFORM set_config('app.current_tenant_id', r.tenant_id::text, true);
@@ -43,9 +45,7 @@ namespace Nocturne.Infrastructure.Data.Migrations
                 END $$;
                 """);
 
-            migrationBuilder.DropColumn(
-                name: "api_secret_hash",
-                table: "tenants");
+            migrationBuilder.Sql("ALTER TABLE tenants DROP COLUMN IF EXISTS api_secret_hash;");
         }
 
         /// <inheritdoc />
