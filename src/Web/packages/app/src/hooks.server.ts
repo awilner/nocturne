@@ -337,6 +337,7 @@ const proxyHandle: Handle = async ({ event, resolve }) => {
       body: event.request.method !== "GET" && event.request.method !== "HEAD"
         ? await event.request.arrayBuffer()
         : undefined,
+      redirect: "manual",
     });
 
 
