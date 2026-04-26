@@ -33,6 +33,27 @@ public interface IStateSpanRepository
         bool? active = null,
         int count = 100,
         int skip = 0,
+        bool descending = true,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Counts state spans matching the specified filters.
+    /// </summary>
+    /// <param name="category">Optional <see cref="StateSpanCategory"/> filter.</param>
+    /// <param name="state">Optional state string filter.</param>
+    /// <param name="from">Optional start of the time range (inclusive).</param>
+    /// <param name="to">Optional end of the time range (inclusive).</param>
+    /// <param name="source">Optional data source filter.</param>
+    /// <param name="active">When set, filters to only active or only ended spans.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The total number of matching records.</returns>
+    Task<int> CountStateSpansAsync(
+        StateSpanCategory? category = null,
+        string? state = null,
+        DateTime? from = null,
+        DateTime? to = null,
+        string? source = null,
+        bool? active = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

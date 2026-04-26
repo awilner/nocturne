@@ -96,6 +96,11 @@ public static class ServiceNames
     public const string HomeAssistantConnector = "home-assistant-connector";
 
     /// <summary>
+    /// Aspire resource name for the NocturneRemote connector service.
+    /// </summary>
+    public const string NocturneRemoteConnector = "nocturne-remote-connector";
+
+    /// <summary>
     /// Aspire parameter names resolved by the AppHost via <c>AddParameter</c> and
     /// by services reading <c>Parameters:&lt;name&gt;</c> from configuration.
     /// </summary>

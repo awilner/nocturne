@@ -40,6 +40,7 @@ export * from './memberInvites.generated.remote';
 export * from './myPermissions.generated.remote';
 export { getMyTenants, validateSlug } from './myTenants.generated.remote';
 export * from './roles.generated.remote';
+export * from './activities.generated.remote';
 export { getBodyWeights, getBodyWeight, updateBodyWeight, deleteBodyWeight } from './bodyWeights.generated.remote';
 export * from './heartRates.generated.remote';
 export * from './patientRecords.generated.remote';

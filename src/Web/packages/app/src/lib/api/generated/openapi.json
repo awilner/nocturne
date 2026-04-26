@@ -5040,6 +5040,49 @@
         "x-remote-type": "query"
       }
     },
+    "/api/v4/profile/records": {
+      "get": {
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Get legacy Nightscout-shaped profile records projected from V4 schedule data.\nIntended for connector consumption where the caller needs the monolithic\nProfile shape (store with basal/carbratio/sens/target arrays).",
+        "operationId": "Profile_GetProfileRecords",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            },
+            "x-position": 1
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponseOfProfile"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v4/profile/settings": {
       "get": {
         "tags": [
@@ -11714,6 +11757,225 @@
         ]
       }
     },
+    "/api/v4/Activity": {
+      "get": {
+        "tags": [
+          "Activity"
+        ],
+        "summary": "Get activity records with pagination",
+        "operationId": "Activity_GetActivities",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            },
+            "x-position": 1
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponseOfActivity"
+                }
+              }
+            }
+          }
+        },
+        "x-remote-type": "query"
+      },
+      "post": {
+        "tags": [
+          "Activity"
+        ],
+        "summary": "Create one or more activity records",
+        "operationId": "Activity_CreateActivities",
+        "requestBody": {
+          "x-name": "requests",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/UpsertActivityRequest"
+                }
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Activity"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v4/Activity/{id}": {
+      "get": {
+        "tags": [
+          "Activity"
+        ],
+        "summary": "Get a specific activity record by ID",
+        "operationId": "Activity_GetActivity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Activity"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-remote-type": "query"
+      },
+      "put": {
+        "tags": [
+          "Activity"
+        ],
+        "summary": "Update an existing activity record",
+        "operationId": "Activity_UpdateActivity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertActivityRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Activity"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Activity"
+        ],
+        "summary": "Delete an activity record by ID",
+        "operationId": "Activity_DeleteActivity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v4/body-weight": {
       "get": {
         "tags": [
@@ -17176,7 +17438,7 @@
             "x-position": 6
           },
           {
-            "name": "count",
+            "name": "limit",
             "in": "query",
             "schema": {
               "type": "integer",
@@ -17186,7 +17448,7 @@
             "x-position": 7
           },
           {
-            "name": "skip",
+            "name": "offset",
             "in": "query",
             "schema": {
               "type": "integer",
@@ -17194,6 +17456,15 @@
               "default": 0
             },
             "x-position": 8
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "timestamp_desc"
+            },
+            "x-position": 9
           }
         ],
         "responses": {
@@ -17202,10 +17473,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StateSpan"
-                  }
+                  "$ref": "#/components/schemas/PaginatedResponseOfStateSpan"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -17276,6 +17554,35 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            },
+            "x-position": 3
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "x-position": 4
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "timestamp_desc"
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -17284,10 +17591,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StateSpan"
-                  }
+                  "$ref": "#/components/schemas/PaginatedResponseOfStateSpan"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -17322,6 +17636,35 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            },
+            "x-position": 3
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "x-position": 4
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "timestamp_desc"
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -17330,10 +17673,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StateSpan"
-                  }
+                  "$ref": "#/components/schemas/PaginatedResponseOfStateSpan"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -17368,6 +17718,35 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            },
+            "x-position": 3
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "x-position": 4
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "timestamp_desc"
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -17376,10 +17755,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StateSpan"
-                  }
+                  "$ref": "#/components/schemas/PaginatedResponseOfStateSpan"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -17414,6 +17800,35 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            },
+            "x-position": 3
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "x-position": 4
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "timestamp_desc"
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -17422,10 +17837,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StateSpan"
-                  }
+                  "$ref": "#/components/schemas/PaginatedResponseOfStateSpan"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -17460,6 +17882,35 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            },
+            "x-position": 3
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "x-position": 4
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "timestamp_desc"
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -17468,10 +17919,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StateSpan"
-                  }
+                  "$ref": "#/components/schemas/PaginatedResponseOfStateSpan"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -17506,6 +17964,35 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            },
+            "x-position": 3
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "x-position": 4
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "timestamp_desc"
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -17514,10 +18001,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StateSpan"
-                  }
+                  "$ref": "#/components/schemas/PaginatedResponseOfStateSpan"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -17552,6 +18046,35 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            },
+            "x-position": 3
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "x-position": 4
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "timestamp_desc"
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -17560,10 +18083,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StateSpan"
-                  }
+                  "$ref": "#/components/schemas/PaginatedResponseOfStateSpan"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -17598,6 +18128,35 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            },
+            "x-position": 3
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "x-position": 4
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "timestamp_desc"
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -17606,10 +18165,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StateSpan"
-                  }
+                  "$ref": "#/components/schemas/PaginatedResponseOfStateSpan"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -17644,6 +18210,35 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            },
+            "x-position": 3
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "x-position": 4
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "timestamp_desc"
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -17652,10 +18247,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StateSpan"
-                  }
+                  "$ref": "#/components/schemas/PaginatedResponseOfStateSpan"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -17690,6 +18292,35 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            },
+            "x-position": 3
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "x-position": 4
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "timestamp_desc"
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -17698,10 +18329,17 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StateSpan"
-                  }
+                  "$ref": "#/components/schemas/PaginatedResponseOfStateSpan"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -27032,6 +27670,177 @@
           }
         }
       },
+      "PaginatedResponseOfProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Profile"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationInfo"
+          }
+        }
+      },
+      "Profile": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "defaultProfile": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string"
+          },
+          "mills": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "created_at": {
+            "type": "string",
+            "nullable": true
+          },
+          "units": {
+            "type": "string"
+          },
+          "store": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ProfileData"
+            }
+          },
+          "enteredBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "loopSettings": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/LoopProfileSettings"
+              }
+            ]
+          },
+          "isExternallyManaged": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ProfileData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "dia": {
+            "type": "number",
+            "format": "double"
+          },
+          "carbs_hr": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "delay": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "timezone": {
+            "type": "string",
+            "nullable": true
+          },
+          "units": {
+            "type": "string",
+            "nullable": true
+          },
+          "perGIvalues": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "carbs_hr_high": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "carbs_hr_medium": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "carbs_hr_low": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "delay_high": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "delay_medium": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "delay_low": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "basal": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeValue"
+            }
+          },
+          "carbratio": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeValue"
+            }
+          },
+          "sens": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeValue"
+            }
+          },
+          "target_low": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeValue"
+            }
+          },
+          "target_high": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeValue"
+            }
+          }
+        }
+      },
+      "TimeValue": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "time": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number",
+            "format": "double"
+          },
+          "timeAsSeconds": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        }
+      },
       "PaginatedResponseOfTherapySettings": {
         "type": "object",
         "additionalProperties": false,
@@ -31755,6 +32564,183 @@
           }
         }
       },
+      "PaginatedResponseOfActivity": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Activity"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationInfo"
+          }
+        }
+      },
+      "Activity": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProcessableDocumentBase"
+          },
+          {
+            "type": "object",
+            "additionalProperties": {},
+            "properties": {
+              "_id": {
+                "type": "string",
+                "nullable": true
+              },
+              "created_at": {
+                "type": "string",
+                "nullable": true
+              },
+              "timestamp": {
+                "type": "integer",
+                "format": "int64",
+                "nullable": true
+              },
+              "mills": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "utcOffset": {
+                "type": "integer",
+                "format": "int32",
+                "nullable": true
+              },
+              "type": {
+                "type": "string",
+                "nullable": true
+              },
+              "description": {
+                "type": "string",
+                "nullable": true
+              },
+              "duration": {
+                "type": "number",
+                "format": "double",
+                "nullable": true
+              },
+              "intensity": {
+                "type": "string",
+                "nullable": true
+              },
+              "notes": {
+                "type": "string",
+                "nullable": true
+              },
+              "enteredBy": {
+                "type": "string",
+                "nullable": true
+              },
+              "dateString": {
+                "type": "string",
+                "nullable": true
+              },
+              "distance": {
+                "type": "number",
+                "format": "double",
+                "nullable": true
+              },
+              "distanceUnits": {
+                "type": "string",
+                "nullable": true
+              },
+              "energy": {
+                "type": "number",
+                "format": "double",
+                "nullable": true
+              },
+              "energyUnits": {
+                "type": "string",
+                "nullable": true
+              },
+              "name": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          }
+        ]
+      },
+      "UpsertActivityRequest": {
+        "type": "object",
+        "description": "Request body for upserting an activity record via the V4 API.",
+        "additionalProperties": false,
+        "properties": {
+          "mills": {
+            "type": "integer",
+            "description": "When the activity occurred, as a Unix millisecond timestamp.",
+            "format": "int64"
+          },
+          "utcOffset": {
+            "type": "integer",
+            "description": "UTC offset in minutes at the time of the event, for local-time display.",
+            "format": "int32",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "description": "Activity type or category (e.g., \"exercise\", \"walk\", \"run\").",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "description": "Activity description or notes.",
+            "nullable": true
+          },
+          "duration": {
+            "type": "number",
+            "description": "Duration of the activity in minutes.",
+            "format": "double",
+            "nullable": true
+          },
+          "intensity": {
+            "type": "string",
+            "description": "Intensity level of the activity.",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes about the activity.",
+            "nullable": true
+          },
+          "enteredBy": {
+            "type": "string",
+            "description": "Name of the application or person that submitted this record.",
+            "nullable": true
+          },
+          "distance": {
+            "type": "number",
+            "description": "Distance covered during the activity.",
+            "format": "double",
+            "nullable": true
+          },
+          "distanceUnits": {
+            "type": "string",
+            "description": "Units for distance (e.g., \"meters\", \"kilometers\", \"miles\").",
+            "nullable": true
+          },
+          "energy": {
+            "type": "number",
+            "description": "Energy expended during the activity (calories).",
+            "format": "double",
+            "nullable": true
+          },
+          "energyUnits": {
+            "type": "string",
+            "description": "Units for energy (e.g., \"calories\", \"kilocalories\", \"joules\").",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "Name or title of the activity.",
+            "nullable": true
+          }
+        }
+      },
       "BodyWeight": {
         "allOf": [
           {
@@ -36326,6 +37312,21 @@
           },
           "isTemp": {
             "type": "boolean"
+          }
+        }
+      },
+      "PaginatedResponseOfStateSpan": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StateSpan"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationInfo"
           }
         }
       },

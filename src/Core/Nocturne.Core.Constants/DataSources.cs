@@ -97,6 +97,11 @@ public static class DataSources
     /// </summary>
     public const string HomeAssistantConnector = "home-assistant-connector";
 
+    /// <summary>
+    /// Data pulled from a remote Nocturne instance via the NocturneRemote connector.
+    /// </summary>
+    public const string NocturneRemoteConnector = "nocturne-remote-connector";
+
     // ============================================================================
     // Manual Entry Sources
     // ============================================================================
@@ -217,7 +222,8 @@ public static class DataSources
                 or NightscoutConnector
                 or TidepoolConnector
                 or TConnectSyncConnector
-                or HomeAssistantConnector;
+                or HomeAssistantConnector
+                or NocturneRemoteConnector;
     }
 
     /// <summary>
@@ -271,6 +277,7 @@ public static class DataSources
             TidepoolConnector,
             TConnectSyncConnector,
             HomeAssistantConnector,
+            NocturneRemoteConnector,
             XDrip,
             Spike,
             ManualEntry,
