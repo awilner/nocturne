@@ -8,6 +8,25 @@ import { z } from 'zod';
 import { TherapySettingsSchema, BasalScheduleSchema, CarbRatioScheduleSchema, SensitivityScheduleSchema, TargetRangeScheduleSchema } from '$lib/api/generated/schemas';
 import { type TherapySettings, type BasalSchedule, type CarbRatioSchedule, type SensitivitySchedule, type TargetRangeSchedule } from '$api';
 
+/** Coerce FormData string values before Zod validation (booleans, empty → null) */
+function formCoerce<T extends z.ZodTypeAny>(schema: T) {
+  return z.preprocess((data: unknown) => {
+    if (typeof data !== 'object' || data === null) return data;
+    const out: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+      if (typeof value === 'object' && value !== null) {
+        // Recurse for nested objects (e.g. { id, request: { ... } })
+        out[key] = (z.preprocess as any).__formCoerceValue ? value : formCoerce(z.any()).parse(value);
+      } else if (value === 'true') out[key] = true;
+      else if (value === 'false') out[key] = false;
+      else if (value === 'on') out[key] = true;
+      else if (value === '') continue; // omit empty strings (nullable fields)
+      else out[key] = value;
+    }
+    return out;
+  }, schema) as unknown as T;
+}
+
 /** Get a consolidated summary of all profile data across all profile names.
 Optionally provide a date range to include schedule change detection info. */
 export const getProfileSummary = query(z.object({ from: z.coerce.date().optional(), to: z.coerce.date().optional() }).optional(), async (params) => {
@@ -38,7 +57,7 @@ export const getTherapySettings = query(z.object({ from: z.coerce.date().optiona
 });
 
 /** Create a new therapy settings record */
-export const createTherapySettings = form(TherapySettingsSchema as any, async (request) => {
+export const createTherapySettings = form(formCoerce(TherapySettingsSchema) as any, async (request) => {
   const apiClient = getRequestEvent().locals.apiClient;
   try {
     const result = await apiClient.profile.createTherapySettings(request as TherapySettings);
@@ -85,7 +104,7 @@ export const getTherapySettingsById = query(z.string(), async (id) => {
 });
 
 /** Update an existing therapy settings record */
-export const updateTherapySettings = form(z.object({ id: z.string(), request: TherapySettingsSchema }) as any, async ({ id, request }) => {
+export const updateTherapySettings = form(formCoerce(z.object({ id: z.string(), request: TherapySettingsSchema })) as any, async ({ id, request }) => {
   const apiClient = getRequestEvent().locals.apiClient;
   try {
     const result = await apiClient.profile.updateTherapySettings(id, request as TherapySettings);
@@ -152,7 +171,7 @@ export const getBasalScheduleById = query(z.string(), async (id) => {
 });
 
 /** Create a new basal schedule */
-export const createBasalSchedule = form(BasalScheduleSchema as any, async (request) => {
+export const createBasalSchedule = form(formCoerce(BasalScheduleSchema) as any, async (request) => {
   const apiClient = getRequestEvent().locals.apiClient;
   try {
     const result = await apiClient.profile.createBasalSchedule(request as BasalSchedule);
@@ -170,7 +189,7 @@ export const createBasalSchedule = form(BasalScheduleSchema as any, async (reque
 });
 
 /** Update an existing basal schedule */
-export const updateBasalSchedule = form(z.object({ id: z.string(), request: BasalScheduleSchema }) as any, async ({ id, request }) => {
+export const updateBasalSchedule = form(formCoerce(z.object({ id: z.string(), request: BasalScheduleSchema })) as any, async ({ id, request }) => {
   const apiClient = getRequestEvent().locals.apiClient;
   try {
     const result = await apiClient.profile.updateBasalSchedule(id, request as BasalSchedule);

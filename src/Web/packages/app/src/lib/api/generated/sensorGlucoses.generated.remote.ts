@@ -8,6 +8,25 @@ import { z } from 'zod';
 import { UpsertSensorGlucoseRequestSchema } from '$lib/api/generated/schemas';
 import { type UpsertSensorGlucoseRequest } from '$api';
 
+/** Coerce FormData string values before Zod validation (booleans, empty → null) */
+function formCoerce<T extends z.ZodTypeAny>(schema: T) {
+  return z.preprocess((data: unknown) => {
+    if (typeof data !== 'object' || data === null) return data;
+    const out: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+      if (typeof value === 'object' && value !== null) {
+        // Recurse for nested objects (e.g. { id, request: { ... } })
+        out[key] = (z.preprocess as any).__formCoerceValue ? value : formCoerce(z.any()).parse(value);
+      } else if (value === 'true') out[key] = true;
+      else if (value === 'false') out[key] = false;
+      else if (value === 'on') out[key] = true;
+      else if (value === '') continue; // omit empty strings (nullable fields)
+      else out[key] = value;
+    }
+    return out;
+  }, schema) as unknown as T;
+}
+
 export const getAll = query(z.object({ from: z.coerce.date().optional(), to: z.coerce.date().optional(), limit: z.number().optional(), offset: z.number().optional(), sort: z.string().optional(), device: z.string().optional(), source: z.string().optional() }).optional(), async (params) => {
   const apiClient = getRequestEvent().locals.apiClient;
   try {
@@ -21,7 +40,7 @@ export const getAll = query(z.object({ from: z.coerce.date().optional(), to: z.c
   }
 });
 
-export const create = form(UpsertSensorGlucoseRequestSchema as any, async (request) => {
+export const create = form(formCoerce(UpsertSensorGlucoseRequestSchema) as any, async (request) => {
   const apiClient = getRequestEvent().locals.apiClient;
   try {
     const result = await apiClient.sensorGlucose.create(request as UpsertSensorGlucoseRequest);
@@ -49,7 +68,7 @@ export const getById = query(z.string(), async (id) => {
   }
 });
 
-export const update = form(z.object({ id: z.string(), request: UpsertSensorGlucoseRequestSchema }) as any, async ({ id, request }) => {
+export const update = form(formCoerce(z.object({ id: z.string(), request: UpsertSensorGlucoseRequestSchema })) as any, async ({ id, request }) => {
   const apiClient = getRequestEvent().locals.apiClient;
   try {
     const result = await apiClient.sensorGlucose.update(id, request as UpsertSensorGlucoseRequest);

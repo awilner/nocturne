@@ -8,6 +8,25 @@ import { z } from 'zod';
 import { CreateTrackerDefinitionRequestSchema, UpdateTrackerDefinitionRequestSchema, StartTrackerInstanceRequestSchema, CompleteTrackerInstanceRequestSchema, AckTrackerRequestSchema, CreateTrackerPresetRequestSchema, ApplyPresetRequestSchema } from '$lib/api/generated/schemas';
 import { TrackerCategory, type CreateTrackerDefinitionRequest, type UpdateTrackerDefinitionRequest, type StartTrackerInstanceRequest, type CompleteTrackerInstanceRequest, type AckTrackerRequest, type CreateTrackerPresetRequest, type ApplyPresetRequest } from '$api';
 
+/** Coerce FormData string values before Zod validation (booleans, empty → null) */
+function formCoerce<T extends z.ZodTypeAny>(schema: T) {
+  return z.preprocess((data: unknown) => {
+    if (typeof data !== 'object' || data === null) return data;
+    const out: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+      if (typeof value === 'object' && value !== null) {
+        // Recurse for nested objects (e.g. { id, request: { ... } })
+        out[key] = (z.preprocess as any).__formCoerceValue ? value : formCoerce(z.any()).parse(value);
+      } else if (value === 'true') out[key] = true;
+      else if (value === 'false') out[key] = false;
+      else if (value === 'on') out[key] = true;
+      else if (value === '') continue; // omit empty strings (nullable fields)
+      else out[key] = value;
+    }
+    return out;
+  }, schema) as unknown as T;
+}
+
 /** Get all tracker definitions. Returns public trackers for unauthenticated users,
 or all visible trackers for authenticated users. */
 export const getDefinitions = query(z.object({ category: z.enum(TrackerCategory).optional() }).optional(), async (params) => {
@@ -24,7 +43,7 @@ export const getDefinitions = query(z.object({ category: z.enum(TrackerCategory)
 });
 
 /** Create a new tracker definition */
-export const createDefinition = form(CreateTrackerDefinitionRequestSchema as any, async (request) => {
+export const createDefinition = form(formCoerce(CreateTrackerDefinitionRequestSchema) as any, async (request) => {
   const apiClient = getRequestEvent().locals.apiClient;
   try {
     const result = await apiClient.trackers.createDefinition(request as CreateTrackerDefinitionRequest);
@@ -56,7 +75,7 @@ export const getDefinition = query(z.string(), async (id) => {
 });
 
 /** Update a tracker definition */
-export const updateDefinition = form(z.object({ id: z.string(), request: UpdateTrackerDefinitionRequestSchema }) as any, async ({ id, request }) => {
+export const updateDefinition = form(formCoerce(z.object({ id: z.string(), request: UpdateTrackerDefinitionRequestSchema })) as any, async ({ id, request }) => {
   const apiClient = getRequestEvent().locals.apiClient;
   try {
     const result = await apiClient.trackers.updateDefinition(id, request as UpdateTrackerDefinitionRequest);

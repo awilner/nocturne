@@ -8,6 +8,25 @@ import { z } from 'zod';
 import { CreateCarbIntakeRequestSchema, UpdateCarbIntakeRequestSchema, CarbIntakeFoodRequestSchema, CreateMealRequestSchema } from '$lib/api/generated/schemas';
 import { type CreateCarbIntakeRequest, type UpdateCarbIntakeRequest, type CarbIntakeFoodRequest, type CreateMealRequest } from '$api';
 
+/** Coerce FormData string values before Zod validation (booleans, empty → null) */
+function formCoerce<T extends z.ZodTypeAny>(schema: T) {
+  return z.preprocess((data: unknown) => {
+    if (typeof data !== 'object' || data === null) return data;
+    const out: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+      if (typeof value === 'object' && value !== null) {
+        // Recurse for nested objects (e.g. { id, request: { ... } })
+        out[key] = (z.preprocess as any).__formCoerceValue ? value : formCoerce(z.any()).parse(value);
+      } else if (value === 'true') out[key] = true;
+      else if (value === 'false') out[key] = false;
+      else if (value === 'on') out[key] = true;
+      else if (value === '') continue; // omit empty strings (nullable fields)
+      else out[key] = value;
+    }
+    return out;
+  }, schema) as unknown as T;
+}
+
 /** Get carb intakes with optional filtering */
 export const getCarbIntakes = query(z.object({ from: z.coerce.date().optional(), to: z.coerce.date().optional(), limit: z.number().optional(), offset: z.number().optional(), sort: z.string().optional(), device: z.string().optional(), source: z.string().optional() }).optional(), async (params) => {
   const apiClient = getRequestEvent().locals.apiClient;
@@ -23,7 +42,7 @@ export const getCarbIntakes = query(z.object({ from: z.coerce.date().optional(),
 });
 
 /** Create a new carb intake */
-export const createCarbIntake = form(CreateCarbIntakeRequestSchema as any, async (request) => {
+export const createCarbIntake = form(formCoerce(CreateCarbIntakeRequestSchema) as any, async (request) => {
   const apiClient = getRequestEvent().locals.apiClient;
   try {
     const result = await apiClient.nutrition.createCarbIntake(request as CreateCarbIntakeRequest);
@@ -55,7 +74,7 @@ export const getCarbIntakeById = query(z.string(), async (id) => {
 });
 
 /** Update an existing carb intake */
-export const updateCarbIntake = form(z.object({ id: z.string(), request: UpdateCarbIntakeRequestSchema }) as any, async ({ id, request }) => {
+export const updateCarbIntake = form(formCoerce(z.object({ id: z.string(), request: UpdateCarbIntakeRequestSchema })) as any, async ({ id, request }) => {
   const apiClient = getRequestEvent().locals.apiClient;
   try {
     const result = await apiClient.nutrition.updateCarbIntake(id, request as UpdateCarbIntakeRequest);
@@ -181,7 +200,7 @@ Both records share a single CorrelationId and are persisted within a
 single transaction. When an existing row matches on
 (DataSource, SyncIdentifier), the idempotent upsert applies and the
 response returns 200 instead of 201. */
-export const createMeal = form(CreateMealRequestSchema as any, async (request) => {
+export const createMeal = form(formCoerce(CreateMealRequestSchema) as any, async (request) => {
   const apiClient = getRequestEvent().locals.apiClient;
   try {
     const result = await apiClient.nutrition.createMeal(request as CreateMealRequest);

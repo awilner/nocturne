@@ -6,10 +6,23 @@ import { getRequestEvent, command } from '$app/server';
 import { error, redirect } from '@sveltejs/kit';
 
 /** Upload or replace the current subject's avatar. Image is resized to 256x256 WebP. */
-export const upload = command(async () => {
+export const upload = command(async (file: File) => {
   const apiClient = getRequestEvent().locals.apiClient;
   try {
-    const result = await apiClient.avatar.upload();
+    const formData = new FormData();
+    formData.append('file', file);
+    const url = apiClient.baseUrl + '/api/v4/me/avatar';
+    const response = await (apiClient as any).http.fetch(url, {
+      body: formData,
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+    });
+    if (!response.ok) {
+      const err: any = new Error(`Upload failed (${response.status})`);
+      err.status = response.status;
+      throw err;
+    }
+    const result = await response.json();
     return result;
   } catch (err) {
     const status = (err as any)?.status;
