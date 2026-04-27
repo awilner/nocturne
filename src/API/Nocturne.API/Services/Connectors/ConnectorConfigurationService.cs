@@ -360,7 +360,7 @@ public class ConnectorConfigurationService : IConnectorConfigurationService
 
             var status = new ConnectorStatusInfo
             {
-                ConnectorName = connector.ConnectorName,
+                ConnectorName = connector.ConnectorName.ToLowerInvariant(),
                 IsEnabled = isEnabled,
                 HasDatabaseConfig = hasDbConfig,
                 HasSecrets = hasDbConfig && !string.IsNullOrEmpty(dbConfig!.SecretsJson) && dbConfig.SecretsJson != "{}",
