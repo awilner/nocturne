@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Caching.Memory;
 using Nocturne.Core.Contracts.Auth;
+using Nocturne.Core.Contracts.Multitenancy;
 using Nocturne.Core.Models.Authorization;
 
 namespace Nocturne.API.Middleware.Handlers;
@@ -74,6 +75,16 @@ public class GuestSessionHandler : IAuthHandler
         if (!_cache.TryGetValue(cacheKey, out GuestSessionInfo? session))
         {
             using var scope = _scopeFactory.CreateScope();
+
+            // Propagate tenant context into the child scope so RLS allows
+            // the oauth_grants query. Without this, the scoped DbContext has
+            // TenantId = Guid.Empty and RLS silently filters out the row.
+            if (context.Items["TenantContext"] is TenantContext tenantCtx)
+            {
+                var tenantAccessor = scope.ServiceProvider.GetRequiredService<ITenantAccessor>();
+                tenantAccessor.SetTenant(tenantCtx);
+            }
+
             var guestLinkService = scope.ServiceProvider.GetRequiredService<IGuestLinkService>();
             session = await guestLinkService.ValidateSessionAsync(grantId);
             _cache.Set(cacheKey, session, CacheDuration);
