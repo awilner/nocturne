@@ -105,6 +105,17 @@ public class AspireIntegrationTestFixture : IAsyncLifetime
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = """
             TRUNCATE TABLE
+                alert_deliveries,
+                alert_instances,
+                alert_excursions,
+                alert_invites,
+                alert_step_channels,
+                alert_escalation_steps,
+                alert_schedules,
+                alert_rules,
+                tracker_instances,
+                tracker_presets,
+                tracker_definitions,
                 in_app_notifications,
                 profiles,
                 settings,

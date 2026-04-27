@@ -404,6 +404,233 @@ public static class AuthTestHelpers
     }
 
     /// <summary>
+    /// Seeds a new tenant and creates the Public system subject tenant membership for it.
+    /// Returns the new tenant ID.
+    /// </summary>
+    public static async Task<Guid> SeedTenantAsync(
+        NpgsqlConnection conn,
+        string slug,
+        string displayName)
+    {
+        var tenantId = Guid.CreateVersion7();
+
+        await using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = """
+                INSERT INTO tenants (id, slug, display_name, is_active, created_at, updated_at)
+                VALUES (@id, @slug, @displayName, true, now(), now());
+                """;
+            cmd.Parameters.AddWithValue("id", tenantId);
+            cmd.Parameters.AddWithValue("slug", slug);
+            cmd.Parameters.AddWithValue("displayName", displayName);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        // Create Public system subject tenant member
+        await using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = """
+                INSERT INTO tenant_members (id, tenant_id, subject_id, sys_created_at, sys_updated_at, limit_to_24_hours)
+                SELECT @id, @tenantId, s.id, now(), now(), false
+                FROM subjects s
+                WHERE s.name = 'Public' AND s.is_system_subject = true
+                LIMIT 1;
+                """;
+            cmd.Parameters.AddWithValue("id", Guid.CreateVersion7());
+            cmd.Parameters.AddWithValue("tenantId", tenantId);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        return tenantId;
+    }
+
+    /// <summary>
+    /// Creates an HttpClient targeting a specific tenant by slug via the Host header.
+    /// </summary>
+    public static HttpClient CreateTenantClient(
+        AspireIntegrationTestFixture fixture,
+        string slug,
+        string baseDomain)
+    {
+        var client = fixture.CreateHttpClient("nocturne-api", "api");
+        client.DefaultRequestHeaders.Host = $"{slug}.{baseDomain}";
+        return client;
+    }
+
+    /// <summary>
+    /// Creates an authenticated HttpClient targeting a specific tenant by slug via the Host header.
+    /// Includes api-secret and Bearer authorization headers.
+    /// </summary>
+    public static HttpClient CreateAuthenticatedTenantClient(
+        AspireIntegrationTestFixture fixture,
+        string slug,
+        string baseDomain,
+        string accessToken,
+        string apiSecret = "test-secret-for-integration-tests")
+    {
+        var client = fixture.CreateHttpClient("nocturne-api", "api");
+        client.DefaultRequestHeaders.Host = $"{slug}.{baseDomain}";
+        client.DefaultRequestHeaders.Add("api-secret", apiSecret);
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+        return client;
+    }
+
+    /// <summary>
+    /// Extracts the base domain (host:port) from an HttpClient's BaseAddress.
+    /// </summary>
+    public static string GetBaseDomain(HttpClient apiClient)
+    {
+        var baseAddress = apiClient.BaseAddress
+            ?? throw new InvalidOperationException("HttpClient has no BaseAddress set.");
+        return $"{baseAddress.Host}:{baseAddress.Port}";
+    }
+
+    /// <summary>
+    /// Seeds an alert rule with a default schedule, escalation step, and step channel.
+    /// Returns the alert rule ID.
+    /// </summary>
+    public static async Task<Guid> SeedAlertRuleAsync(
+        NpgsqlConnection conn,
+        Guid tenantId,
+        string name = "Test High Alert",
+        string conditionType = "Threshold",
+        bool isEnabled = true)
+    {
+        var ruleId = Guid.CreateVersion7();
+        var scheduleId = Guid.CreateVersion7();
+        var stepId = Guid.CreateVersion7();
+        var channelId = Guid.CreateVersion7();
+
+        // Set RLS context
+        await using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = "SELECT set_config('app.current_tenant_id', @tenantId, false);";
+            cmd.Parameters.AddWithValue("tenantId", tenantId.ToString());
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        // Insert alert rule
+        await using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = """
+                INSERT INTO alert_rules (id, tenant_id, name, condition_type, condition_params, hysteresis_minutes, confirmation_readings, severity, is_enabled, sort_order, created_at, updated_at)
+                VALUES (@id, @tenantId, @name, @conditionType, '{"direction":"above","value":180}'::jsonb, 15, 2, 'Normal', @isEnabled, 0, now(), now());
+                """;
+            cmd.Parameters.AddWithValue("id", ruleId);
+            cmd.Parameters.AddWithValue("tenantId", tenantId);
+            cmd.Parameters.AddWithValue("name", name);
+            cmd.Parameters.AddWithValue("conditionType", conditionType);
+            cmd.Parameters.AddWithValue("isEnabled", isEnabled);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        // Insert alert schedule
+        await using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = """
+                INSERT INTO alert_schedules (id, tenant_id, alert_rule_id, name, is_default, timezone, quiet_hours_override_critical, created_at, updated_at)
+                VALUES (@id, @tenantId, @ruleId, 'Default', true, 'UTC', true, now(), now());
+                """;
+            cmd.Parameters.AddWithValue("id", scheduleId);
+            cmd.Parameters.AddWithValue("tenantId", tenantId);
+            cmd.Parameters.AddWithValue("ruleId", ruleId);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        // Insert alert escalation step
+        await using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = """
+                INSERT INTO alert_escalation_steps (id, tenant_id, alert_schedule_id, step_order, delay_seconds, created_at)
+                VALUES (@id, @tenantId, @scheduleId, 0, 0, now());
+                """;
+            cmd.Parameters.AddWithValue("id", stepId);
+            cmd.Parameters.AddWithValue("tenantId", tenantId);
+            cmd.Parameters.AddWithValue("scheduleId", scheduleId);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        // Insert alert step channel
+        await using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = """
+                INSERT INTO alert_step_channels (id, tenant_id, escalation_step_id, channel_type, destination, created_at)
+                VALUES (@id, @tenantId, @stepId, 'WebPush', 'default', now());
+                """;
+            cmd.Parameters.AddWithValue("id", channelId);
+            cmd.Parameters.AddWithValue("tenantId", tenantId);
+            cmd.Parameters.AddWithValue("stepId", stepId);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        return ruleId;
+    }
+
+    /// <summary>
+    /// Seeds an alert excursion and associated alert instance for a given rule.
+    /// Returns the excursion ID and instance ID.
+    /// </summary>
+    public static async Task<(Guid ExcursionId, Guid InstanceId)> SeedAlertExcursionAsync(
+        NpgsqlConnection conn,
+        Guid tenantId,
+        Guid alertRuleId,
+        DateTime? acknowledgedAt = null)
+    {
+        var excursionId = Guid.CreateVersion7();
+        var instanceId = Guid.CreateVersion7();
+
+        // Set RLS context
+        await using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = "SELECT set_config('app.current_tenant_id', @tenantId, false);";
+            cmd.Parameters.AddWithValue("tenantId", tenantId.ToString());
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        // Insert alert excursion
+        await using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = """
+                INSERT INTO alert_excursions (id, tenant_id, alert_rule_id, started_at, acknowledged_at)
+                VALUES (@id, @tenantId, @ruleId, now(), @acknowledgedAt);
+                """;
+            cmd.Parameters.AddWithValue("id", excursionId);
+            cmd.Parameters.AddWithValue("tenantId", tenantId);
+            cmd.Parameters.AddWithValue("ruleId", alertRuleId);
+            cmd.Parameters.AddWithValue("acknowledgedAt", (object?)acknowledgedAt ?? DBNull.Value);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        // Find schedule for the rule
+        Guid scheduleId;
+        await using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = "SELECT id FROM alert_schedules WHERE alert_rule_id = @ruleId LIMIT 1;";
+            cmd.Parameters.AddWithValue("ruleId", alertRuleId);
+            var result = await cmd.ExecuteScalarAsync()
+                         ?? throw new InvalidOperationException(
+                             $"No alert schedule found for rule {alertRuleId}.");
+            scheduleId = (Guid)result;
+        }
+
+        // Insert alert instance
+        await using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = """
+                INSERT INTO alert_instances (id, tenant_id, alert_excursion_id, alert_schedule_id, current_step_order, status, triggered_at, snooze_count)
+                VALUES (@id, @tenantId, @excursionId, @scheduleId, 0, 'active', now(), 0);
+                """;
+            cmd.Parameters.AddWithValue("id", instanceId);
+            cmd.Parameters.AddWithValue("tenantId", tenantId);
+            cmd.Parameters.AddWithValue("excursionId", excursionId);
+            cmd.Parameters.AddWithValue("scheduleId", scheduleId);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        return (excursionId, instanceId);
+    }
+
+    /// <summary>
     /// Computes the SHA-256 hash of a string, returned as lowercase hex.
     /// Matches DirectGrantTokenHandler.ComputeSha256Hex.
     /// </summary>
