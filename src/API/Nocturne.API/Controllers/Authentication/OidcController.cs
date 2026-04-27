@@ -456,6 +456,7 @@ public class OidcController : ControllerBase
     /// <response code="401">No refresh token found, or refresh token is invalid/expired.</response>
     [HttpPost("refresh")]
     [AllowAnonymous]
+    [AllowDuringSetup]
     [ProducesResponseType(typeof(OidcTokenResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<OidcTokenResponse>> Refresh()
@@ -582,6 +583,7 @@ public class OidcController : ControllerBase
     /// <response code="200">Session information (always returns 200).</response>
     [HttpGet("session")]
     [AllowAnonymous]
+    [AllowDuringSetup]
     [ProducesResponseType(typeof(SessionInfo), StatusCodes.Status200OK)]
     public async Task<ActionResult<SessionInfo>> GetSession()
     {
