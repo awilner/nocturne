@@ -169,11 +169,11 @@
           Color Theme
         </CardTitle>
         <CardDescription>
-          Choose between Nocturne's custom theme or match the Trio iOS app
+          Choose a color theme that matches your preferred app experience
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">
-        <div class="grid gap-4 sm:grid-cols-2">
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <!-- Nocturne Theme -->
           <button
             type="button"
@@ -181,11 +181,7 @@
             'nocturne'
               ? 'border-primary bg-accent/30'
               : 'border-border'}"
-            onclick={() => {
-              if (currentTheme !== "nocturne") {
-                handleThemeChange("nocturne");
-              }
-            }}
+            onclick={() => handleThemeChange("nocturne")}
           >
             {#if currentTheme === "nocturne"}
               <Badge class="absolute right-2 top-2" variant="default">
@@ -194,9 +190,8 @@
             {/if}
             <div class="font-semibold">Nocturne</div>
             <p class="text-sm text-muted-foreground">
-              Custom color palette designed for Nocturne
+              Custom palette designed for Nocturne
             </p>
-            <!-- Color preview -->
             <div class="flex gap-1 mt-2">
               <div
                 class="h-4 w-4 rounded-full"
@@ -233,11 +228,7 @@
             'trio'
               ? 'border-primary bg-accent/30'
               : 'border-border'}"
-            onclick={() => {
-              if (currentTheme !== "trio") {
-                handleThemeChange("trio");
-              }
-            }}
+            onclick={() => handleThemeChange("trio")}
           >
             {#if currentTheme === "trio"}
               <Badge class="absolute right-2 top-2" variant="default">
@@ -248,7 +239,6 @@
             <p class="text-sm text-muted-foreground">
               Match the Trio iOS app color scheme
             </p>
-            <!-- Color preview -->
             <div class="flex gap-1 mt-2">
               <div
                 class="h-4 w-4 rounded-full"
@@ -274,6 +264,100 @@
                 class="h-4 w-4 rounded-full"
                 style="background: rgb(255, 240, 23)"
                 title="Carbs"
+              ></div>
+            </div>
+          </button>
+
+          <!-- AAPS Theme -->
+          <button
+            type="button"
+            class="relative flex flex-col items-start gap-2 rounded-lg border-2 p-4 text-left transition-colors hover:bg-accent/50 {currentTheme ===
+            'aaps'
+              ? 'border-primary bg-accent/30'
+              : 'border-border'}"
+            onclick={() => handleThemeChange("aaps")}
+          >
+            {#if currentTheme === "aaps"}
+              <Badge class="absolute right-2 top-2" variant="default">
+                Active
+              </Badge>
+            {/if}
+            <div class="font-semibold">AAPS</div>
+            <p class="text-sm text-muted-foreground">
+              Match the AndroidAPS color scheme
+            </p>
+            <div class="flex gap-1 mt-2">
+              <div
+                class="h-4 w-4 rounded-full"
+                style="background: #006493"
+                title="Primary Blue"
+              ></div>
+              <div
+                class="h-4 w-4 rounded-full"
+                style="background: #006A5F"
+                title="Teal Secondary"
+              ></div>
+              <div
+                class="h-4 w-4 rounded-full"
+                style="background: #00FF00"
+                title="In Range"
+              ></div>
+              <div
+                class="h-4 w-4 rounded-full"
+                style="background: #FFFF00"
+                title="Warning"
+              ></div>
+              <div
+                class="h-4 w-4 rounded-full"
+                style="background: #40bbaa"
+                title="Accent"
+              ></div>
+            </div>
+          </button>
+
+          <!-- Classic Theme -->
+          <button
+            type="button"
+            class="relative flex flex-col items-start gap-2 rounded-lg border-2 p-4 text-left transition-colors hover:bg-accent/50 {currentTheme ===
+            'classic'
+              ? 'border-primary bg-accent/30'
+              : 'border-border'}"
+            onclick={() => handleThemeChange("classic")}
+          >
+            {#if currentTheme === "classic"}
+              <Badge class="absolute right-2 top-2" variant="default">
+                Active
+              </Badge>
+            {/if}
+            <div class="font-semibold">Classic</div>
+            <p class="text-sm text-muted-foreground">
+              Legacy Nightscout dark theme
+            </p>
+            <div class="flex gap-1 mt-2">
+              <div
+                class="h-4 w-4 rounded-full"
+                style="background: #000000"
+                title="Black Background"
+              ></div>
+              <div
+                class="h-4 w-4 rounded-full"
+                style="background: #4cff00"
+                title="Neon Green"
+              ></div>
+              <div
+                class="h-4 w-4 rounded-full"
+                style="background: #808080"
+                title="Pill Grey"
+              ></div>
+              <div
+                class="h-4 w-4 rounded-full"
+                style="background: #bdbdbd"
+                title="Text Grey"
+              ></div>
+              <div
+                class="h-4 w-4 rounded-full"
+                style="background: #0099ff"
+                title="Classic Blue"
               ></div>
             </div>
           </button>
