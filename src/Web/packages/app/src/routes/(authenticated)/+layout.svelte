@@ -14,6 +14,7 @@
   import * as Card from "$lib/components/ui/card";
   import AlertBanner from "$lib/components/alerts/AlertBanner.svelte";
   import GuestBanner from "$lib/components/layout/GuestBanner.svelte";
+  import { CommandPalette } from "$lib/components/command-palette";
   import { CoachMarkProvider } from "@nocturne/coach";
   import "@nocturne/coach/theme.css";
   import "../../styles/coach-theme-overrides.css";
@@ -43,6 +44,8 @@
   // This makes feature settings available on all pages including the main dashboard
   createSettingsStore();
 
+  let commandPaletteOpen = $state(false);
+
   const coachMarkAdapter = createCoachMarkAdapter();
 
   // Title/Favicon service for dynamic updates
@@ -68,6 +71,13 @@
     loadTitleFaviconSettings()
   );
 
+  function handleCommandPaletteKeydown(e: KeyboardEvent) {
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      e.preventDefault();
+      commandPaletteOpen = !commandPaletteOpen;
+    }
+  }
+
   // Listen for storage changes to update settings in real-time
   function handleStorageChange(e: StorageEvent) {
     if (e.key === SETTINGS_STORAGE_KEY) {
@@ -90,6 +100,7 @@
     // Listen for localStorage changes (from settings page)
     if (browser) {
       window.addEventListener("storage", handleStorageChange);
+      window.addEventListener("keydown", handleCommandPaletteKeydown);
     }
   });
 
@@ -98,6 +109,7 @@
     titleFaviconService.destroy();
     if (browser) {
       window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("keydown", handleCommandPaletteKeydown);
     }
   });
 
@@ -204,4 +216,5 @@
       </main>
     </Sidebar.Inset>
   </Sidebar.Provider>
+  <CommandPalette bind:open={commandPaletteOpen} />
 </CoachMarkProvider>
