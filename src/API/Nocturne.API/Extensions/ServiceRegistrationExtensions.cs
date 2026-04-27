@@ -382,7 +382,6 @@ public static class ServiceRegistrationExtensions
                 sp.GetRequiredService<NightscoutEntryWriteBackSink>()
             };
 
-
             return new CompositeDataEventSink<Entry>(
                 sinks,
                 sp.GetService<ILogger<CompositeDataEventSink<Entry>>>());
