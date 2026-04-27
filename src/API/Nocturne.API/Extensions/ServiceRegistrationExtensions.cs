@@ -35,7 +35,6 @@ using Nocturne.API.Services.Treatments;
 using Nocturne.API.Services.V4;
 using Nocturne.Connectors.Core.Extensions;
 using Nocturne.Connectors.Core.Interfaces;
-using Nocturne.Connectors.HomeAssistant.WriteBack;
 using Nocturne.Connectors.Nightscout.Services.WriteBack;
 using Nocturne.Core.Constants;
 using Nocturne.Core.Contracts.CoachMarks;
@@ -383,9 +382,6 @@ public static class ServiceRegistrationExtensions
                 sp.GetRequiredService<NightscoutEntryWriteBackSink>()
             };
 
-            var haSink = sp.GetService<HomeAssistantWriteBackSink>();
-            if (haSink != null)
-                sinks.Add(haSink);
 
             return new CompositeDataEventSink<Entry>(
                 sinks,
