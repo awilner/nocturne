@@ -87,12 +87,14 @@ public class TenantSetupMiddleware
             return;
         }
 
-        // Check 1: Does this tenant have any members with passkey credentials?
-        // PasskeyCredentialEntity is subject-scoped (not tenant-scoped), so we join through TenantMembers.
+        // Check 1: Does this tenant have any members with auth credentials (passkey or OIDC)?
+        // These entities are subject-scoped (not tenant-scoped), so we join through TenantMembers.
         var tenantId = tenantAccessor.TenantId;
         var hasCredentials = await db.TenantMembers
             .Where(m => m.TenantId == tenantId)
-            .AnyAsync(m => db.PasskeyCredentials.Any(c => c.SubjectId == m.SubjectId));
+            .AnyAsync(m =>
+                db.PasskeyCredentials.Any(c => c.SubjectId == m.SubjectId) ||
+                db.SubjectOidcIdentities.Any(i => i.SubjectId == m.SubjectId));
         if (!hasCredentials)
         {
             _logger.LogDebug(
