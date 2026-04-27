@@ -103,6 +103,7 @@
         scopes: selectedScopeList,
       });
       createdToken = data.token ?? null;
+      await loadGrants();
     } catch (err) {
       errorMessage =
         err instanceof Error ? err.message : "Failed to create token.";
@@ -145,6 +146,7 @@
 
     try {
       await revokeGrant(revokeTarget.id!);
+      await loadGrants();
       successMessage = "API token revoked.";
       clearMessages();
     } catch (err) {
