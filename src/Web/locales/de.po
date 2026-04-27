@@ -1001,6 +1001,7 @@ msgstr ""
 #: src/routes/(authenticated)/reports/glucose-distribution/+page.svelte
 #: src/routes/(authenticated)/reports/glucose-distribution/+page.svelte
 #: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
 #: src/routes/calendar/+page.svelte
 #: src/routes/reports/executive-summary/+page.svelte
 #: src/routes/reports/glucose-distribution/+page.svelte
@@ -3529,6 +3530,8 @@ msgstr ""
 #: src/routes/(authenticated)/settings/admin/tenants/+page.svelte
 #: src/routes/(authenticated)/settings/appearance/+page.svelte
 #: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
 #: src/routes/(authenticated)/settings/migration/+page.svelte
 #: src/routes/(authenticated)/settings/profile/+page.svelte
 #: src/routes/(authenticated)/settings/profile/+page.svelte
@@ -5967,6 +5970,7 @@ msgstr ""
 
 #: src/lib/components/AlarmOverlay.svelte
 #: src/lib/components/trackers/tracker-notification-editor.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
 msgid "Warning"
 msgstr ""
 
@@ -11476,12 +11480,10 @@ msgstr ""
 msgid "<0/> Color Theme"
 msgstr ""
 
-#: src/routes/(authenticated)/settings/appearance/+page.svelte
 #: src/routes/settings/appearance/+page.svelte
 msgid "Choose between Nocturne's custom theme or match the Trio iOS app"
 msgstr ""
 
-#: src/routes/(authenticated)/settings/appearance/+page.svelte
 #: src/routes/settings/appearance/+page.svelte
 msgid "Custom color palette designed for Nocturne"
 msgstr ""
@@ -28251,6 +28253,8 @@ msgstr ""
 #. placeholder {1}: sourceDefaults.length === 1 ? '' : 's'
 #: src/routes/(authenticated)/settings/appearance/+page.svelte
 msgid "{0} rule{1} configured"
+msgstr ""
+
 #: src/lib/components/layout/GuestBanner.svelte
 msgid "Guest access — read only"
 msgstr ""
@@ -28338,8 +28342,6 @@ msgstr ""
 msgid "Activated from {0}"
 msgstr ""
 
-#: src/lib/components/layout/GuestBanner.svelte
-msgid "Guest access — read only"
 #: src/routes/(unauthenticated)/guest/[[code]]/+page.svelte
 msgid "Invalid or expired code"
 msgstr ""
@@ -28494,36 +28496,6 @@ msgstr ""
 msgid "No read access records found for the selected period."
 msgstr ""
 
-#: src/lib/components/rbac/PermissionPicker.svelte
-msgid "Audit"
-msgstr ""
-
-#: src/lib/components/rbac/PermissionPicker.svelte
-msgid "View Audit Logs"
-msgstr ""
-
-#: src/lib/components/rbac/PermissionPicker.svelte
-msgid "Manage Audit Settings"
-msgstr ""
-
-#: src/routes/(unauthenticated)/guest/[[code]]/+page.svelte
-msgid "Invalid or expired code"
-msgstr ""
-
-#: src/routes/(unauthenticated)/guest/[[code]]/+page.svelte
-msgid "Guest Access - Nocturne"
-msgstr ""
-
-#: src/routes/(unauthenticated)/guest/[[code]]/+page.svelte
-msgid "Enter guest code"
-msgstr ""
-
-#: src/routes/(unauthenticated)/guest/[[code]]/+page.svelte
-msgid "Enter the code shared with you to view health data"
-msgstr ""
-
-#: src/routes/(unauthenticated)/guest/[[code]]/+page.svelte
-msgid "<0/> Access Data"
 #: src/routes/blog/+page.svelte
 msgid "Blog"
 msgstr ""
@@ -28582,4 +28554,60 @@ msgstr ""
 #. placeholder {0}: data.meta?.title
 #: src/routes/blog/[slug]/+page.svelte
 msgid "{0} - Nocturne Blog"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Choose a color theme that matches your preferred app experience"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Custom palette designed for Nocturne"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "AAPS"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Match the AndroidAPS color scheme"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Primary Blue"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Teal Secondary"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Accent"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Classic"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Legacy Nightscout dark theme"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Black Background"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Neon Green"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Pill Grey"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Text Grey"
+msgstr ""
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Classic Blue"
 msgstr ""

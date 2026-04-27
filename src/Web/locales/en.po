@@ -2392,6 +2392,8 @@ msgstr "No server-side connectors are registered in this installation."
 #: src/routes/(authenticated)/settings/admin/tenants/+page.svelte
 #: src/routes/(authenticated)/settings/appearance/+page.svelte
 #: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
 #: src/routes/(authenticated)/settings/migration/+page.svelte
 #: src/routes/(authenticated)/settings/profile/+page.svelte
 #: src/routes/(authenticated)/settings/profile/+page.svelte
@@ -6094,6 +6096,7 @@ msgstr "Very Low"
 #: src/routes/(authenticated)/reports/glucose-distribution/+page.svelte
 #: src/routes/(authenticated)/reports/glucose-distribution/+page.svelte
 #: src/routes/(authenticated)/settings/appearance/+page.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
 msgid "In Range"
 msgstr "In Range"
 
@@ -7543,6 +7546,7 @@ msgid "Info"
 msgstr "Info"
 
 #: src/lib/components/trackers/tracker-notification-editor.svelte
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
 msgid "Warning"
 msgstr "Warning"
 
@@ -13752,13 +13756,11 @@ msgstr "Customize the look and feel of Nocturne"
 msgid "<0/> Color Theme"
 msgstr "<0/> Color Theme"
 
-#: src/routes/(authenticated)/settings/appearance/+page.svelte
-msgid "Choose between Nocturne's custom theme or match the Trio iOS app"
-msgstr "Choose between Nocturne's custom theme or match the Trio iOS app"
+#~ msgid "Choose between Nocturne's custom theme or match the Trio iOS app"
+#~ msgstr "Choose between Nocturne's custom theme or match the Trio iOS app"
 
-#: src/routes/(authenticated)/settings/appearance/+page.svelte
-msgid "Custom color palette designed for Nocturne"
-msgstr "Custom color palette designed for Nocturne"
+#~ msgid "Custom color palette designed for Nocturne"
+#~ msgstr "Custom color palette designed for Nocturne"
 
 #: src/routes/(authenticated)/settings/appearance/+page.svelte
 msgid "Trio"
@@ -17783,10 +17785,6 @@ msgstr "Guest access — read only"
 msgid "Audit Log"
 msgstr "Audit Log"
 
-#: src/lib/components/layout/GuestBanner.svelte
-msgid "Guest access — read only"
-msgstr "Guest access — read only"
-
 #: src/lib/components/members/GuestLinksSection.svelte
 msgid "Revoked"
 msgstr "Revoked"
@@ -19758,3 +19756,59 @@ msgid ""
 msgstr ""
 "On managed PostgreSQL services (RDS, Cloud SQL, Supabase, Neon), run the script as the\n"
 "database owner your provider gave you rather than the literal <0/> user."
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Choose a color theme that matches your preferred app experience"
+msgstr "Choose a color theme that matches your preferred app experience"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Custom palette designed for Nocturne"
+msgstr "Custom palette designed for Nocturne"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "AAPS"
+msgstr "AAPS"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Match the AndroidAPS color scheme"
+msgstr "Match the AndroidAPS color scheme"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Primary Blue"
+msgstr "Primary Blue"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Teal Secondary"
+msgstr "Teal Secondary"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Accent"
+msgstr "Accent"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Classic"
+msgstr "Classic"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Legacy Nightscout dark theme"
+msgstr "Legacy Nightscout dark theme"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Black Background"
+msgstr "Black Background"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Neon Green"
+msgstr "Neon Green"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Pill Grey"
+msgstr "Pill Grey"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Text Grey"
+msgstr "Text Grey"
+
+#: src/routes/(authenticated)/settings/appearance/+page.svelte
+msgid "Classic Blue"
+msgstr "Classic Blue"

@@ -18,6 +18,8 @@ export default defineConfig({
         import.meta.url
       ).pathname,
       $routes: new URL("./src/routes", import.meta.url).pathname,
+      // mode-watcher only exports under "svelte" condition — stub for node tests
+      "mode-watcher": new URL("./src/lib/test-stubs/mode-watcher.ts", import.meta.url).pathname,
     },
   },
 });
