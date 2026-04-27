@@ -26,8 +26,7 @@
     }
 
     for (const day of days) {
-      // Cover 48h window (current day + next day for double-plot)
-      for (let hour = 0; hour < 48; hour++) {
+      for (let hour = 0; hour < 24; hour++) {
         const mills = day.getTime() + hour * MS_PER_HOUR;
         // Simulate circadian pattern: lower at night (0-6, 22-30), higher during day
         const hourOfDay = hour % 24;
@@ -47,7 +46,7 @@
     const fiveMin = 5 * 60_000;
 
     for (const day of days) {
-      for (let offset = 0; offset < 48 * MS_PER_HOUR; offset += fiveMin) {
+      for (let offset = 0; offset < 24 * MS_PER_HOUR; offset += fiveMin) {
         const mills = day.getTime() + offset;
         const hours = offset / MS_PER_HOUR;
         // Sinusoidal between 70-250: center at 160, amplitude 90
@@ -92,7 +91,7 @@
           y={ctx.height - barHeight}
           width={3}
           height={barHeight}
-          fill={isExtended ? 'var(--primary/40)' : 'var(--primary)'}
+          fill="var(--primary)"
           opacity={isExtended ? 0.4 : 0.8}
         />
       {/each}
