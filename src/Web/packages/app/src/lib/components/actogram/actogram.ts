@@ -36,12 +36,6 @@ export interface ActogramRowContext<T extends ActogramPoint = ActogramPoint> {
 	day: Date;
 }
 
-export interface ActogramRow<T extends ActogramPoint = ActogramPoint> {
-	day: Date;
-	data: RowDataPoint<T>[];
-	bgData: RowDataPoint<GlucosePoint>[];
-}
-
 function slicePoints<T extends ActogramPoint>(data: T[], days: Date[]): { day: Date; data: RowDataPoint<T>[] }[] {
 	const rows = days.map((day) => ({
 		day,

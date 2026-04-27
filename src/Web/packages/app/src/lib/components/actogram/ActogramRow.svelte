@@ -72,7 +72,7 @@
           x={(d) => d.time}
           y={(d) => d.sgv}
           curve={curveMonotoneX}
-          class="stroke-glucose-in-range/70 fill-none"
+          class="stroke-muted-foreground/50 fill-none"
           strokeWidth={1.5}
         />
         {#each bgChartData as point}

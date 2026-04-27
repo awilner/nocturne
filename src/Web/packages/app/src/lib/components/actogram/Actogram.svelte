@@ -30,7 +30,8 @@
   const dataRows = $derived(sliceIntoRows(data, days));
   const bgRows = $derived(bgData ? sliceBgIntoRows(bgData, days) : []);
 
-  // X-axis hour labels at 6-hour intervals across 48h
+  // X-axis hour labels at 6-hour intervals across 48h double-plot.
+  // Labels show hours mod 24, so both 0h and 24h display as "0h" (midnight).
   const hourLabels = [0, 6, 12, 18, 24, 30, 36, 42, 48];
 
   function formatDate(date: Date): string {
