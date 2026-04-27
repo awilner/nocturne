@@ -99,4 +99,23 @@ public class BolusController(IBolusRepository repo)
         DeviceId = existing.DeviceId,
         AdditionalProperties = existing.AdditionalProperties,
     };
+
+    /// <summary>
+    /// Delete a bolus by its external sync identifier (dataSource + syncIdentifier pair).
+    /// </summary>
+    [HttpDelete("by-sync-id")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> DeleteBySyncIdentifier(
+        [FromQuery] string dataSource,
+        [FromQuery] string syncIdentifier,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrEmpty(dataSource) || string.IsNullOrEmpty(syncIdentifier))
+            return BadRequest("dataSource and syncIdentifier are required");
+
+        var deleted = await ((IBolusRepository)Repository).DeleteBySyncIdentifierAsync(dataSource, syncIdentifier, ct);
+        return deleted > 0 ? NoContent() : NotFound();
+    }
 }

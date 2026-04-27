@@ -227,6 +227,25 @@ public class NutritionController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Delete a carb intake by its external sync identifier (dataSource + syncIdentifier pair).
+    /// </summary>
+    [HttpDelete("carbs/by-sync-id")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> DeleteCarbIntakeBySyncIdentifier(
+        [FromQuery] string dataSource,
+        [FromQuery] string syncIdentifier,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrEmpty(dataSource) || string.IsNullOrEmpty(syncIdentifier))
+            return BadRequest("dataSource and syncIdentifier are required");
+
+        var deleted = await _carbIntakeRepo.DeleteBySyncIdentifierAsync(dataSource, syncIdentifier, ct);
+        return deleted > 0 ? NoContent() : NotFound();
+    }
+
     #endregion
 
     #region Carb Intake Food Breakdown
