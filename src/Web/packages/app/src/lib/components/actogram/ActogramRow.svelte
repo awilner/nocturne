@@ -4,12 +4,15 @@
   import { scaleTime } from 'd3-scale';
   import type { ScaleTime } from 'd3-scale';
   import { curveMonotoneX } from 'd3';
-  import type {
-    ActogramPoint,
-    ActogramRowContext,
-    GlucosePoint,
-    GlucoseThresholds,
-    RowDataPoint,
+  import {
+    MS_PER_HOUR,
+    HOURS_PER_DAY,
+    HOURS_PER_ROW,
+    type ActogramPoint,
+    type ActogramRowContext,
+    type GlucosePoint,
+    type GlucoseThresholds,
+    type RowDataPoint,
   } from './actogram';
 
   interface Props {
@@ -24,16 +27,15 @@
   let { day, data, bgData, thresholds, height, row }: Props = $props();
 
   // X domain: 0–48 hours from day start
-  const xDomainStart = $derived(new Date(day.getTime()));
-  const xDomainEnd = $derived(new Date(day.getTime() + 48 * 3_600_000));
-  const midpoint = $derived(new Date(day.getTime() + 24 * 3_600_000));
+  const xDomainEnd = $derived(new Date(day.getTime() + HOURS_PER_ROW * MS_PER_HOUR));
+  const midpoint = $derived(new Date(day.getTime() + HOURS_PER_DAY * MS_PER_HOUR));
 
   // Map RowDataPoints to chart-plottable objects for BG overlay
   const bgChartData = $derived(
     bgData
       .toSorted((a, b) => a.hoursFromStart - b.hoursFromStart)
       .map((d) => ({
-        time: new Date(day.getTime() + d.hoursFromStart * 3_600_000),
+        time: new Date(day.getTime() + d.hoursFromStart * MS_PER_HOUR),
         sgv: d.point.sgv,
         color: d.point.color,
       })),
@@ -46,12 +48,13 @@
   x="time"
   y="sgv"
   xScale={scaleTime()}
-  xDomain={[xDomainStart, xDomainEnd]}
+  xDomain={[day, xDomainEnd]}
   yDomain={[0, thresholds?.glucoseYMax ?? 300]}
   padding={{ left: 0, top: 0, bottom: 0, right: 0 }}
 >
   {#snippet children({ context })}
     {@const rowContext: ActogramRowContext = {
+      // LayerChart types xScale as AnyScale; we know it's ScaleTime because we pass scaleTime() above
       xScale: context.xScale as unknown as ScaleTime<number, number>,
       width: context.width,
       height: context.height,

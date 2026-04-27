@@ -1,8 +1,8 @@
 import type { ScaleTime } from 'd3-scale';
 
-const MS_PER_HOUR = 3_600_000;
-const HOURS_PER_DAY = 24;
-const HOURS_PER_ROW = 48;
+export const MS_PER_HOUR = 3_600_000;
+export const HOURS_PER_DAY = 24;
+export const HOURS_PER_ROW = 48;
 
 export interface ActogramPoint {
 	mills: number;
