@@ -114,7 +114,13 @@ public class AspireIntegrationTestFixture : IAsyncLifetime
                 uploader_snapshots,
                 device_status_extras,
                 treatments,
-                entries
+                entries,
+                oauth_refresh_tokens,
+                oauth_authorization_codes,
+                oauth_device_codes,
+                oauth_grants,
+                oauth_clients,
+                auth_audit_logs
             CASCADE;
             """;
         await cmd.ExecuteNonQueryAsync();
