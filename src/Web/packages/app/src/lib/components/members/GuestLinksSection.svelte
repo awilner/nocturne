@@ -116,6 +116,7 @@
       if (createdUrl && !createdUrl.startsWith("http")) {
         createdUrl = `${window.location.origin}${createdUrl}`;
       }
+      await guestLinksQuery?.refresh();
     } catch {
       createError = "Failed to create guest link. Please try again.";
     } finally {
