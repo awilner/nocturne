@@ -410,12 +410,13 @@ export const items: CommandPaletteItem[] = [
 		href: "/settings/alerts",
 	},
 	{
-		id: "settings-notifications",
-		label: "Notifications",
+		id: "settings-grants",
+		label: "Grants",
 		group: "settings",
-		keywords: ["notification settings", "push", "email alerts"],
-		icon: Bell,
-		href: "/settings/notifications",
+		keywords: ["grants", "access", "permissions", "sharing"],
+		icon: Shield,
+		href: "/settings/grants",
+		permission: "api:settings:admin",
 	},
 	{
 		id: "settings-connectors",
