@@ -27,15 +27,22 @@
     BookOpen,
     HelpCircle,
     CheckCircle,
+    Lightbulb,
+    Database,
+    CreditCard,
   } from "lucide-svelte";
   import { getServicesOverview } from "$api";
   import type { ServicesOverview } from "$api";
+  import IssueCreatorDialog from "$lib/components/support/IssueCreatorDialog.svelte";
 
   let includeDeviceInfo = $state(true);
   let includeRecentLogs = $state(true);
   let includeSettings = $state(false);
   let additionalDetails = $state("");
   let logsCopied = $state(false);
+
+  let dialogOpen = $state(false);
+  let selectedTemplate = $state("bug");
 
   let apiBaseUrl = $state<string | null>(null);
 
@@ -84,24 +91,29 @@
       name: "Report a Bug",
       description: "Found something not working? Let us know",
       icon: Bug,
-      action: "report",
+      template: "bug",
     },
     {
       name: "Request a Feature",
       description: "Have an idea? We'd love to hear it",
-      icon: HelpCircle,
-      action: "feature",
+      icon: Lightbulb,
+      template: "feature",
     },
     {
-      name: "Get Help",
-      description: "Need assistance? Check our FAQ or ask the community",
-      icon: Users,
-      action: "help",
+      name: "Data Issue",
+      description: "CGM data problems or missing readings",
+      icon: Database,
+      template: "data-issue",
+    },
+    {
+      name: "Account / Billing",
+      description: "Help with your account or subscription",
+      icon: CreditCard,
+      template: "account",
     },
   ];
 
   async function copyLogs() {
-    // In a real implementation, this would gather actual logs
     const logs = generateDiagnosticReport();
     await navigator.clipboard.writeText(logs);
     logsCopied = true;
@@ -122,7 +134,7 @@
   function generateDiagnosticReport(): string {
     const report = {
       timestamp: new Date().toISOString(),
-      version: "1.0.0", // Would be actual version
+      version: "1.0.0",
       userAgent:
         typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
       platform:
@@ -139,24 +151,9 @@
     return JSON.stringify(report, null, 2);
   }
 
-  function handleSupportAction(action: string) {
-    switch (action) {
-      case "report":
-        window.open(
-          "https://github.com/nightscout/nocturne/issues/new?template=bug_report.md",
-          "_blank"
-        );
-        break;
-      case "feature":
-        window.open(
-          "https://github.com/nightscout/nocturne/issues/new?template=feature_request.md",
-          "_blank"
-        );
-        break;
-      case "help":
-        window.open("https://discord.gg/nightscout", "_blank");
-        break;
-    }
+  function handleSupportAction(template: string) {
+    selectedTemplate = template;
+    dialogOpen = true;
   }
 </script>
 
@@ -223,12 +220,12 @@
       </CardTitle>
       <CardDescription>Need help? Here's how to reach us</CardDescription>
     </CardHeader>
-    <CardContent>
-      <div class="grid gap-4 sm:grid-cols-3">
+    <CardContent class="space-y-4">
+      <div class="grid gap-4 sm:grid-cols-2">
         {#each supportOptions as option}
           <button
             class="flex flex-col items-center text-center p-4 rounded-lg border hover:border-primary/50 hover:bg-accent/50 transition-colors"
-            onclick={() => handleSupportAction(option.action)}
+            onclick={() => handleSupportAction(option.template)}
           >
             <div
               class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-3"
@@ -241,6 +238,20 @@
             </p>
           </button>
         {/each}
+      </div>
+
+      <div class="flex justify-center pt-2">
+        <a
+          href="https://discord.gg/xWYz9fFWrj"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Button variant="outline" class="gap-2">
+            <Users class="h-4 w-4" />
+            Get Help on Discord
+            <ExternalLink class="h-3 w-3" />
+          </Button>
+        </a>
       </div>
     </CardContent>
   </Card>
@@ -394,3 +405,5 @@
     </CardContent>
   </Card>
 </div>
+
+<IssueCreatorDialog bind:open={dialogOpen} template={selectedTemplate} />

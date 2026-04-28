@@ -23,6 +23,7 @@ export * from './glucoseProcessingSettings.generated.remote';
 export * from './profiles.generated.remote';
 export * from './userPreferences.generated.remote';
 export * from './services.generated.remote';
+export * from './supports.generated.remote';
 export * from './systems.generated.remote';
 export * from './accessRequests.generated.remote';
 export { addMember, removeMember, listInvites, provision } from './tenants.generated.remote';

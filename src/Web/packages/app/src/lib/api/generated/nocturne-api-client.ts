@@ -8736,6 +8736,136 @@ export class StatusClient {
     }
 }
 
+export class SupportClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    createIssue(template?: string | null | undefined, title?: string | null | undefined, description?: string | null | undefined, stepsToReproduce?: string | null | undefined, expectedBehavior?: string | null | undefined, actualBehavior?: string | null | undefined, cgmSource?: string | null | undefined, timeRange?: string | null | undefined, diagnosticInfo?: string | null | undefined, images?: FileParameter[] | null | undefined, signal?: AbortSignal): Promise<CreateIssueResponse> {
+        let url_ = this.baseUrl + "/api/v4/support/issues";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (template !== null && template !== undefined)
+            content_.append("template", template.toString());
+        if (title !== null && title !== undefined)
+            content_.append("title", title.toString());
+        if (description !== null && description !== undefined)
+            content_.append("description", description.toString());
+        if (stepsToReproduce !== null && stepsToReproduce !== undefined)
+            content_.append("stepsToReproduce", stepsToReproduce.toString());
+        if (expectedBehavior !== null && expectedBehavior !== undefined)
+            content_.append("expectedBehavior", expectedBehavior.toString());
+        if (actualBehavior !== null && actualBehavior !== undefined)
+            content_.append("actualBehavior", actualBehavior.toString());
+        if (cgmSource !== null && cgmSource !== undefined)
+            content_.append("cgmSource", cgmSource.toString());
+        if (timeRange !== null && timeRange !== undefined)
+            content_.append("timeRange", timeRange.toString());
+        if (diagnosticInfo !== null && diagnosticInfo !== undefined)
+            content_.append("diagnosticInfo", diagnosticInfo.toString());
+        if (images !== null && images !== undefined)
+            images.forEach(item_ => content_.append("images", item_.data, item_.fileName ? item_.fileName : "images") );
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateIssue(_response);
+        });
+    }
+
+    protected processCreateIssue(response: Response): Promise<CreateIssueResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            result201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as CreateIssueResponse;
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 502) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CreateIssueResponse>(null as any);
+    }
+
+    /**
+     * Returns a pre-filled GitHub new-issue URL for fallback when the API is unavailable.
+     * @param template (optional) 
+     * @param title (optional) 
+     * @param body (optional) 
+     */
+    getFallbackUrl(template?: string | undefined, title?: string | undefined, body?: string | undefined, signal?: AbortSignal): Promise<FallbackUrlResponse> {
+        let url_ = this.baseUrl + "/api/v4/support/issues/fallback-url?";
+        if (template === null)
+            throw new globalThis.Error("The parameter 'template' cannot be null.");
+        else if (template !== undefined)
+            url_ += "template=" + encodeURIComponent("" + template) + "&";
+        if (title === null)
+            throw new globalThis.Error("The parameter 'title' cannot be null.");
+        else if (title !== undefined)
+            url_ += "title=" + encodeURIComponent("" + title) + "&";
+        if (body === null)
+            throw new globalThis.Error("The parameter 'body' cannot be null.");
+        else if (body !== undefined)
+            url_ += "body=" + encodeURIComponent("" + body) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFallbackUrl(_response);
+        });
+    }
+
+    protected processGetFallbackUrl(response: Response): Promise<FallbackUrlResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as FallbackUrlResponse;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FallbackUrlResponse>(null as any);
+    }
+}
+
 export class SystemClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -26395,6 +26525,15 @@ export interface StatusResponse {
     head?: string | undefined;
 }
 
+export interface CreateIssueResponse {
+    issueNumber?: number;
+    issueUrl?: string;
+}
+
+export interface FallbackUrlResponse {
+    url?: string;
+}
+
 export interface HeartbeatRequest {
     platforms?: string[];
     service?: string;
@@ -30011,6 +30150,11 @@ export interface TotpLoginResponse {
 export interface TotpLoginRequest {
     username: string;
     code: string;
+}
+
+export interface FileParameter {
+    data: any;
+    fileName: string;
 }
 
 export interface FileResponse {

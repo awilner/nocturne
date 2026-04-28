@@ -8009,6 +8009,142 @@
         }
       }
     },
+    "/api/v4/support/issues": {
+      "post": {
+        "tags": [
+          "Support"
+        ],
+        "operationId": "Support_CreateIssue",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "template": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "title": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "stepsToReproduce": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "expectedBehavior": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "actualBehavior": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "cgmSource": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "timeRange": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "diagnosticInfo": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "images": {
+                    "type": "array",
+                    "nullable": true,
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateIssueResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": ""
+          }
+        },
+        "x-remote-type": "command"
+      }
+    },
+    "/api/v4/support/issues/fallback-url": {
+      "get": {
+        "tags": [
+          "Support"
+        ],
+        "summary": "Returns a pre-filled GitHub new-issue URL for fallback when the API is unavailable.",
+        "operationId": "Support_GetFallbackUrl",
+        "parameters": [
+          {
+            "name": "template",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "body",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FallbackUrlResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-remote-type": "query"
+      }
+    },
     "/api/v4/system/heartbeat": {
       "post": {
         "tags": [
@@ -30053,6 +30189,28 @@
           "head": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "CreateIssueResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "issueNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "issueUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "FallbackUrlResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string"
           }
         }
       },
