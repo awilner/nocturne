@@ -5,7 +5,7 @@
   import * as Collapsible from "$lib/components/ui/collapsible";
   import { Checkbox } from "$lib/components/ui/checkbox";
   import { Label } from "$lib/components/ui/label";
-  import PermissionPicker from "$lib/components/rbac/PermissionPicker.svelte";
+  import PermissionCategorySelector from "$lib/components/rbac/PermissionCategorySelector.svelte";
   import {
     Loader2,
     CheckCircle2,
@@ -238,7 +238,7 @@
               </Collapsible.Trigger>
               <Collapsible.Content>
                 <div class="mt-3">
-                  <PermissionPicker
+                  <PermissionCategorySelector
                     bind:selected={
                       () => getPermissions(subjectId),
                       (v) => setPermissions(subjectId, v)

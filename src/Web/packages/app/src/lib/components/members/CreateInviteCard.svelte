@@ -12,7 +12,7 @@
     Copy,
     Loader2,
   } from "lucide-svelte";
-  import PermissionPicker from "$lib/components/rbac/PermissionPicker.svelte";
+  import PermissionCategorySelector from "$lib/components/rbac/PermissionCategorySelector.svelte";
   import { coachmark } from "@nocturne/coach";
   import { createInvite } from "$api/generated/tenants.generated.remote";
   import type { TenantRoleDto } from "$lib/api/generated/nocturne-api-client";
@@ -210,7 +210,7 @@
           </Collapsible.Trigger>
           <Collapsible.Content>
             <div class="mt-3">
-              <PermissionPicker bind:selected={inviteDirectPermissions} />
+              <PermissionCategorySelector bind:selected={inviteDirectPermissions} />
             </div>
           </Collapsible.Content>
         </Collapsible.Root>
