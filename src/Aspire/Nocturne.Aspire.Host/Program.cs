@@ -505,13 +505,22 @@ class Program
                 yarp.AddRoute("/auth/bot/{**catch-all}", webEndpoints.GetEndpoint("http"))
                     .WithTransformXForwarded("X-Forwarded-", ForwardedTransformActions.Set);
 
-                // API docs (Scalar UI — container serves at /, strip /scalar prefix)
+                // API docs (Scalar UI)
+                // When the Scalar Aspire container is running (dev with OAuth PKCE),
+                // proxy to it. Otherwise, the API serves Scalar natively.
                 if (scalar != null)
                 {
                     yarp.AddRoute("/scalar/{**catch-all}", scalar.GetEndpoint("http"))
                         .WithTransformPathRemovePrefix("/scalar")
                         .WithTransformXForwarded("X-Forwarded-", ForwardedTransformActions.Set);
                     yarp.AddRoute("/scalar-proxy/{**catch-all}", scalar.GetEndpoint("http"))
+                        .WithTransformXForwarded("X-Forwarded-", ForwardedTransformActions.Set);
+                }
+                else
+                {
+                    yarp.AddRoute("/scalar", api.GetEndpoint("http"))
+                        .WithTransformXForwarded("X-Forwarded-", ForwardedTransformActions.Set);
+                    yarp.AddRoute("/scalar/{**catch-all}", api.GetEndpoint("http"))
                         .WithTransformXForwarded("X-Forwarded-", ForwardedTransformActions.Set);
                 }
                 yarp.AddRoute("/openapi/{**catch-all}", api.GetEndpoint("http"))
