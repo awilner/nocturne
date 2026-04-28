@@ -21753,45 +21753,23 @@ export class OAuthClient {
     /**
      * Token endpoint. Handles authorization code exchange, refresh token rotation,
     and device code polling.
-     * @param grant_type (optional) 
-     * @param code (optional) 
-     * @param redirect_uri (optional) 
-     * @param client_id (optional) 
-     * @param code_verifier (optional) 
-     * @param refresh_token (optional) 
-     * @param device_code (optional) 
-     * @param scope (optional) 
+     * @param body (optional) 
      * @return An OAuthTokenResponse on success, or an OAuthError on failure.
      */
-    token(grant_type?: string | undefined, code?: string | null | undefined, redirect_uri?: string | null | undefined, client_id?: string | null | undefined, code_verifier?: string | null | undefined, refresh_token?: string | null | undefined, device_code?: string | null | undefined, scope?: string | null | undefined, signal?: AbortSignal): Promise<OAuthTokenResponse> {
+    token(body?: Body | undefined, signal?: AbortSignal): Promise<OAuthTokenResponse> {
         let url_ = this.baseUrl + "/api/oauth/token";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = new FormData();
-        if (grant_type === null || grant_type === undefined)
-            throw new globalThis.Error("The parameter 'grant_type' cannot be null.");
-        else
-            content_.append("grant_type", grant_type.toString());
-        if (code !== null && code !== undefined)
-            content_.append("code", code.toString());
-        if (redirect_uri !== null && redirect_uri !== undefined)
-            content_.append("redirect_uri", redirect_uri.toString());
-        if (client_id !== null && client_id !== undefined)
-            content_.append("client_id", client_id.toString());
-        if (code_verifier !== null && code_verifier !== undefined)
-            content_.append("code_verifier", code_verifier.toString());
-        if (refresh_token !== null && refresh_token !== undefined)
-            content_.append("refresh_token", refresh_token.toString());
-        if (device_code !== null && device_code !== undefined)
-            content_.append("device_code", device_code.toString());
-        if (scope !== null && scope !== undefined)
-            content_.append("scope", scope.toString());
+        const content_ = Object.keys(body as any).map((key) => {
+            return encodeURIComponent(key) + '=' + encodeURIComponent((body as any)[key]);
+        }).join('&')
 
         let options_: RequestInit = {
             body: content_,
             method: "POST",
             signal,
             headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
                 "Accept": "application/json"
             }
         };
@@ -21827,25 +21805,23 @@ export class OAuthClient {
     /**
      * Device Authorization endpoint (RFC 8628).
     Used by headless clients (CLI tools, scripts, IoT devices, pump rigs).
-     * @param client_id (optional) 
-     * @param scope (optional) 
+     * @param body (optional) 
      * @return An OAuthDeviceAuthorizationResponse containing the device code, user code, and polling interval.
      */
-    deviceAuthorization(client_id?: string | null | undefined, scope?: string | null | undefined, signal?: AbortSignal): Promise<OAuthDeviceAuthorizationResponse> {
+    deviceAuthorization(body?: Body2 | undefined, signal?: AbortSignal): Promise<OAuthDeviceAuthorizationResponse> {
         let url_ = this.baseUrl + "/api/oauth/device";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = new FormData();
-        if (client_id !== null && client_id !== undefined)
-            content_.append("client_id", client_id.toString());
-        if (scope !== null && scope !== undefined)
-            content_.append("scope", scope.toString());
+        const content_ = Object.keys(body as any).map((key) => {
+            return encodeURIComponent(key) + '=' + encodeURIComponent((body as any)[key]);
+        }).join('&')
 
         let options_: RequestInit = {
             body: content_,
             method: "POST",
             signal,
             headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
                 "Accept": "application/json"
             }
         };
@@ -21930,27 +21906,23 @@ export class OAuthClient {
     /**
      * Approve or deny a device authorization request.
     Called by the device approval page.
-     * @param user_code (optional) 
-     * @param approved (optional) 
+     * @param body (optional) 
      * @return 200 OK with approved: true/false, or 400 if the code is invalid or already processed.
      */
-    deviceApprove(user_code?: string | null | undefined, approved?: boolean | undefined, signal?: AbortSignal): Promise<void> {
+    deviceApprove(body?: Body3 | undefined, signal?: AbortSignal): Promise<void> {
         let url_ = this.baseUrl + "/api/oauth/device-approve";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = new FormData();
-        if (user_code !== null && user_code !== undefined)
-            content_.append("user_code", user_code.toString());
-        if (approved === null || approved === undefined)
-            throw new globalThis.Error("The parameter 'approved' cannot be null.");
-        else
-            content_.append("approved", approved.toString());
+        const content_ = Object.keys(body as any).map((key) => {
+            return encodeURIComponent(key) + '=' + encodeURIComponent((body as any)[key]);
+        }).join('&')
 
         let options_: RequestInit = {
             body: content_,
             method: "POST",
             signal,
             headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
             }
         };
 
@@ -21983,24 +21955,22 @@ export class OAuthClient {
     /**
      * Token revocation endpoint (RFC 7009). Per the specification, always returns 200 OK
     regardless of whether the token was found or already revoked.
-     * @param token (optional) 
-     * @param token_type_hint (optional) 
+     * @param body (optional) 
      */
-    revoke(token?: string | null | undefined, token_type_hint?: string | null | undefined, signal?: AbortSignal): Promise<void> {
+    revoke(body?: Body4 | undefined, signal?: AbortSignal): Promise<void> {
         let url_ = this.baseUrl + "/api/oauth/revoke";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = new FormData();
-        if (token !== null && token !== undefined)
-            content_.append("token", token.toString());
-        if (token_type_hint !== null && token_type_hint !== undefined)
-            content_.append("token_type_hint", token_type_hint.toString());
+        const content_ = Object.keys(body as any).map((key) => {
+            return encodeURIComponent(key) + '=' + encodeURIComponent((body as any)[key]);
+        }).join('&')
 
         let options_: RequestInit = {
             body: content_,
             method: "POST",
             signal,
             headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
             }
         };
 
@@ -22207,25 +22177,23 @@ export class OAuthClient {
      * Token introspection endpoint (RFC 7662).
     Returns metadata about a token including its active status, scopes, and subject.
     Per RFC 7662, always returns 200 OK; invalid tokens get active=false.
-     * @param token (optional) 
-     * @param token_type_hint (optional) 
+     * @param body (optional) 
      * @return A TokenIntrospectionResponse with active=false for invalid, expired, or revoked tokens.
      */
-    introspect(token?: string | null | undefined, token_type_hint?: string | null | undefined, signal?: AbortSignal): Promise<TokenIntrospectionResponse> {
+    introspect(body?: Body5 | undefined, signal?: AbortSignal): Promise<TokenIntrospectionResponse> {
         let url_ = this.baseUrl + "/api/oauth/introspect";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = new FormData();
-        if (token !== null && token !== undefined)
-            content_.append("token", token.toString());
-        if (token_type_hint !== null && token_type_hint !== undefined)
-            content_.append("token_type_hint", token_type_hint.toString());
+        const content_ = Object.keys(body as any).map((key) => {
+            return encodeURIComponent(key) + '=' + encodeURIComponent((body as any)[key]);
+        }).join('&')
 
         let options_: RequestInit = {
             body: content_,
             method: "POST",
             signal,
             headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
                 "Accept": "application/json"
             }
         };
@@ -30115,6 +30083,47 @@ export interface TotpLoginResponse {
 export interface TotpLoginRequest {
     username: string;
     code: string;
+}
+
+export interface Body {
+    grant_type?: string;
+    code?: string | undefined;
+    redirect_uri?: string | undefined;
+    client_id?: string | undefined;
+    code_verifier?: string | undefined;
+    refresh_token?: string | undefined;
+    device_code?: string | undefined;
+    scope?: string | undefined;
+
+    [key: string]: any;
+}
+
+export interface Body2 {
+    client_id?: string | undefined;
+    scope?: string | undefined;
+
+    [key: string]: any;
+}
+
+export interface Body3 {
+    user_code?: string | undefined;
+    approved?: boolean;
+
+    [key: string]: any;
+}
+
+export interface Body4 {
+    token?: string | undefined;
+    token_type_hint?: string | undefined;
+
+    [key: string]: any;
+}
+
+export interface Body5 {
+    token?: string | undefined;
+    token_type_hint?: string | undefined;
+
+    [key: string]: any;
 }
 
 export interface FileParameter {
