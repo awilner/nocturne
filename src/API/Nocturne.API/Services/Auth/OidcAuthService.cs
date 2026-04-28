@@ -663,8 +663,8 @@ public class OidcAuthService : IOidcAuthService
 
     #region Private Helper Methods
 
-    private const string LoginCallbackPath = "/api/v4/oidc/callback";
-    private const string LinkCallbackPath = "/api/v4/oidc/link/callback";
+    private const string LoginCallbackPath = "/api/auth/oidc/callback";
+    private const string LinkCallbackPath = "/api/auth/oidc/link/callback";
     private const string SetupCallbackPath = "/api/v4/setup/oidc/callback";
 
     /// <summary>

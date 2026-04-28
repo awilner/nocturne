@@ -34,8 +34,8 @@ public partial class OidcCallbackRedirectMiddleware
 
     private static readonly string[] CallbackPaths =
     [
-        "/api/v4/oidc/callback",
-        "/api/v4/oidc/link/callback",
+        "/api/auth/oidc/callback",
+        "/api/auth/oidc/link/callback",
     ];
 
     /// <summary>

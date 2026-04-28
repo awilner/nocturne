@@ -494,7 +494,7 @@ class Program
             .WithConfiguration(yarp =>
             {
                 // OIDC callback on apex → API (must come before /api/ → web catch-all)
-                yarp.AddRoute("/api/v4/oidc/{**catch-all}", api.GetEndpoint("http"))
+                yarp.AddRoute("/api/auth/oidc/{**catch-all}", api.GetEndpoint("http"))
                     .WithTransformXForwarded("X-Forwarded-", ForwardedTransformActions.Set);
 
                 // Bot webhooks, remote functions → web

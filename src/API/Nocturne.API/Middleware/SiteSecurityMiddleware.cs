@@ -105,7 +105,7 @@ public class SiteSecurityMiddleware
     {
         // Authentication and authorization endpoints must remain accessible
         if (path.StartsWith("/api/v4/auth/") ||
-            path.StartsWith("/api/v4/oidc/") ||
+            path.StartsWith("/api/auth/oidc/") ||
             path.StartsWith("/api/v4/oauth/") ||
             path.StartsWith("/api/v4/local/"))
         {

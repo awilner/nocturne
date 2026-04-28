@@ -33,7 +33,7 @@ namespace Nocturne.API.Controllers.Authentication;
 /// <seealso cref="IAuthAuditService"/>
 /// <seealso cref="OidcOptions"/>
 [ApiController]
-[Route("api/v4/oidc")]
+[Route("api/auth/oidc")]
 [Tags("Authentication")]
 public class OidcController : ControllerBase
 {

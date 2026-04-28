@@ -65,7 +65,6 @@ export function createAuthenticatedFetch(
     const urlString = typeof url === "string" ? url : url.toString();
     if (
       urlString.includes("/api/auth/") ||
-      urlString.includes("/api/v4/oidc/") ||
       urlString.includes("/api/local-auth/")
     ) {
       return response;
