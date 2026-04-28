@@ -1,6 +1,7 @@
 using System.Threading.RateLimiting;
 using Fido2NetLib;
 using Nocturne.API.Configuration;
+using Nocturne.API.Services;
 using Nocturne.API.Middleware.Handlers;
 using Nocturne.API.Multitenancy;
 using Nocturne.API.Services.AidDetection;
@@ -135,6 +136,10 @@ public static class ServiceRegistrationExtensions
         );
         services.AddScoped<IAnalyticsService, AnalyticsService>();
         services.AddScoped<IConnectorHealthService, ConnectorHealthService>();
+
+        // GitHub issue creation
+        services.Configure<GitHubIssueOptions>(configuration.GetSection("GitHub"));
+        services.AddSingleton<GitHubIssueService>();
 
         return services;
     }
@@ -318,6 +323,21 @@ public static class ServiceRegistrationExtensions
                         {
                             PermitLimit = 5,
                             Window = TimeSpan.FromMinutes(10),
+                            QueueLimit = 0,
+                        }
+                    )
+            );
+
+            // Support issue creation: 5 issues per IP per hour.
+            options.AddPolicy(
+                "support-issues",
+                context =>
+                    RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 5,
+                            Window = TimeSpan.FromHours(1),
                             QueueLimit = 0,
                         }
                     )

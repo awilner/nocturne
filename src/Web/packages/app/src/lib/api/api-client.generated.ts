@@ -80,6 +80,7 @@ import {
   StepCountClient,
   SubjectAdminClient,
   SummaryClient,
+  SupportClient,
   SystemClient,
   SystemEventsClient,
   TenantClient,
@@ -175,6 +176,7 @@ export class ApiClient {
   public readonly stepCount: StepCountClient;
   public readonly subjectAdmin: SubjectAdminClient;
   public readonly summary: SummaryClient;
+  public readonly support: SupportClient;
   public readonly system: SystemClient;
   public readonly systemEvents: SystemEventsClient;
   public readonly tenant: TenantClient;
@@ -270,6 +272,7 @@ export class ApiClient {
     this.stepCount = new StepCountClient(apiBaseUrl, http);
     this.subjectAdmin = new SubjectAdminClient(apiBaseUrl, http);
     this.summary = new SummaryClient(apiBaseUrl, http);
+    this.support = new SupportClient(apiBaseUrl, http);
     this.system = new SystemClient(apiBaseUrl, http);
     this.systemEvents = new SystemEventsClient(apiBaseUrl, http);
     this.tenant = new TenantClient(apiBaseUrl, http);
