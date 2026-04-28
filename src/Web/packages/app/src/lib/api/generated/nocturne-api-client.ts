@@ -23214,6 +23214,40 @@ export class PasskeyClient {
     }
 
     /**
+     * Mark the current tenant's onboarding as complete.
+     */
+    completeOnboarding(signal?: AbortSignal): Promise<void> {
+        let url_ = this.baseUrl + "/api/auth/passkey/onboarding/complete";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            signal,
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCompleteOnboarding(_response);
+        });
+    }
+
+    protected processCompleteOnboarding(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
      * Generate registration options for the first user during initial setup.
     Only available when no non-system subjects exist (setup mode).
     Creates the subject, assigns admin role, and returns passkey registration options.
@@ -29855,6 +29889,7 @@ export interface AuthStatusResponse {
     setupRequired?: boolean;
     recoveryMode?: boolean;
     allowAccessRequests?: boolean;
+    onboardingCompleted?: boolean;
 }
 
 /** Request for initial setup registration options (first user creation) */

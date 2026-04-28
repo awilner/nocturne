@@ -21461,6 +21461,24 @@
         "x-remote-type": "query"
       }
     },
+    "/api/auth/passkey/onboarding/complete": {
+      "post": {
+        "tags": [
+          "Passkey"
+        ],
+        "summary": "Mark the current tenant's onboarding as complete.",
+        "operationId": "Passkey_CompleteOnboarding",
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "x-remote-type": "command",
+        "x-remote-invalidates": [
+          "GetAuthStatus"
+        ]
+      }
+    },
     "/api/auth/passkey/setup/options": {
       "post": {
         "tags": [
@@ -41109,6 +41127,9 @@
             "type": "boolean"
           },
           "allowAccessRequests": {
+            "type": "boolean"
+          },
+          "onboardingCompleted": {
             "type": "boolean"
           }
         }
