@@ -18,6 +18,7 @@ using Nocturne.API.Middleware;
 using Nocturne.API.Multitenancy;
 using OpenApi.Remote.Processors;
 using Nocturne.API.OpenApi;
+using Scalar.AspNetCore;
 using Nocturne.Core.Constants;
 using Nocturne.Core.Models.Configuration;
 using Nocturne.Infrastructure.Cache.Extensions;
@@ -370,8 +371,12 @@ app.MapHub<ConfigHub>("/hubs/config");
 // Serve OpenAPI specs at /openapi/{documentName}.json
 app.MapOpenApi();
 
-// Scalar API docs are served by the Aspire host integration, not here.
-// OpenAPI specs are still served from this project at /openapi/{documentName}.json.
+// Scalar interactive API docs at /scalar/{documentName}
+app.MapScalarApiReference(options =>
+{
+    options.WithTheme(ScalarTheme.Mars);
+    options.WithOpenApiRoutePattern("/openapi/{documentName}.json");
+});
 
 // Add root endpoint to serve a basic info page
 app.MapGet(
