@@ -241,6 +241,7 @@
             roles={allRoles}
             canEditRoles={canEditMemberRoles}
             canManage={true}
+            currentSubjectId={page.data.user?.subjectId}
             isExpanded={expandedMember === member.subjectId}
             isSaving={isSavingMember}
             onToggleExpand={() => toggleExpandMember(member.subjectId!)}
