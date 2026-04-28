@@ -180,6 +180,24 @@ export const getAuthStatus = query(async () => {
   }
 });
 
+/** Mark the current tenant's onboarding as complete. */
+export const completeOnboarding = command(async () => {
+  const apiClient = getRequestEvent().locals.apiClient;
+  try {
+    await apiClient.passkey.completeOnboarding();
+    await Promise.all([
+      getAuthStatus(undefined).refresh()
+    ]);
+    return { success: true };
+  } catch (err) {
+    const status = (err as any)?.status;
+    if (status === 401) { const { url } = getRequestEvent(); throw redirect(302, `/auth/login?returnUrl=${encodeURIComponent(url.pathname + url.search)}`); }
+    if (status === 403) throw error(403, 'Forbidden');
+    console.error('Error in passkey.completeOnboarding:', err);
+    throw error(500, 'Failed to complete onboarding');
+  }
+});
+
 /** Generate registration options for the first user during initial setup.
 Only available when no non-system subjects exist (setup mode).
 Creates the subject, assigns admin role, and returns passkey registration options. */
