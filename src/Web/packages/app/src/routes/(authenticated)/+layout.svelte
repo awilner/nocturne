@@ -41,10 +41,10 @@
   const realtimeStore = createRealtimeStore(config);
   createAuthStore(); // Initialize auth store in context
 
-  // Tell the client-side auth interceptor not to redirect guests to login —
-  // guests have limited scopes so some endpoints will return 401/403.
+  // Suppress the auth interceptor's login redirect for guest and public
+  // sessions — these have limited scopes so some endpoints return 401/403.
   $effect(() => {
-    authInterceptorState.setGuestSession(data.isGuestSession);
+    authInterceptorState.setGuestSession(data.isGuestSession || !data.isAuthenticated);
   });
 
   // Create settings store in context for the entire app
