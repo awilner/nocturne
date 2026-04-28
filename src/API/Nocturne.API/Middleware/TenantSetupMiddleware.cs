@@ -17,7 +17,7 @@ namespace Nocturne.API.Middleware;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Pipeline order (position 4 of 8 custom middleware):
+/// Pipeline order (position 4 of 7 custom middleware):
 /// <see cref="JsonExtensionMiddleware"/>,
 /// <see cref="OidcCallbackRedirectMiddleware"/>, <see cref="Multitenancy.TenantResolutionMiddleware"/>,
 /// <b>TenantSetupMiddleware</b>, <see cref="AuthenticationMiddleware"/>,

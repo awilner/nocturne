@@ -16,11 +16,13 @@ public sealed class TenantAuditConfigCache : ITenantAuditConfigCache
     private readonly IDbContextFactory<NocturneDbContext> _contextFactory;
     private readonly ConcurrentDictionary<Guid, (TenantAuditConfig Config, DateTime CachedAt)> _cache = new();
 
+    /// <inheritdoc />
     public TenantAuditConfigCache(IDbContextFactory<NocturneDbContext> contextFactory)
     {
         _contextFactory = contextFactory;
     }
 
+    /// <inheritdoc />
     public async Task<TenantAuditConfig> GetConfigAsync(Guid tenantId, CancellationToken ct = default)
     {
         if (_cache.TryGetValue(tenantId, out var entry) && DateTime.UtcNow - entry.CachedAt < CacheTtl)
@@ -41,6 +43,7 @@ public sealed class TenantAuditConfigCache : ITenantAuditConfigCache
         return config;
     }
 
+    /// <inheritdoc />
     public void Invalidate(Guid tenantId)
     {
         _cache.TryRemove(tenantId, out _);

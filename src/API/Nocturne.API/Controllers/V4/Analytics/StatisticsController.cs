@@ -837,6 +837,7 @@ public class StatisticsController : ControllerBase
     /// </summary>
     /// <param name="startTimestamp">Start time as DateTime (UTC)</param>
     /// <param name="endTimestamp">End time as DateTime (UTC)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Total scheduled basal insulin in units</returns>
     private async Task<double> CalculateScheduledBasalForPeriodAsync(
         DateTime startTimestamp,

@@ -62,6 +62,7 @@ public class StateSpanRepository : IStateSpanRepository
     /// <param name="active">Optional filter for active (open-ended) vs completed spans.</param>
     /// <param name="count">The maximum number of spans to return.</param>
     /// <param name="skip">The number of spans to skip.</param>
+    /// <param name="descending">Whether to sort by start timestamp descending.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A collection of state spans.</returns>
     public async Task<IEnumerable<StateSpan>> GetStateSpansAsync(

@@ -1857,7 +1857,6 @@ public class DeduplicationService : IDeduplicationService
     }
 
     /// <summary>
-    /// <summary>
     /// Gets the priority for a basal-related type.
     /// Higher values indicate higher priority (preferred when deduplicating).
     /// </summary>
