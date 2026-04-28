@@ -1500,6 +1500,7 @@ msgid "Need more readings to show your typical day"
 msgstr "Need more readings to show your typical day"
 
 #: src/lib/components/calendar/DayGlucoseProfile.svelte
+#: src/lib/components/command-palette/CommandPaletteVitals.svelte
 #: src/lib/components/reports/RetrospectiveStats.svelte
 #: src/lib/components/reports/RetrospectiveStats.svelte
 #: src/lib/components/reports/RetrospectiveStats.svelte
@@ -1823,6 +1824,7 @@ msgid "Font"
 msgstr "Font"
 
 #: src/lib/components/clock-builder/TextStyleControls.svelte
+#: src/lib/components/command-palette/CommandPalette.svelte
 msgid "System"
 msgstr "System"
 
@@ -1868,9 +1870,11 @@ msgstr "Show units"
 msgid "Hours"
 msgstr "Hours"
 
+#. placeholder {0}: hour % 24 === 0 && hour < 48 ? '0' : hour % 24
 #. placeholder {0}: element.hours || 3
 #. placeholder {0}: element.hours || 3
 #. placeholder {0}: preview.hours
+#: src/lib/components/actogram/Actogram.svelte
 #: src/lib/components/clock-builder/ElementInspector.svelte
 #: src/lib/components/clock-builder/ElementInspector.svelte
 #: src/lib/components/trackers/TrackerStartDialog.svelte
@@ -3445,6 +3449,7 @@ msgstr "BG Delta"
 msgid "Last Updated"
 msgstr "Last Updated"
 
+#: src/lib/components/command-palette/CommandPaletteVitals.svelte
 #: src/lib/components/dashboard/CurrentBGDisplay.svelte
 #: src/lib/components/layout/SidebarGlucoseWidget.svelte
 msgid "Connection Error"
@@ -3526,6 +3531,7 @@ msgstr "ZT"
 msgid "UAM"
 msgstr "UAM"
 
+#: src/lib/components/command-palette/CommandPalette.svelte
 #: src/lib/components/dashboard/PredictionSettings.svelte
 msgid "Off"
 msgstr "Off"
@@ -4067,6 +4073,7 @@ msgstr "Year Overview"
 #: src/lib/components/reports/DailySummaryTable.svelte
 #: src/routes/(authenticated)/reports/day-in-review/+page.svelte
 #: src/routes/(authenticated)/reports/glucose-distribution/+page.svelte
+#: src/routes/(authenticated)/reports/heart-rate/+page.svelte
 msgid "Readings"
 msgstr "Readings"
 
@@ -5361,6 +5368,7 @@ msgstr "Total fat:"
 #: src/lib/components/reports/DailyStatistics.svelte
 #: src/routes/(authenticated)/reports/+page.svelte
 #: src/routes/(authenticated)/reports/agp/+page.svelte
+#: src/routes/(authenticated)/reports/heart-rate/+page.svelte
 #: src/routes/(authenticated)/reports/idp/+page.svelte
 msgid "Average"
 msgstr "Average"
@@ -9358,6 +9366,7 @@ msgid "Track activity's effect on glucose"
 msgstr "Track activity's effect on glucose"
 
 #: src/routes/(authenticated)/reports/+page.svelte
+#: src/routes/(authenticated)/reports/sleep/+page.svelte
 msgid "Sleep & Overnight"
 msgstr "Sleep & Overnight"
 
@@ -10701,6 +10710,8 @@ msgid "Change every"
 msgstr "Change every"
 
 #: src/lib/components/tools/packing/supply-item.svelte
+#: src/routes/(authenticated)/reports/sleep/+page.svelte
+#: src/routes/(authenticated)/reports/steps/+page.svelte
 #: src/routes/(authenticated)/tools/packing/+page.svelte
 msgid "days"
 msgstr "days"
@@ -11017,6 +11028,7 @@ msgstr "<0/> is requesting additional access to your Nocturne data."
 msgid "<0/> wants to access your Nocturne data."
 msgstr "<0/> wants to access your Nocturne data."
 
+#: src/lib/components/XdripQuickConnect.svelte
 #: src/routes/(authenticated)/oauth/consent/+page.svelte
 #: src/routes/(authenticated)/oauth/device/+page.svelte
 msgid ""
@@ -11069,6 +11081,7 @@ msgstr ""
 "last 24 hours. Historical reports will show a notice that data is\n"
 "limited."
 
+#: src/lib/components/XdripQuickConnect.svelte
 #: src/lib/components/connectors/UploaderSetupView.svelte
 #: src/routes/(authenticated)/oauth/consent/+page.svelte
 #: src/routes/(authenticated)/oauth/device/+page.svelte
@@ -11076,6 +11089,7 @@ msgstr ""
 msgid "<0/> Deny"
 msgstr "<0/> Deny"
 
+#: src/lib/components/XdripQuickConnect.svelte
 #: src/lib/components/connectors/UploaderSetupView.svelte
 #: src/routes/(authenticated)/oauth/consent/+page.svelte
 #: src/routes/(authenticated)/oauth/device/+page.svelte
@@ -11226,6 +11240,7 @@ msgstr ""
 msgid "Enter the code shown on your device"
 msgstr "Enter the code shown on your device"
 
+#: src/lib/components/XdripQuickConnect.svelte
 #: src/routes/(authenticated)/oauth/device/+page.svelte
 #: src/routes/(unauthenticated)/auth/bot/authorize/+page.svelte
 msgid "<0/> Continue"
@@ -15614,18 +15629,22 @@ msgstr "General Uploaders"
 msgid "Failed to load data sources"
 msgstr "Failed to load data sources"
 
+#: src/lib/components/XdripQuickConnect.svelte
 #: src/lib/components/connectors/UploaderSetupView.svelte
 msgid "Invalid or expired device code."
 msgstr "Invalid or expired device code."
 
+#: src/lib/components/XdripQuickConnect.svelte
 #: src/lib/components/connectors/UploaderSetupView.svelte
 msgid "Invalid or expired device code. Please check and try again."
 msgstr "Invalid or expired device code. Please check and try again."
 
+#: src/lib/components/XdripQuickConnect.svelte
 #: src/lib/components/connectors/UploaderSetupView.svelte
 msgid "Failed to approve. The code may have expired."
 msgstr "Failed to approve. The code may have expired."
 
+#: src/lib/components/XdripQuickConnect.svelte
 #: src/lib/components/connectors/UploaderSetupView.svelte
 msgid "Failed to deny the request."
 msgstr "Failed to deny the request."
@@ -15737,6 +15756,7 @@ msgstr "Scan this QR code with your phone's camera to open {0} and start the con
 msgid "QR code to connect {0}"
 msgstr "QR code to connect {0}"
 
+#: src/lib/components/XdripQuickConnect.svelte
 #: src/lib/components/connectors/UploaderSetupView.svelte
 msgid "Enter Authorization Code"
 msgstr "Enter Authorization Code"
@@ -19812,3 +19832,205 @@ msgstr "Text Grey"
 #: src/routes/(authenticated)/settings/appearance/+page.svelte
 msgid "Classic Blue"
 msgstr "Classic Blue"
+
+#: src/lib/components/XdripQuickConnect.svelte
+msgid "If xDrip+ shows an authorization code, enter it here."
+msgstr "If xDrip+ shows an authorization code, enter it here."
+
+#: src/lib/components/XdripQuickConnect.svelte
+msgid "<0/> Device authorized successfully. Waiting for data..."
+msgstr "<0/> Device authorized successfully. Waiting for data..."
+
+#: src/lib/components/XdripQuickConnect.svelte
+msgid "<0/> Authorization denied. The device will not be granted access."
+msgstr "<0/> Authorization denied. The device will not be granted access."
+
+#: src/lib/components/XdripQuickConnect.svelte
+msgid "<0/> wants access"
+msgstr "<0/> wants access"
+
+#: src/lib/components/XdripQuickConnect.svelte
+msgid "Requested permissions:"
+msgstr "Requested permissions:"
+
+#: src/lib/components/command-palette/CommandPalette.svelte
+msgid "On"
+msgstr "On"
+
+#. placeholder {0}: mode === "dark" ? "On" : mode === "light" ? "Off" : "System"
+#: src/lib/components/command-palette/CommandPalette.svelte
+msgid "Dark Mode: {0}"
+msgstr "Dark Mode: {0}"
+
+#. placeholder {0}: getGlucoseUnits() === "mg/dl" ? "mg/dL" : "mmol/L"
+#: src/lib/components/command-palette/CommandPalette.svelte
+msgid "Units: {0}"
+msgstr "Units: {0}"
+
+#. placeholder {0}: glucoseChartLookback.current
+#: src/lib/components/command-palette/CommandPalette.svelte
+msgid "Chart Lookback: {0}h"
+msgstr "Chart Lookback: {0}h"
+
+#. placeholder {0}: item.label
+#. placeholder {0}: item.label
+#: src/lib/components/command-palette/CommandPalette.svelte
+#: src/lib/components/command-palette/CommandPalette.svelte
+msgid "Unpin {0}"
+msgstr "Unpin {0}"
+
+#. placeholder {0}: item.label
+#. placeholder {0}: item.label
+#: src/lib/components/command-palette/CommandPalette.svelte
+#: src/lib/components/command-palette/CommandPalette.svelte
+msgid "Pin {0}"
+msgstr "Pin {0}"
+
+#: src/lib/components/command-palette/CommandPalette.svelte
+msgid "Search commands..."
+msgstr "Search commands..."
+
+#: src/lib/components/command-palette/CommandPalette.svelte
+msgid "No results found."
+msgstr "No results found."
+
+#: src/lib/components/command-palette/CommandPalette.svelte
+msgid "Pinned"
+msgstr "Pinned"
+
+#: src/lib/components/command-palette/CommandPalette.svelte
+msgid "Recent"
+msgstr "Recent"
+
+#: src/lib/components/connectors/UploaderSetupDialog.svelte
+msgid "API key has already been generated. You can manage API keys in Settings."
+msgstr "API key has already been generated. You can manage API keys in Settings."
+
+#: src/routes/(authenticated)/reports/+page.svelte
+#: src/routes/(authenticated)/reports/steps/+page.svelte
+msgid "Step Count"
+msgstr "Step Count"
+
+#: src/routes/(authenticated)/reports/+page.svelte
+msgid "Daily step patterns and activity levels"
+msgstr "Daily step patterns and activity levels"
+
+#: src/routes/(authenticated)/reports/+page.svelte
+#: src/routes/(authenticated)/reports/heart-rate/+page.svelte
+msgid "Heart Rate"
+msgstr "Heart Rate"
+
+#: src/routes/(authenticated)/reports/+page.svelte
+msgid "Heart rate patterns and resting estimates"
+msgstr "Heart rate patterns and resting estimates"
+
+#: src/routes/(authenticated)/reports/heart-rate/+page.svelte
+msgid "Error Loading Heart Rate Report"
+msgstr "Error Loading Heart Rate Report"
+
+#: src/routes/(authenticated)/reports/heart-rate/+page.svelte
+msgid "Heart Rate - Nocturne Reports"
+msgstr "Heart Rate - Nocturne Reports"
+
+#: src/routes/(authenticated)/reports/heart-rate/+page.svelte
+msgid "Heart rate actogram with glucose overlay"
+msgstr "Heart rate actogram with glucose overlay"
+
+#: src/routes/(authenticated)/reports/heart-rate/+page.svelte
+msgid "Daily heart rate patterns with glucose overlay"
+msgstr "Daily heart rate patterns with glucose overlay"
+
+#: src/routes/(authenticated)/reports/heart-rate/+page.svelte
+#: src/routes/(authenticated)/reports/heart-rate/+page.svelte
+#: src/routes/(authenticated)/reports/heart-rate/+page.svelte
+msgid "bpm"
+msgstr "bpm"
+
+#: src/routes/(authenticated)/reports/heart-rate/+page.svelte
+msgid "Resting Estimate"
+msgstr "Resting Estimate"
+
+#: src/routes/(authenticated)/reports/heart-rate/+page.svelte
+msgid "Min / Max"
+msgstr "Min / Max"
+
+#: src/routes/(authenticated)/reports/heart-rate/+page.svelte
+msgid "<0/> Heart Rate Actogram"
+msgstr "<0/> Heart Rate Actogram"
+
+#: src/routes/(authenticated)/reports/sleep/+page.svelte
+msgid "Error Loading Sleep Report"
+msgstr "Error Loading Sleep Report"
+
+#: src/routes/(authenticated)/reports/sleep/+page.svelte
+msgid "Sleep & Overnight - Nocturne Reports"
+msgstr "Sleep & Overnight - Nocturne Reports"
+
+#: src/routes/(authenticated)/reports/sleep/+page.svelte
+msgid "Sleep pattern actogram with glucose overlay"
+msgstr "Sleep pattern actogram with glucose overlay"
+
+#: src/routes/(authenticated)/reports/sleep/+page.svelte
+msgid "Sleep patterns with overnight glucose overlay"
+msgstr "Sleep patterns with overnight glucose overlay"
+
+#: src/routes/(authenticated)/reports/sleep/+page.svelte
+msgid "Average Sleep"
+msgstr "Average Sleep"
+
+#: src/routes/(authenticated)/reports/sleep/+page.svelte
+msgid "per night"
+msgstr "per night"
+
+#: src/routes/(authenticated)/reports/sleep/+page.svelte
+msgid "Recorded Nights"
+msgstr "Recorded Nights"
+
+#: src/routes/(authenticated)/reports/sleep/+page.svelte
+msgid "sessions"
+msgstr "sessions"
+
+#: src/routes/(authenticated)/reports/sleep/+page.svelte
+#: src/routes/(authenticated)/reports/steps/+page.svelte
+msgid "Period"
+msgstr "Period"
+
+#: src/routes/(authenticated)/reports/sleep/+page.svelte
+msgid "<0/> Sleep Actogram"
+msgstr "<0/> Sleep Actogram"
+
+#: src/routes/(authenticated)/reports/steps/+page.svelte
+msgid "Error Loading Step Count Report"
+msgstr "Error Loading Step Count Report"
+
+#: src/routes/(authenticated)/reports/steps/+page.svelte
+msgid "Step Count - Nocturne Reports"
+msgstr "Step Count - Nocturne Reports"
+
+#: src/routes/(authenticated)/reports/steps/+page.svelte
+msgid "Step count actogram with glucose overlay"
+msgstr "Step count actogram with glucose overlay"
+
+#: src/routes/(authenticated)/reports/steps/+page.svelte
+msgid "Daily step patterns with glucose overlay"
+msgstr "Daily step patterns with glucose overlay"
+
+#: src/routes/(authenticated)/reports/steps/+page.svelte
+msgid "Total Steps"
+msgstr "Total Steps"
+
+#: src/routes/(authenticated)/reports/steps/+page.svelte
+msgid "Daily Average"
+msgstr "Daily Average"
+
+#: src/routes/(authenticated)/reports/steps/+page.svelte
+msgid "steps/day"
+msgstr "steps/day"
+
+#: src/routes/(authenticated)/reports/steps/+page.svelte
+msgid "<0/> Step Count Actogram"
+msgstr "<0/> Step Count Actogram"
+
+#: src/routes/(authenticated)/settings/integrations/discord/+page.svelte
+msgid "Failed to start Discord link flow."
+msgstr "Failed to start Discord link flow."

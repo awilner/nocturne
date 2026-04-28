@@ -1,0 +1,71 @@
+---
+title: "V1 Profile Decomposition"
+---
+flowchart LR
+    subgraph legacy["V1 Monolithic Profile"]
+        direction TB
+        store["store[name]"]
+
+        subgraph blob["ProfileData (single JSON blob)"]
+            direction TB
+            dia["dia, carbs_hr, delay<br/>GI variants"]
+            tz["timezone, units<br/>perGIvalues"]
+            basal["basal[]"]
+            carbratio["carbratio[]"]
+            sens["sens[]"]
+            target_low["target_low[]"]
+            target_high["target_high[]"]
+        end
+
+        meta["defaultProfile<br/>enteredBy<br/>startDate"]
+        loop["loopSettings<br/>deviceToken, dosingStrategy<br/>override presets, guards"]
+    end
+
+    dia --> TherapySettings
+    tz --> TherapySettings
+    meta --> TherapySettings
+    loop --> TherapySettings
+    basal --> BasalSchedule
+    carbratio --> CarbRatioSchedule
+    sens --> SensitivitySchedule
+    target_low --> TargetRangeSchedule
+    target_high --> TargetRangeSchedule
+
+    subgraph v4["V4 Decomposed Models"]
+        direction TB
+
+        TherapySettings["<b>TherapySettings</b><br/><br/>dia, carbsHr, delay, GI variants<br/>timezone, units, perGIValues<br/>loopSettings, enteredBy<br/>isDefault, startDate"]
+
+        BasalSchedule["<b>BasalSchedule</b><br/><br/>time-of-day insulin<br/>delivery rates (U/hr)"]
+
+        CarbRatioSchedule["<b>CarbRatioSchedule</b><br/><br/>time-of-day insulin-to-carb<br/>ratios (g/U)"]
+
+        SensitivitySchedule["<b>SensitivitySchedule</b><br/><br/>time-of-day insulin<br/>sensitivity factors"]
+
+        TargetRangeSchedule["<b>TargetRangeSchedule</b><br/><br/>merged low + high into<br/>time-of-day target ranges"]
+    end
+
+    subgraph reasons["Why Decompose?"]
+        direction TB
+
+        r1["<b>Pharmacokinetics vs preferences</b><br/>DIA and carb absorption are drug<br/>properties; timezone and units are<br/>user display preferences. Bundling<br/>them forces a full profile push<br/>when only one concern changes."]
+
+        r2["<b>Independent schedule lifecycles</b><br/>Basal rates change when a pump is<br/>adjusted. Carb ratios change when<br/>diet shifts. ISF changes with<br/>activity patterns. Coupling them<br/>means every tweak overwrites the<br/>entire profile."]
+
+        r3["<b>Target ranges are clinical policy</b><br/>Target ranges are set by<br/>endocrinologists and change on<br/>clinic visits. They should not<br/>be bundled with self-adjusted<br/>basal rates or carb ratios."]
+
+        r4["<b>Audit granularity</b><br/>With a monolith, 'profile updated'<br/>tells you nothing. Decomposed<br/>records show exactly which<br/>parameter changed, when, and by<br/>which device or app."]
+
+        r5["<b>Query efficiency</b><br/>A connector fetching basal rates<br/>for pump sync should not load<br/>carb ratios, sensitivity factors,<br/>and Loop device tokens."]
+
+        r6["<b>Loop settings are device config</b><br/>Device tokens, dosing strategies,<br/>and override presets are APS<br/>integration concerns, not therapy<br/>parameters. Mixing them means<br/>a Loop settings sync can<br/>overwrite clinical therapy data."]
+    end
+
+    TherapySettings -.- r1
+    TherapySettings -.- r6
+    BasalSchedule -.- r2
+    CarbRatioSchedule -.- r2
+    SensitivitySchedule -.- r2
+    TargetRangeSchedule -.- r3
+    v4 -.- r4
+    v4 -.- r5

@@ -83,6 +83,14 @@ diagrams:
     module: system-connectors
     tags: [Platform, Connectors, TenantAdmin]
 
+  - source: treatment-decomposition.mmd
+    title: V1 Treatment Decomposition
+    description: How the polymorphic v1 treatment blob is decomposed into focused v4 domain models based on eventType routing.
+
+  - source: profile-decomposition.mmd
+    title: V1 Profile Decomposition
+    description: How the monolithic Nightscout v1 profile is decomposed into granular v4 domain models, and why each separation exists.
+
   - source: er-diagram.mmd
     title: Full Entity Model
     description: Complete unfiltered ER diagram (all 83 entities). Useful for AI analysis.

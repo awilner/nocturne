@@ -5,27 +5,9 @@
 import { getRequestEvent, query, command, form } from '$app/server';
 import { error, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
+import { formCoerce } from './form-utils.generated.js';
 import { TestMigrationConnectionRequestSchema, StartMigrationRequestSchema } from '$lib/api/generated/schemas';
 import { type TestMigrationConnectionRequest, type StartMigrationRequest } from '$api';
-
-/** Coerce FormData string values before Zod validation (booleans, empty → null) */
-function formCoerce<T extends z.ZodTypeAny>(schema: T) {
-  return z.preprocess((data: unknown) => {
-    if (typeof data !== 'object' || data === null) return data;
-    const out: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
-      if (typeof value === 'object' && value !== null) {
-        // Recurse for nested objects (e.g. { id, request: { ... } })
-        out[key] = (z.preprocess as any).__formCoerceValue ? value : formCoerce(z.any()).parse(value);
-      } else if (value === 'true') out[key] = true;
-      else if (value === 'false') out[key] = false;
-      else if (value === 'on') out[key] = true;
-      else if (value === '') continue; // omit empty strings (nullable fields)
-      else out[key] = value;
-    }
-    return out;
-  }, schema) as unknown as T;
-}
 
 export const testConnection = form(formCoerce(TestMigrationConnectionRequestSchema) as any, async (request) => {
   const apiClient = getRequestEvent().locals.apiClient;
