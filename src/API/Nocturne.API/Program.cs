@@ -328,6 +328,25 @@ app.UseMiddleware<JsonExtensionMiddleware>();
 // but we make it explicit for clarity.
 app.UseRouting();
 
+// Documentation paths (/scalar, /openapi) bypass the entire tenant/auth
+// middleware stack — they're tenantless and publicly accessible.
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value ?? "";
+    if (path.StartsWith("/scalar", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWith("/openapi", StringComparison.OrdinalIgnoreCase))
+    {
+        // Jump straight to the endpoint (MapOpenApi / MapScalarApiReference)
+        var endpoint = context.GetEndpoint();
+        if (endpoint != null)
+        {
+            await endpoint.RequestDelegate!(context);
+            return;
+        }
+    }
+    await next();
+});
+
 // Redirect OIDC callbacks from apex to the originating tenant subdomain
 app.UseMiddleware<OidcCallbackRedirectMiddleware>();
 
