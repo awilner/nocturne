@@ -10,7 +10,7 @@
     Actogram,
     type ActogramRowContext,
   } from "$lib/components/actogram";
-  import { MS_PER_HOUR } from "$lib/components/actogram/actogram";
+  import { MS_PER_HOUR, HOURS_PER_ROW } from "$lib/components/actogram/actogram";
   import { getActogramData } from "$api/actogram.remote";
   import { requireDateParamsContext } from "$lib/hooks/date-params.svelte";
   import { contextResource } from "$lib/hooks/resource-context.svelte";
@@ -112,8 +112,6 @@
     return "var(--chart-1)";
   }
 
-  // HOURS_PER_ROW is 48 for the double-plot
-  const HOURS_PER_ROW = 48;
 </script>
 
 <svelte:head>

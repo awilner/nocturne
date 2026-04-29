@@ -57,12 +57,13 @@
 
   function navigate(delta: number) {
     direction = delta > 0 ? 'down' : 'up';
-    offset = Math.max(0, Math.min(maxOffset, offset + delta));
-    if (onVisibleRangeChange && visibleDataRows.length > 0) {
-      onVisibleRangeChange(
-        visibleDataRows[0].day,
-        visibleDataRows[visibleDataRows.length - 1].day,
-      );
+    const newOffset = Math.max(0, Math.min(maxOffset, offset + delta));
+    offset = newOffset;
+    if (onVisibleRangeChange) {
+      const visible = dataRows.slice(newOffset, newOffset + effectiveVisibleCount);
+      if (visible.length > 0) {
+        onVisibleRangeChange(visible[0].day, visible[visible.length - 1].day);
+      }
     }
   }
 
@@ -125,7 +126,6 @@
 
   <!-- Rows -->
   {#each visibleDataRows as dataRow, i (dataRow.day.getTime())}
-    {@const globalIndex = offset + i}
     <div
       class="flex items-center"
       style:height="{rowHeight}px"
