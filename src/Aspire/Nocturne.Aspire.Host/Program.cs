@@ -497,6 +497,10 @@ class Program
                 yarp.AddRoute("/api/auth/oidc/{**catch-all}", api.GetEndpoint("http"))
                     .WithTransformXForwarded("X-Forwarded-", ForwardedTransformActions.Set);
 
+                // OAuth endpoints → API (must bypass SvelteKit CSRF for external clients)
+                yarp.AddRoute("/api/oauth/{**catch-all}", api.GetEndpoint("http"))
+                    .WithTransformXForwarded("X-Forwarded-", ForwardedTransformActions.Set);
+
                 // Bot webhooks, remote functions → web
                 yarp.AddRoute("/api/{**catch-all}", webEndpoints.GetEndpoint("http"))
                     .WithTransformXForwarded("X-Forwarded-", ForwardedTransformActions.Set);
