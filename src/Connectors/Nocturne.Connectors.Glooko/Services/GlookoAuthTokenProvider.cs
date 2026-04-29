@@ -71,7 +71,12 @@ public class GlookoAuthTokenProvider : AuthTokenProviderBase<GlookoConnectorConf
             var json = JsonSerializer.Serialize(loginData);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var request = new HttpRequestMessage(HttpMethod.Post, "/api/v2/users/sign_in")
+            // Use absolute URI so per-tenant Server config is respected at request time,
+            // not the static BaseAddress set during DI registration.
+            var baseUrl = GlookoConstants.ResolveBaseUrl(_config.Server);
+            var webOrigin = GlookoConstants.ResolveWebOrigin(_config.Server);
+
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/api/v2/users/sign_in")
             {
                 Content = content
             };
@@ -81,8 +86,8 @@ public class GlookoAuthTokenProvider : AuthTokenProviderBase<GlookoConnectorConf
             request.Headers.TryAddWithoutValidation("Accept-Encoding", "gzip, deflate, br");
             request.Headers.TryAddWithoutValidation("User-Agent",
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Safari/605.1.15");
-            request.Headers.TryAddWithoutValidation("Referer", "https://eu.my.glooko.com/");
-            request.Headers.TryAddWithoutValidation("Origin", "https://eu.my.glooko.com");
+            request.Headers.TryAddWithoutValidation("Referer", $"{webOrigin}/");
+            request.Headers.TryAddWithoutValidation("Origin", webOrigin);
             request.Headers.TryAddWithoutValidation("Connection", "keep-alive");
             request.Headers.TryAddWithoutValidation("Accept-Language", "en-GB,en;q=0.9");
 
