@@ -55,29 +55,15 @@
   import { Badge } from "$lib/components/ui/badge";
   import { cn } from "$lib/utils";
   import {
-    TrendingUp,
-    BarChart3,
-    Clock,
-    Calendar,
-    CalendarDays,
-    FileText,
     Gauge,
     AlertTriangle,
-    Moon,
-    Utensils,
-    Dumbbell,
-    Footprints,
-    HeartPulse,
-    Heart,
-    Stethoscope,
     ArrowRight,
-    Layers,
-    PieChart,
     Sparkles,
     Activity,
+    Calendar,
     ChevronRight,
-    Syringe,
   } from "lucide-svelte";
+  import { reportCategories } from "$lib/navigation/report-navigation";
   import TIRStackedChart from "$lib/components/reports/TIRStackedChart.svelte";
   import ReliabilityBadge from "$lib/components/reports/ReliabilityBadge.svelte";
   import { AmbulatoryGlucoseProfile } from "$lib/components/ambulatory-glucose-profile";
@@ -91,7 +77,6 @@
     getUnitLabel,
   } from "$lib/utils/formatting";
   import ReportsSkeleton from "$lib/components/reports/ReportsSkeleton.svelte";
-  import SiteChangeIcon from "$lib/components/icons/SiteChangeIcon.svelte";
   import { resource } from "runed";
   import { coachmark } from "@nocturne/coach";
   import { fly, fade, scale } from "svelte/transition";

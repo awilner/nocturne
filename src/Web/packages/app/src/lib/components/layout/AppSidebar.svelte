@@ -15,26 +15,19 @@
   import {
     Home,
     BarChart3,
-    FileText,
+    PieChart,
     Settings,
     Activity,
     Clock,
     User,
     ChevronDown,
     Syringe,
-    LineChart,
-    PieChart,
-    TrendingUp,
-    Droplets,
     Apple,
     Utensils,
     Bell,
     HeartHandshake,
     Plug,
     Calendar,
-    CalendarDays,
-    BatteryFull,
-    Sunrise,
     CheckCircle,
     Terminal,
     TestTube,
@@ -51,6 +44,7 @@
     Eye,
     Users,
   } from "lucide-svelte";
+  import { getSidebarReportItems } from "$lib/navigation/report-navigation";
   import type { AuthUser } from "$lib/stores/auth-store.svelte";
 
   interface Props {
@@ -167,7 +161,8 @@
   type NavItem = {
     title: string;
     href?: string;
-    icon: typeof Home;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    icon: any;
     strict?: boolean;
     isActive?: boolean;
     children?: NavItem[];
@@ -199,65 +194,7 @@
       icon: BarChart3,
       children: [
         { title: "Overview", href: "/reports", icon: PieChart, strict: true },
-        { title: "AGP", href: "/reports/agp", icon: LineChart },
-        { title: "IDP", href: "/reports/idp", icon: Droplets },
-        {
-          title: "Executive Summary",
-          href: "/reports/executive-summary",
-          icon: FileText,
-        },
-        {
-          title: "Day in Review",
-          href: "/reports/day-in-review",
-          icon: Clock,
-        },
-        {
-          title: "Week to Week",
-          href: "/reports/week-to-week",
-          icon: Sunrise,
-        },
-        {
-          title: "Month to Month",
-          href: "/calendar",
-          icon: Calendar,
-        },
-        {
-          title: "Year Overview",
-          href: "/reports/year-overview",
-          icon: CalendarDays,
-        },
-        { title: "Readings", href: "/reports/readings", icon: Activity },
-        { title: "Treatments", href: "/reports/treatments", icon: Syringe },
-        {
-          title: "Insulin Delivery",
-          href: "/reports/insulin-delivery",
-          icon: Droplets,
-        },
-        {
-          title: "Basal Analysis",
-          href: "/reports/basal-analysis",
-          icon: TrendingUp,
-        },
-        {
-          title: "Battery",
-          href: "/reports/battery",
-          icon: BatteryFull,
-        },
-        {
-          title: "Glucose Distribution",
-          href: "/reports/glucose-distribution",
-          icon: PieChart,
-        },
-        {
-          title: "Site Change Impact",
-          href: "/reports/site-change-impact",
-          icon: Syringe,
-        },
-        {
-          title: "Data Quality",
-          href: "/reports/data-quality",
-          icon: ShieldCheck,
-        },
+        ...getSidebarReportItems(),
       ],
     },
     {
