@@ -158,10 +158,10 @@
   });
 </script>
 
-<div class="relative h-full w-full">
+<div class={orientation === "horizontal" ? "relative w-full" : "relative h-full w-full"}>
   {#if orientation === "horizontal"}
     <!-- Horizontal stacked bar (simple CSS-based for better control) -->
-    <div class="h-full flex rounded overflow-hidden">
+    <div class={["flex rounded overflow-hidden", compact ? "h-4" : "h-6"].join(" ")}>
       {#each stackedData as segment}
         {#if segment.value > 0}
           <div
