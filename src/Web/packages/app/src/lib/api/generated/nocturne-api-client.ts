@@ -9793,6 +9793,203 @@ export class TenantClient {
         }
         return Promise.resolve<ProvisionResult>(null as any);
     }
+
+    /**
+     * Lists passkey credentials and OIDC identities for a member subject.
+     */
+    getMemberCredentials(id: string, subjectId: string, signal?: AbortSignal): Promise<SubjectCredentialsDto> {
+        let url_ = this.baseUrl + "/api/v4/admin/tenants/{id}/members/{subjectId}/credentials";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (subjectId === undefined || subjectId === null)
+            throw new globalThis.Error("The parameter 'subjectId' must be defined.");
+        url_ = url_.replace("{subjectId}", encodeURIComponent("" + subjectId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMemberCredentials(_response);
+        });
+    }
+
+    protected processGetMemberCredentials(response: Response): Promise<SubjectCredentialsDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SubjectCredentialsDto;
+            return result200;
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            result403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result403);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SubjectCredentialsDto>(null as any);
+    }
+
+    /**
+     * Attaches an OIDC identity to a member subject.
+     */
+    attachOidcIdentity(id: string, subjectId: string, request: AdminAttachOidcRequest, signal?: AbortSignal): Promise<void> {
+        let url_ = this.baseUrl + "/api/v4/admin/tenants/{id}/members/{subjectId}/credentials/oidc";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (subjectId === undefined || subjectId === null)
+            throw new globalThis.Error("The parameter 'subjectId' must be defined.");
+        url_ = url_.replace("{subjectId}", encodeURIComponent("" + subjectId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            signal,
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAttachOidcIdentity(_response);
+        });
+    }
+
+    protected processAttachOidcIdentity(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            result403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result403);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Removes a passkey credential from a member subject.
+     */
+    removePasskeyCredential(id: string, subjectId: string, credentialId: string, signal?: AbortSignal): Promise<void> {
+        let url_ = this.baseUrl + "/api/v4/admin/tenants/{id}/members/{subjectId}/credentials/passkey/{credentialId}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (subjectId === undefined || subjectId === null)
+            throw new globalThis.Error("The parameter 'subjectId' must be defined.");
+        url_ = url_.replace("{subjectId}", encodeURIComponent("" + subjectId));
+        if (credentialId === undefined || credentialId === null)
+            throw new globalThis.Error("The parameter 'credentialId' must be defined.");
+        url_ = url_.replace("{credentialId}", encodeURIComponent("" + credentialId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            signal,
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRemovePasskeyCredential(_response);
+        });
+    }
+
+    protected processRemovePasskeyCredential(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            result403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result403);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Removes an OIDC identity from a member subject.
+     */
+    removeOidcIdentity(id: string, subjectId: string, identityId: string, signal?: AbortSignal): Promise<void> {
+        let url_ = this.baseUrl + "/api/v4/admin/tenants/{id}/members/{subjectId}/credentials/oidc/{identityId}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (subjectId === undefined || subjectId === null)
+            throw new globalThis.Error("The parameter 'subjectId' must be defined.");
+        url_ = url_.replace("{subjectId}", encodeURIComponent("" + subjectId));
+        if (identityId === undefined || identityId === null)
+            throw new globalThis.Error("The parameter 'identityId' must be defined.");
+        url_ = url_.replace("{identityId}", encodeURIComponent("" + identityId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            signal,
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRemoveOidcIdentity(_response);
+        });
+    }
+
+    protected processRemoveOidcIdentity(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            result403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result403);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
 }
 
 export class AlertCustomSoundsClient {
@@ -26737,6 +26934,30 @@ export interface ProvisionOidcIdentityData {
     subjectId?: string | undefined;
 }
 
+export interface SubjectCredentialsDto {
+    passkeys?: PasskeyCredentialDto[];
+    oidcIdentities?: OidcIdentityDto[];
+}
+
+export interface PasskeyCredentialDto {
+    id?: string;
+    displayName?: string | undefined;
+    createdAt?: Date;
+}
+
+export interface OidcIdentityDto {
+    id?: string;
+    provider?: string;
+    email?: string | undefined;
+}
+
+export interface AdminAttachOidcRequest {
+    providerId?: string;
+    oidcSubjectId?: string;
+    issuer?: string;
+    email?: string | undefined;
+}
+
 export interface AlertCustomSoundResponse {
     id?: string;
     name?: string;
@@ -30017,12 +30238,12 @@ export interface RecoveryVerifyRequest {
 
 /** Response containing the list of passkey credentials */
 export interface PasskeyCredentialListResponse {
-    credentials?: PasskeyCredentialDto[];
+    credentials?: PasskeyCredentialDto2[];
     primaryAuthFactorCount?: number;
 }
 
 /** A passkey credential summary (never includes the public key) */
-export interface PasskeyCredentialDto {
+export interface PasskeyCredentialDto2 {
     id?: string;
     label?: string | undefined;
     createdAt?: Date;

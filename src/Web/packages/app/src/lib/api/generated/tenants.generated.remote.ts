@@ -5,8 +5,8 @@
 import { getRequestEvent, query, command } from '$app/server';
 import { error, redirect } from '@sveltejs/kit';
 import { z } from 'zod';
-import { CreateTenantRequestSchema, UpdateTenantRequestSchema, AddMemberRequestSchema, CreateMemberInviteRequestSchema, ProvisionRequestSchema } from '$lib/api/generated/schemas';
-import { type CreateTenantRequest, type UpdateTenantRequest, type AddMemberRequest, type CreateMemberInviteRequest, type ProvisionRequest } from '$api';
+import { CreateTenantRequestSchema, UpdateTenantRequestSchema, AddMemberRequestSchema, CreateMemberInviteRequestSchema, ProvisionRequestSchema, AdminAttachOidcRequestSchema } from '$lib/api/generated/schemas';
+import { type CreateTenantRequest, type UpdateTenantRequest, type AddMemberRequest, type CreateMemberInviteRequest, type ProvisionRequest, type AdminAttachOidcRequest } from '$api';
 
 export const getAll = query(async () => {
   const apiClient = getRequestEvent().locals.apiClient;
@@ -182,5 +182,73 @@ export const provision = command(ProvisionRequestSchema, async (request) => {
     if (status === 403) throw error(403, 'Forbidden');
     console.error('Error in tenant.provision:', err);
     throw error(500, 'Failed to provision');
+  }
+});
+
+/** Lists passkey credentials and OIDC identities for a member subject. */
+export const getMemberCredentials = query(z.object({ id: z.string(), subjectId: z.string() }), async ({ id, subjectId }) => {
+  const apiClient = getRequestEvent().locals.apiClient;
+  try {
+    return await apiClient.tenant.getMemberCredentials(id, subjectId);
+  } catch (err) {
+    const status = (err as any)?.status;
+    if (status === 401) { const { url } = getRequestEvent(); throw redirect(302, `/auth/login?returnUrl=${encodeURIComponent(url.pathname + url.search)}`); }
+    if (status === 403) throw error(403, 'Forbidden');
+    console.error('Error in tenant.getMemberCredentials:', err);
+    throw error(500, 'Failed to get member credentials');
+  }
+});
+
+/** Attaches an OIDC identity to a member subject. */
+export const attachOidcIdentity = command(z.object({ id: z.string(), subjectId: z.string(), request: AdminAttachOidcRequestSchema }), async ({ id, subjectId, request }) => {
+  const apiClient = getRequestEvent().locals.apiClient;
+  try {
+    await apiClient.tenant.attachOidcIdentity(id, subjectId, request as AdminAttachOidcRequest);
+    await Promise.all([
+      getMemberCredentials(id).refresh()
+    ]);
+    return { success: true };
+  } catch (err) {
+    const status = (err as any)?.status;
+    if (status === 401) { const { url } = getRequestEvent(); throw redirect(302, `/auth/login?returnUrl=${encodeURIComponent(url.pathname + url.search)}`); }
+    if (status === 403) throw error(403, 'Forbidden');
+    console.error('Error in tenant.attachOidcIdentity:', err);
+    throw error(500, 'Failed to attach oidc identity');
+  }
+});
+
+/** Removes a passkey credential from a member subject. */
+export const removePasskeyCredential = command(z.object({ id: z.string(), subjectId: z.string(), credentialId: z.string() }), async ({ id, subjectId, credentialId }) => {
+  const apiClient = getRequestEvent().locals.apiClient;
+  try {
+    await apiClient.tenant.removePasskeyCredential(id, subjectId, credentialId);
+    await Promise.all([
+      getMemberCredentials(id).refresh()
+    ]);
+    return { success: true };
+  } catch (err) {
+    const status = (err as any)?.status;
+    if (status === 401) { const { url } = getRequestEvent(); throw redirect(302, `/auth/login?returnUrl=${encodeURIComponent(url.pathname + url.search)}`); }
+    if (status === 403) throw error(403, 'Forbidden');
+    console.error('Error in tenant.removePasskeyCredential:', err);
+    throw error(500, 'Failed to remove passkey credential');
+  }
+});
+
+/** Removes an OIDC identity from a member subject. */
+export const removeOidcIdentity = command(z.object({ id: z.string(), subjectId: z.string(), identityId: z.string() }), async ({ id, subjectId, identityId }) => {
+  const apiClient = getRequestEvent().locals.apiClient;
+  try {
+    await apiClient.tenant.removeOidcIdentity(id, subjectId, identityId);
+    await Promise.all([
+      getMemberCredentials(id).refresh()
+    ]);
+    return { success: true };
+  } catch (err) {
+    const status = (err as any)?.status;
+    if (status === 401) { const { url } = getRequestEvent(); throw redirect(302, `/auth/login?returnUrl=${encodeURIComponent(url.pathname + url.search)}`); }
+    if (status === 403) throw error(403, 'Forbidden');
+    console.error('Error in tenant.removeOidcIdentity:', err);
+    throw error(500, 'Failed to remove oidc identity');
   }
 });

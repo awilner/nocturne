@@ -26,7 +26,7 @@ export * from './services.generated.remote';
 export * from './supports.generated.remote';
 export * from './systems.generated.remote';
 export * from './accessRequests.generated.remote';
-export { addMember, removeMember, listInvites, provision } from './tenants.generated.remote';
+export { addMember, removeMember, listInvites, provision, getMemberCredentials, attachOidcIdentity, removePasskeyCredential, removeOidcIdentity } from './tenants.generated.remote';
 export * from './alertCustomSounds.generated.remote';
 export { validateInvite, redeemInvite } from './alertInvites.generated.remote';
 export * from './alertRules.generated.remote';

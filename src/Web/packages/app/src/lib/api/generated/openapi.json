@@ -349,7 +349,7 @@
         "tags": [
           "Platform"
         ],
-        "summary": "Creates a new tenant with the authenticated subject as owner.\nRequires OperatorConfiguration.AllowSelfServiceCreation to be enabled.",
+        "summary": "Creates a new tenant with the authenticated subject as owner.\nRequires MultitenancyConfiguration.AllowSelfServiceCreation to be enabled.",
         "operationId": "Platform_CreateTenant",
         "requestBody": {
           "x-name": "request",
@@ -8145,28 +8145,6 @@
         "x-remote-type": "query"
       }
     },
-    "/api/v4/support/config": {
-      "get": {
-        "tags": [
-          "Support"
-        ],
-        "summary": "Returns operator support configuration for the frontend.\nWhen no operator is configured, accountBilling is null and the default GitHub flow applies.",
-        "operationId": "Support_GetSupportConfig",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SupportConfigResponse"
-                }
-              }
-            }
-          }
-        },
-        "x-remote-type": "query"
-      }
-    },
     "/api/v4/system/heartbeat": {
       "post": {
         "tags": [
@@ -9024,6 +9002,242 @@
         "x-remote-type": "command",
         "x-remote-invalidates": [
           "GetAll"
+        ]
+      }
+    },
+    "/api/v4/admin/tenants/{id}/members/{subjectId}/credentials": {
+      "get": {
+        "tags": [
+          "Tenant"
+        ],
+        "summary": "Lists passkey credentials and OIDC identities for a member subject.",
+        "operationId": "Tenant_GetMemberCredentials",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "subjectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubjectCredentialsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-remote-type": "query"
+      }
+    },
+    "/api/v4/admin/tenants/{id}/members/{subjectId}/credentials/oidc": {
+      "post": {
+        "tags": [
+          "Tenant"
+        ],
+        "summary": "Attaches an OIDC identity to a member subject.",
+        "operationId": "Tenant_AttachOidcIdentity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "subjectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminAttachOidcRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 3
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-remote-type": "command",
+        "x-remote-invalidates": [
+          "GetMemberCredentials"
+        ]
+      }
+    },
+    "/api/v4/admin/tenants/{id}/members/{subjectId}/credentials/passkey/{credentialId}": {
+      "delete": {
+        "tags": [
+          "Tenant"
+        ],
+        "summary": "Removes a passkey credential from a member subject.",
+        "operationId": "Tenant_RemovePasskeyCredential",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "subjectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "credentialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 3
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-remote-type": "command",
+        "x-remote-invalidates": [
+          "GetMemberCredentials"
+        ]
+      }
+    },
+    "/api/v4/admin/tenants/{id}/members/{subjectId}/credentials/oidc/{identityId}": {
+      "delete": {
+        "tags": [
+          "Tenant"
+        ],
+        "summary": "Removes an OIDC identity from a member subject.",
+        "operationId": "Tenant_RemoveOidcIdentity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "subjectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "identityId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 3
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-remote-type": "command",
+        "x-remote-invalidates": [
+          "GetMemberCredentials"
         ]
       }
     },
@@ -30208,36 +30422,6 @@
           }
         }
       },
-      "SupportConfigResponse": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "accountBilling": {
-            "nullable": true,
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/SupportChannelConfig"
-              }
-            ]
-          }
-        }
-      },
-      "SupportChannelConfig": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "mode": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
       "HeartbeatRequest": {
         "type": "object",
         "additionalProperties": false,
@@ -30908,6 +31092,79 @@
           "subjectId": {
             "type": "string",
             "format": "guid",
+            "nullable": true
+          }
+        }
+      },
+      "SubjectCredentialsDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "passkeys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PasskeyCredentialDto"
+            }
+          },
+          "oidcIdentities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OidcIdentityDto"
+            }
+          }
+        }
+      },
+      "PasskeyCredentialDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "displayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OidcIdentityDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "AdminAttachOidcRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "providerId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "oidcSubjectId": {
+            "type": "string"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
             "nullable": true
           }
         }
@@ -41270,7 +41527,7 @@
           "credentials": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/PasskeyCredentialDto"
+              "$ref": "#/components/schemas/PasskeyCredentialDto2"
             }
           },
           "primaryAuthFactorCount": {
@@ -41279,7 +41536,7 @@
           }
         }
       },
-      "PasskeyCredentialDto": {
+      "PasskeyCredentialDto2": {
         "type": "object",
         "description": "A passkey credential summary (never includes the public key)",
         "additionalProperties": false,
