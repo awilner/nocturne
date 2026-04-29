@@ -213,6 +213,17 @@ public static class ServiceRegistrationExtensions
         services.Configure<MultitenancyConfiguration>(
             configuration.GetSection(MultitenancyConfiguration.SectionName)
         );
+
+        // Operator (SaaS platform policy)
+        services.AddOptions<OperatorConfiguration>()
+            .Bind(configuration.GetSection(OperatorConfiguration.SectionName))
+            .Validate(config =>
+            {
+                if (config.Support.AccountBilling is { } ab)
+                    return !string.IsNullOrWhiteSpace(ab.Url);
+                return true;
+            }, "Operator:Support:AccountBilling:Url is required when AccountBilling is configured");
+
         services.AddScoped<ITenantAccessor, HttpContextTenantAccessor>();
         services.AddScoped<ITenantMemberService, TenantMemberService>();
         services.AddScoped<ITenantRoleService, TenantRoleService>();
