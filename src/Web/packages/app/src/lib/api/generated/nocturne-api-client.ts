@@ -1394,62 +1394,6 @@ export class BolusClient {
     }
 
     /**
-     * Delete a bolus by its external sync identifier (dataSource + syncIdentifier pair).
-     * @param dataSource (optional) 
-     * @param syncIdentifier (optional) 
-     */
-    deleteBySyncIdentifier(dataSource?: string | undefined, syncIdentifier?: string | undefined, signal?: AbortSignal): Promise<void> {
-        let url_ = this.baseUrl + "/api/v4/insulin/boluses/by-sync-id?";
-        if (dataSource === null)
-            throw new globalThis.Error("The parameter 'dataSource' cannot be null.");
-        else if (dataSource !== undefined)
-            url_ += "dataSource=" + encodeURIComponent("" + dataSource) + "&";
-        if (syncIdentifier === null)
-            throw new globalThis.Error("The parameter 'syncIdentifier' cannot be null.");
-        else if (syncIdentifier !== undefined)
-            url_ += "syncIdentifier=" + encodeURIComponent("" + syncIdentifier) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "DELETE",
-            signal,
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteBySyncIdentifier(_response);
-        });
-    }
-
-    protected processDeleteBySyncIdentifier(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 204) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            let result400: any = null;
-            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            let result404: any = null;
-            result404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
      * Updates an existing record by ID and returns the updated record.
      * @param id The unique identifier of the record to update.
      * @param request The data to apply to the existing record.
@@ -1596,6 +1540,62 @@ export class BolusClient {
             });
         }
         return Promise.resolve<Bolus>(null as any);
+    }
+
+    /**
+     * Delete a bolus by its external sync identifier (dataSource + syncIdentifier pair).
+     * @param dataSource (optional) 
+     * @param syncIdentifier (optional) 
+     */
+    deleteBySyncIdentifier(dataSource?: string | undefined, syncIdentifier?: string | undefined, signal?: AbortSignal): Promise<void> {
+        let url_ = this.baseUrl + "/api/v4/insulin/boluses/by-sync-id?";
+        if (dataSource === null)
+            throw new globalThis.Error("The parameter 'dataSource' cannot be null.");
+        else if (dataSource !== undefined)
+            url_ += "dataSource=" + encodeURIComponent("" + dataSource) + "&";
+        if (syncIdentifier === null)
+            throw new globalThis.Error("The parameter 'syncIdentifier' cannot be null.");
+        else if (syncIdentifier !== undefined)
+            url_ += "syncIdentifier=" + encodeURIComponent("" + syncIdentifier) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            signal,
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteBySyncIdentifier(_response);
+        });
+    }
+
+    protected processDeleteBySyncIdentifier(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            result404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 }
 
@@ -24603,6 +24603,7 @@ export interface Bolus {
     duration?: number | undefined;
     syncIdentifier?: string | undefined;
     insulinType?: string | undefined;
+    insulinContext?: TreatmentInsulinContext | undefined;
     unabsorbed?: number | undefined;
     deviceId?: string | undefined;
     pumpRecordId?: string | undefined;
@@ -24620,6 +24621,15 @@ export enum BolusType {
 export enum BolusKind {
     Manual = "Manual",
     Algorithm = "Algorithm",
+}
+
+export interface TreatmentInsulinContext {
+    patientInsulinId?: string;
+    insulinName?: string;
+    dia?: number;
+    peak?: number;
+    curve?: string;
+    concentration?: number;
 }
 
 /** Request body for creating a new insulin bolus record via the V4 API. */
@@ -24652,6 +24662,10 @@ export interface CreateBolusRequest {
     syncIdentifier?: string | undefined;
     /** Type or brand of insulin used (e.g. "Humalog", "NovoRapid"). */
     insulinType?: string | undefined;
+    /** Optional reference to a PatientInsulin. When provided, the server
+resolves it to a TreatmentInsulinContext snapshot and overwrites
+InsulinType with the insulin's name. */
+    patientInsulinId?: string | undefined;
     /** Insulin on board (unabsorbed) at the time of the bolus, in units. */
     unabsorbed?: number | undefined;
     /** Links this bolus to the bolus calculation that recommended it. */
@@ -24688,6 +24702,10 @@ export interface UpdateBolusRequest {
     syncIdentifier?: string | undefined;
     /** Type or brand of insulin used (e.g. "Humalog", "NovoRapid"). */
     insulinType?: string | undefined;
+    /** Optional reference to a PatientInsulin. When provided, the server
+resolves it to a TreatmentInsulinContext snapshot and overwrites
+InsulinType with the insulin's name. */
+    patientInsulinId?: string | undefined;
     /** Insulin on board (unabsorbed) at the time of the bolus, in units. */
     unabsorbed?: number | undefined;
     /** Links this bolus to the bolus calculation that recommended it. */
@@ -25215,15 +25233,6 @@ export enum CalculationType2 {
     Suggested = "Suggested",
     Manual = "Manual",
     Automatic = "Automatic",
-}
-
-export interface TreatmentInsulinContext {
-    patientInsulinId?: string;
-    insulinName?: string;
-    dia?: number;
-    peak?: number;
-    curve?: string;
-    concentration?: number;
 }
 
 export interface StateSpan {

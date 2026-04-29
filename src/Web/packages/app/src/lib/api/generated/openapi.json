@@ -1185,58 +1185,6 @@
         "x-remote-type": "form"
       }
     },
-    "/api/v4/insulin/boluses/by-sync-id": {
-      "delete": {
-        "tags": [
-          "Bolus"
-        ],
-        "summary": "Delete a bolus by its external sync identifier (dataSource + syncIdentifier pair).",
-        "operationId": "Bolus_DeleteBySyncIdentifier",
-        "parameters": [
-          {
-            "name": "dataSource",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "syncIdentifier",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          },
-          "404": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v4/insulin/boluses/{id}": {
       "put": {
         "tags": [
@@ -1385,6 +1333,58 @@
           }
         },
         "x-remote-type": "query"
+      }
+    },
+    "/api/v4/insulin/boluses/by-sync-id": {
+      "delete": {
+        "tags": [
+          "Bolus"
+        ],
+        "summary": "Delete a bolus by its external sync identifier (dataSource + syncIdentifier pair).",
+        "operationId": "Bolus_DeleteBySyncIdentifier",
+        "parameters": [
+          {
+            "name": "dataSource",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "syncIdentifier",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v4/connector-food-entries/import": {
@@ -23622,6 +23622,14 @@
             "type": "string",
             "nullable": true
           },
+          "insulinContext": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TreatmentInsulinContext"
+              }
+            ]
+          },
           "unabsorbed": {
             "type": "number",
             "format": "double",
@@ -23678,6 +23686,34 @@
           "Manual",
           "Algorithm"
         ]
+      },
+      "TreatmentInsulinContext": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "patientInsulinId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "insulinName": {
+            "type": "string"
+          },
+          "dia": {
+            "type": "number",
+            "format": "double"
+          },
+          "peak": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "curve": {
+            "type": "string"
+          },
+          "concentration": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
       },
       "CreateBolusRequest": {
         "type": "object",
@@ -23762,6 +23798,12 @@
           "insulinType": {
             "type": "string",
             "description": "Type or brand of insulin used (e.g. \"Humalog\", \"NovoRapid\").",
+            "nullable": true
+          },
+          "patientInsulinId": {
+            "type": "string",
+            "description": "Optional reference to a PatientInsulin. When provided, the server\nresolves it to a TreatmentInsulinContext snapshot and overwrites\nInsulinType with the insulin's name.",
+            "format": "guid",
             "nullable": true
           },
           "unabsorbed": {
@@ -23856,6 +23898,12 @@
           "insulinType": {
             "type": "string",
             "description": "Type or brand of insulin used (e.g. \"Humalog\", \"NovoRapid\").",
+            "nullable": true
+          },
+          "patientInsulinId": {
+            "type": "string",
+            "description": "Optional reference to a PatientInsulin. When provided, the server\nresolves it to a TreatmentInsulinContext snapshot and overwrites\nInsulinType with the insulin's name.",
+            "format": "guid",
             "nullable": true
           },
           "unabsorbed": {
@@ -25689,34 +25737,6 @@
           "Manual",
           "Automatic"
         ]
-      },
-      "TreatmentInsulinContext": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "patientInsulinId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "insulinName": {
-            "type": "string"
-          },
-          "dia": {
-            "type": "number",
-            "format": "double"
-          },
-          "peak": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "curve": {
-            "type": "string"
-          },
-          "concentration": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
       },
       "StateSpan": {
         "type": "object",
