@@ -117,6 +117,30 @@
           }
         },
         "x-remote-type": "query"
+      },
+      "delete": {
+        "tags": [
+          "Coach Mark"
+        ],
+        "summary": "Delete all coach mark states for the current user, resetting all tutorials.",
+        "operationId": "CoachMark_DeleteAll",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        },
+        "x-remote-type": "command",
+        "x-remote-invalidates": [
+          "GetAll"
+        ]
       }
     },
     "/api/v4/coach-marks/{key}": {

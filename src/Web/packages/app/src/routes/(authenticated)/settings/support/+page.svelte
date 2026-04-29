@@ -30,11 +30,14 @@
     Lightbulb,
     Database,
     CreditCard,
+    GraduationCap,
   } from "lucide-svelte";
   import { getServicesOverview } from "$api";
   import type { ServicesOverview, SupportConfigResponse } from "$api";
   import { getSupportConfig } from "$lib/api/support.remote";
   import IssueCreatorDialog from "$lib/components/support/IssueCreatorDialog.svelte";
+  import { getCoachMarkContext } from "@nocturne/coach";
+  import { toast } from "svelte-sonner";
 
   let includeDeviceInfo = $state(true);
   let includeRecentLogs = $state(true);
@@ -54,6 +57,21 @@
   const supportConfig = $derived(supportConfigQuery.current as SupportConfigResponse | undefined);
 
   let useOperatorSupport = $state(false);
+
+  const coachCtx = getCoachMarkContext();
+  let resettingTutorials = $state(false);
+
+  async function resetTutorials() {
+    resettingTutorials = true;
+    try {
+      await coachCtx.resetAll();
+      toast.success("Tutorials reset — they'll appear as you navigate the app");
+    } catch {
+      toast.error("Failed to reset tutorials");
+    } finally {
+      resettingTutorials = false;
+    }
+  }
 
   $effect(() => {
     if (services?.apiEndpoint) {
@@ -283,6 +301,36 @@
             <ExternalLink class="h-3 w-3" />
           </Button>
         </a>
+      </div>
+    </CardContent>
+  </Card>
+
+  <!-- Tutorials -->
+  <Card>
+    <CardHeader>
+      <CardTitle class="flex items-center gap-2">
+        <GraduationCap class="h-5 w-5" />
+        Tutorials
+      </CardTitle>
+      <CardDescription>Guided walkthroughs to help you learn the app</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <div class="flex items-center justify-between">
+        <div class="space-y-0.5">
+          <p class="text-sm font-medium">Show all tutorials again</p>
+          <p class="text-sm text-muted-foreground">
+            Reset all guided walkthroughs so they appear as you navigate
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          class="gap-2"
+          onclick={resetTutorials}
+          disabled={resettingTutorials}
+        >
+          <GraduationCap class="h-4 w-4" />
+          {resettingTutorials ? "Resetting..." : "Reset Tutorials"}
+        </Button>
       </div>
     </CardContent>
   </Card>

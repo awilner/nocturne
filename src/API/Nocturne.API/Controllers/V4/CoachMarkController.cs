@@ -60,6 +60,17 @@ public class CoachMarkController : ControllerBase
         var state = await _coachMarkService.UpsertAsync(key, request.Status, cancellationToken);
         return Ok(state);
     }
+
+    /// <summary>
+    /// Delete all coach mark states for the current user, resetting all tutorials.
+    /// </summary>
+    [HttpDelete]
+    [RemoteCommand(Invalidates = ["GetAll"])]
+    public async Task<ActionResult> DeleteAll(CancellationToken cancellationToken)
+    {
+        await _coachMarkService.DeleteAllAsync(cancellationToken);
+        return NoContent();
+    }
 }
 
 /// <summary>

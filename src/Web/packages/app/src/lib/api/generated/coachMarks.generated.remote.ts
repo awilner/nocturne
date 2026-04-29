@@ -22,6 +22,24 @@ export const getAll = query(async () => {
   }
 });
 
+/** Delete all coach mark states for the current user, resetting all tutorials. */
+export const deleteAll = command(async () => {
+  const apiClient = getRequestEvent().locals.apiClient;
+  try {
+    await apiClient.coachMark.deleteAll();
+    await Promise.all([
+      getAll(undefined).refresh()
+    ]);
+    return { success: true };
+  } catch (err) {
+    const status = (err as any)?.status;
+    if (status === 401) { const { url } = getRequestEvent(); throw redirect(302, `/auth/login?returnUrl=${encodeURIComponent(url.pathname + url.search)}`); }
+    if (status === 403) throw error(403, 'Forbidden');
+    console.error('Error in coachMark.deleteAll:', err);
+    throw error(500, 'Failed to delete all');
+  }
+});
+
 /** Update a coach mark's status. */
 export const updateStatus = command(z.object({ key: z.string(), request: UpdateCoachMarkRequestSchema }), async ({ key, request }) => {
   const apiClient = getRequestEvent().locals.apiClient;
