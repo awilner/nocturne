@@ -104,6 +104,8 @@ public class GlookoConnectorService : BaseConnectorService<GlookoConnectorConfig
 
         try
         {
+            await ReportMessageAsync(progressReporter, SyncMessageType.Authenticating, null, cancellationToken);
+
             if (IsSessionExpired())
                 if (!await AuthenticateAsync())
                 {
@@ -121,6 +123,10 @@ public class GlookoConnectorService : BaseConnectorService<GlookoConnectorConfig
 
             // Glooko fetches everything in one go, so determine the earliest 'From' date needed
             var from = request.From;
+
+            await ReportMessageAsync(progressReporter, SyncMessageType.FetchingData,
+                new() { ["from"] = (from ?? DateTime.UtcNow.AddMonths(-6)).ToString("MMM dd"), ["to"] = DateTime.UtcNow.ToString("MMM dd") },
+                cancellationToken);
 
             var batchData = await FetchBatchDataAsync(from);
 
@@ -163,6 +169,9 @@ public class GlookoConnectorService : BaseConnectorService<GlookoConnectorConfig
             }
 
             // 1. Process Glucose
+            await ReportMessageAsync(progressReporter, SyncMessageType.ProcessingDataType,
+                new() { ["dataType"] = SyncDataType.Glucose.ToString() }, cancellationToken);
+
             if (activeTypes.Contains(SyncDataType.Glucose))
             {
                 var sensorGlucose = _sensorGlucoseMapper.TransformBatchDataToSensorGlucose(batchData).ToList();
@@ -174,6 +183,10 @@ public class GlookoConnectorService : BaseConnectorService<GlookoConnectorConfig
                         result.ItemsSynced[SyncDataType.Glucose] = sensorGlucose.Count;
                         result.LastEntryTimes[SyncDataType.Glucose] = DateTimeOffset
                             .FromUnixTimeMilliseconds(sensorGlucose.Max(s => s.Mills)).UtcDateTime;
+
+                        await ReportMessageAsync(progressReporter, SyncMessageType.PublishingDataType,
+                            new() { ["dataType"] = SyncDataType.Glucose.ToString(), ["count"] = sensorGlucose.Count.ToString() },
+                            cancellationToken);
                     }
                 }
 
@@ -230,6 +243,9 @@ public class GlookoConnectorService : BaseConnectorService<GlookoConnectorConfig
             }
 
             // Publish boluses
+            await ReportMessageAsync(progressReporter, SyncMessageType.ProcessingDataType,
+                new() { ["dataType"] = SyncDataType.Boluses.ToString() }, cancellationToken);
+
             if (activeTypes.Contains(SyncDataType.Boluses) && allBoluses.Count > 0)
             {
                 var success = await PublishBolusDataAsync(allBoluses, config, cancellationToken);
@@ -237,10 +253,17 @@ public class GlookoConnectorService : BaseConnectorService<GlookoConnectorConfig
                 {
                     result.ItemsSynced[SyncDataType.Boluses] = allBoluses.Count;
                     _logger.LogInformation("[{ConnectorSource}] Published {Count} boluses", ConnectorSource, allBoluses.Count);
+
+                    await ReportMessageAsync(progressReporter, SyncMessageType.PublishingDataType,
+                        new() { ["dataType"] = SyncDataType.Boluses.ToString(), ["count"] = allBoluses.Count.ToString() },
+                        cancellationToken);
                 }
             }
 
             // Publish carb intakes
+            await ReportMessageAsync(progressReporter, SyncMessageType.ProcessingDataType,
+                new() { ["dataType"] = SyncDataType.CarbIntake.ToString() }, cancellationToken);
+
             if (activeTypes.Contains(SyncDataType.CarbIntake) && allCarbs.Count > 0)
             {
                 var success = await PublishCarbIntakeDataAsync(allCarbs, config, cancellationToken);
@@ -248,10 +271,17 @@ public class GlookoConnectorService : BaseConnectorService<GlookoConnectorConfig
                 {
                     result.ItemsSynced[SyncDataType.CarbIntake] = allCarbs.Count;
                     _logger.LogInformation("[{ConnectorSource}] Published {Count} carb intakes", ConnectorSource, allCarbs.Count);
+
+                    await ReportMessageAsync(progressReporter, SyncMessageType.PublishingDataType,
+                        new() { ["dataType"] = SyncDataType.CarbIntake.ToString(), ["count"] = allCarbs.Count.ToString() },
+                        cancellationToken);
                 }
             }
 
             // 3. Process DeviceEvents (reservoir/site changes + pump alarms from V3)
+            await ReportMessageAsync(progressReporter, SyncMessageType.ProcessingDataType,
+                new() { ["dataType"] = SyncDataType.DeviceEvents.ToString() }, cancellationToken);
+
             if (activeTypes.Contains(SyncDataType.DeviceEvents))
             {
                 var deviceEventCount = 0;
@@ -285,6 +315,9 @@ public class GlookoConnectorService : BaseConnectorService<GlookoConnectorConfig
             }
 
             // 4. Process StateSpans (pump modes, profiles) and TempBasals
+            await ReportMessageAsync(progressReporter, SyncMessageType.ProcessingDataType,
+                new() { ["dataType"] = SyncDataType.StateSpans.ToString() }, cancellationToken);
+
             if (activeTypes.Contains(SyncDataType.StateSpans))
             {
                 var tempBasalCount = 0;
@@ -347,6 +380,9 @@ public class GlookoConnectorService : BaseConnectorService<GlookoConnectorConfig
             }
 
             // 5. Process Profiles (from V3 devices_and_settings)
+            await ReportMessageAsync(progressReporter, SyncMessageType.ProcessingDataType,
+                new() { ["dataType"] = SyncDataType.Profiles.ToString() }, cancellationToken);
+
             if (activeTypes.Contains(SyncDataType.Profiles))
                 try
                 {
@@ -382,6 +418,10 @@ public class GlookoConnectorService : BaseConnectorService<GlookoConnectorConfig
                     );
                 }
 
+            await ReportMessageAsync(progressReporter,
+                result.Success ? SyncMessageType.SyncComplete : SyncMessageType.SyncFailed,
+                null, cancellationToken);
+
             result.EndTime = DateTime.UtcNow;
             return result;
         }
@@ -391,6 +431,9 @@ public class GlookoConnectorService : BaseConnectorService<GlookoConnectorConfig
             result.Success = false;
             result.Message = "Sync failed with exception";
             result.Errors.Add(ex.Message);
+
+            await ReportMessageAsync(progressReporter, SyncMessageType.SyncFailed, null, cancellationToken);
+
             result.EndTime = DateTime.UtcNow;
             return result;
         }
@@ -933,4 +976,21 @@ public class GlookoConnectorService : BaseConnectorService<GlookoConnectorConfig
     }
 
     #endregion
+
+    private Task ReportMessageAsync(
+        ISyncProgressReporter? reporter,
+        SyncMessageType messageType,
+        Dictionary<string, string>? messageParams,
+        CancellationToken ct)
+    {
+        if (reporter == null) return Task.CompletedTask;
+        return reporter.ReportProgressAsync(new SyncProgressEvent
+        {
+            ConnectorId = ConnectorSource,
+            ConnectorName = ServiceName,
+            Phase = SyncPhase.Syncing,
+            MessageType = messageType,
+            MessageParams = messageParams,
+        }, ct);
+    }
 }
