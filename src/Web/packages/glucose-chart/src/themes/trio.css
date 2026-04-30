@@ -87,6 +87,10 @@
   --gri-zone-d: rgb(255, 152, 0);     /* Orange */
   --gri-zone-e: rgb(244, 67, 54);     /* Red - worst glycemia */
 
+  /* Health Overlays */
+  --heart-rate: rgb(220, 80, 80);
+  --steps: rgb(160, 100, 200);
+
   /* Chart Colors - Trio themed */
   --chart-1: rgb(30, 150, 252); /* Insulin blue */
   --chart-2: rgb(111, 207, 151); /* LoopGreen */
