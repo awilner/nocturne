@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Spline, Points, Rule, Axis, ChartClipPath, Highlight } from "layerchart";
-  import { curveMonotoneX } from "d3";
+  import { bisector, curveMonotoneX } from "d3";
   import type { ScaleLinear } from "d3-scale";
   import { bg } from "../utils/formatting.js";
 
@@ -40,10 +40,14 @@
   const pointDensity = $derived(glucoseData.length / contextWidth);
   const showGlucosePoints = $derived(pointDensity < 0.5);
 
+  // Heartrate normalization range
+  const MIN_BPM = 50;
+  const MAX_BPM = 180;
+
   // Normalize heartrate BPM to glucose Y scale:
-  // 50 BPM -> low threshold, 180 BPM -> high threshold
+  // MIN_BPM -> low threshold, MAX_BPM -> high threshold
   const heartRateToGlucose = (bpm: number) => {
-    return lowThreshold + ((bpm - 50) / (180 - 50)) * (highThreshold - lowThreshold);
+    return lowThreshold + ((bpm - MIN_BPM) / (MAX_BPM - MIN_BPM)) * (highThreshold - lowThreshold);
   };
 
   // Pre-compute step bubble positions: Y = 2-hour trailing glucose average
@@ -52,15 +56,18 @@
   const MIN_RADIUS = 2;
   const MAX_RADIUS = 8;
 
+  const bisectTime = bisector((d: GlucoseDataPoint) => d.time.getTime()).left;
+
   const stepBubbles = $derived(
     stepSeries.map((step) => {
-      const cutoff = step.time.getTime() - TWO_HOURS_MS;
-      const recentGlucose = glucoseData.filter(
-        (g) => g.time.getTime() >= cutoff && g.time.getTime() <= step.time.getTime()
-      );
+      const stepMs = step.time.getTime();
+      const cutoff = stepMs - TWO_HOURS_MS;
+      const startIdx = bisectTime(glucoseData, cutoff);
+      const endIdx = bisectTime(glucoseData, stepMs + 1);
+      const window = glucoseData.slice(startIdx, endIdx);
       const avgSgv =
-        recentGlucose.length > 0
-          ? recentGlucose.reduce((sum, g) => sum + g.sgv, 0) / recentGlucose.length
+        window.length > 0
+          ? window.reduce((sum, g) => sum + g.sgv, 0) / window.length
           : (lowThreshold + highThreshold) / 2;
       const radius = MIN_RADIUS + (Math.min(step.steps, MAX_STEPS) / MAX_STEPS) * (MAX_RADIUS - MIN_RADIUS);
       return { time: step.time, sgv: avgSgv, radius };

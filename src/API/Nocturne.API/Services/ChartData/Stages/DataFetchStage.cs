@@ -214,13 +214,15 @@ internal sealed class DataFetchStage(
             .ToList();
 
         logger.LogDebug(
-            "DataFetchStage: fetched {Glucose} glucose, {Bolus} bolus, {Carb} carb, {BgCheck} bg-check, {DeviceEvent} device-event, {TempBasal} temp-basal records",
+            "DataFetchStage: fetched {Glucose} glucose, {Bolus} bolus, {Carb} carb, {BgCheck} bg-check, {DeviceEvent} device-event, {TempBasal} temp-basal, {HeartRate} heart-rate, {StepCount} step-count records",
             sensorGlucoseList.Count,
             bolusList.Count,
             carbIntakeList.Count,
             bgCheckList.Count,
             deviceEventList.Count,
-            tempBasalList.Count
+            tempBasalList.Count,
+            heartRateList.Count,
+            stepCountList.Count
         );
 
         // Project Dictionary<K, List<V>> to IReadOnlyDictionary<K, IEnumerable<V>>
