@@ -89,6 +89,10 @@ export class RealtimeStore {
   private handleVisibilityChange: (() => void) | null = null;
   private handleWindowFocus: (() => void) | null = null;
 
+  /** Background polling interval when tab is hidden */
+  private backgroundPollInterval: ReturnType<typeof setInterval> | null = null;
+  private static readonly BACKGROUND_POLL_MS = 30_000; // 30s — browsers throttle setInterval to ~60s in hidden tabs, so aim for ~1 poll per minute worst-case
+
   /** Reactive state using Svelte 5 runes - using $state.raw for arrays to avoid deep proxy issues */
   entries = $state.raw<Entry[]>([]);
   deviceStatuses = $state.raw<DeviceStatus[]>([]);
@@ -255,8 +259,14 @@ export class RealtimeStore {
         if (document.visibilityState === 'visible') {
           // Snap now immediately so time-since displays don't lag
           this.now = Date.now();
-          console.log('[RealtimeStore] Page became visible, checking for backfill...');
-          this.performBackfillIfNeeded();
+          this.stopBackgroundPolling();
+          console.log('[RealtimeStore] Page became visible, backfilling missed data...');
+          // Always backfill on return — timers are unreliable in hidden tabs
+          // so we can't trust lastDataReceived to be meaningful
+          this.performBackfillIfNeeded(true);
+        } else {
+          console.log('[RealtimeStore] Page hidden, starting background polling...');
+          this.startBackgroundPolling();
         }
       };
       document.addEventListener('visibilitychange', this.handleVisibilityChange);
@@ -766,6 +776,7 @@ export class RealtimeStore {
     if (this.timeInterval) {
       clearInterval(this.timeInterval);
     }
+    this.stopBackgroundPolling();
     if (typeof window !== 'undefined') {
       if (this.handleVisibilityChange) {
         document.removeEventListener('visibilitychange', this.handleVisibilityChange);
@@ -775,6 +786,28 @@ export class RealtimeStore {
       }
     }
     this.websocketClient.destroy();
+  }
+
+  /**
+   * Start polling for data while the tab is hidden.
+   * Browsers throttle setInterval in background tabs (Chrome: ~60s minimum),
+   * so we set a 30s interval knowing it'll fire roughly once per minute.
+   * This ensures glucose values stay current even when the tab isn't focused.
+   */
+  private startBackgroundPolling(): void {
+    if (this.backgroundPollInterval) return;
+
+    this.backgroundPollInterval = setInterval(() => {
+      this.performBackfillIfNeeded(true);
+    }, RealtimeStore.BACKGROUND_POLL_MS);
+  }
+
+  /** Stop background polling (called when tab becomes visible again) */
+  private stopBackgroundPolling(): void {
+    if (this.backgroundPollInterval) {
+      clearInterval(this.backgroundPollInterval);
+      this.backgroundPollInterval = null;
+    }
   }
 
   /**
