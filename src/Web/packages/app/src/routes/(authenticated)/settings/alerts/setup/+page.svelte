@@ -27,6 +27,8 @@
     Loader2,
   } from "lucide-svelte";
   import ChannelPicker from "$lib/components/alerts/ChannelPicker.svelte";
+  import { glucoseUnits } from "$lib/stores/appearance-store.svelte";
+  import { bgValue, bgLabel, convertFromDisplayUnits } from "$lib/utils/formatting";
 
   // Step management
   let currentStep = $state(1);
@@ -41,7 +43,6 @@
     conditionType: AlertConditionType;
     conditionParams: Record<string, unknown>;
     threshold: number;
-    thresholdUnit: string;
     thresholdField: string;
     confirmationReadings: number;
     hysteresisMinutes: number;
@@ -59,7 +60,6 @@
       conditionType: AlertConditionType.Threshold,
       conditionParams: { threshold: 54, direction: "below" },
       threshold: 54,
-      thresholdUnit: "mg/dL",
       thresholdField: "threshold",
       confirmationReadings: 1,
       hysteresisMinutes: 15,
@@ -79,7 +79,6 @@
       conditionType: AlertConditionType.Threshold,
       conditionParams: { threshold: 70, direction: "below" },
       threshold: 70,
-      thresholdUnit: "mg/dL",
       thresholdField: "threshold",
       confirmationReadings: 2,
       hysteresisMinutes: 15,
@@ -99,7 +98,6 @@
       conditionType: AlertConditionType.Threshold,
       conditionParams: { threshold: 250, direction: "above" },
       threshold: 250,
-      thresholdUnit: "mg/dL",
       thresholdField: "threshold",
       confirmationReadings: 3,
       hysteresisMinutes: 30,
@@ -119,7 +117,6 @@
       conditionType: AlertConditionType.Threshold,
       conditionParams: { threshold: 300, direction: "above" },
       threshold: 300,
-      thresholdUnit: "mg/dL",
       thresholdField: "threshold",
       confirmationReadings: 2,
       hysteresisMinutes: 30,
@@ -144,7 +141,6 @@
         ],
       },
       threshold: 100,
-      thresholdUnit: "mg/dL",
       thresholdField: "threshold",
       confirmationReadings: 2,
       hysteresisMinutes: 15,
@@ -164,7 +160,6 @@
       conditionType: AlertConditionType.SignalLoss,
       conditionParams: { minutes: 15 },
       threshold: 15,
-      thresholdUnit: "minutes",
       thresholdField: "minutes",
       confirmationReadings: 1,
       hysteresisMinutes: 5,
@@ -186,6 +181,18 @@
   let saveError = $state<string | null>(null);
 
   const selectedPresets = $derived(presets.filter((p) => p.enabled));
+
+  function isGlucosePreset(preset: Preset): boolean {
+    return preset.conditionType !== AlertConditionType.SignalLoss;
+  }
+
+  function displayThreshold(preset: Preset): number {
+    return isGlucosePreset(preset) ? bgValue(preset.threshold) : preset.threshold;
+  }
+
+  function thresholdUnitLabel(preset: Preset): string {
+    return isGlucosePreset(preset) ? bgLabel() : "minutes";
+  }
 
   function updateThreshold(key: string, value: number) {
     const preset = presets.find((p) => p.key === key);
@@ -287,7 +294,7 @@
 
   <!-- Step Indicator -->
   <div class="flex items-center gap-2">
-    {#each Array(totalSteps) as _, i}
+    {#each Array(totalSteps) as _, i (i)}
       {@const step = i + 1}
       <div class="flex items-center gap-2 flex-1">
         <div
@@ -376,16 +383,23 @@
                     <Label class="text-xs w-20 shrink-0">Threshold</Label>
                     <Input
                       type="number"
-                      value={preset.threshold}
+                      value={displayThreshold(preset)}
                       class="h-8 text-sm"
-                      oninput={(e) =>
-                        updateThreshold(
-                          preset.key,
-                          parseFloat(e.currentTarget.value) || 0,
-                        )}
+                      step={isGlucosePreset(preset) && glucoseUnits.current === "mmol" ? "0.1" : "1"}
+                      oninput={(e) => {
+                        const val = parseFloat(e.currentTarget.value);
+                        if (!Number.isNaN(val)) {
+                          updateThreshold(
+                            preset.key,
+                            isGlucosePreset(preset)
+                              ? convertFromDisplayUnits(val, glucoseUnits.current)
+                              : val,
+                          );
+                        }
+                      }}
                     />
                     <span class="text-xs text-muted-foreground shrink-0">
-                      {preset.thresholdUnit}
+                      {thresholdUnitLabel(preset)}
                     </span>
                   </div>
                   <div
@@ -456,8 +470,8 @@
                     <Badge variant="destructive" class="ml-2 text-xs">Critical</Badge>
                   {/if}
                   <span class="text-xs text-muted-foreground ml-2">
-                    {preset.threshold}
-                    {preset.thresholdUnit}
+                    {displayThreshold(preset)}
+                    {thresholdUnitLabel(preset)}
                   </span>
                 </div>
                 <div class="text-xs text-muted-foreground">
@@ -481,7 +495,7 @@
               the dashboard, but no push notifications will be sent.
             </p>
           {:else}
-            {#each selectedChannels as ch}
+            {#each selectedChannels as ch (ch.channelType)}
               <div class="flex items-center gap-2 text-sm">
                 <span>{ch.destinationLabel || ch.channelType}</span>
                 {#if ch.destination}

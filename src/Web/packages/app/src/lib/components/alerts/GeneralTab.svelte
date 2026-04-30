@@ -9,6 +9,8 @@
   import { Label } from "$lib/components/ui/label";
   import { Badge } from "$lib/components/ui/badge";
   import { Separator } from "$lib/components/ui/separator";
+  import { glucoseUnits } from "$lib/stores/appearance-store.svelte";
+  import { bgValue, bgLabel, convertFromDisplayUnits } from "$lib/utils/formatting";
 
   interface Props {
     name: string;
@@ -64,6 +66,26 @@
     falling: "Falling",
     rising: "Rising",
   };
+
+  let unitLabel = $derived(bgLabel());
+  let displayThreshold = $derived(bgValue(thresholdValue));
+  let displayRocRate = $derived(bgValue(rocRate));
+
+  function onThresholdInput(e: Event) {
+    const input = e.currentTarget as HTMLInputElement;
+    const val = parseFloat(input.value);
+    if (!Number.isNaN(val)) {
+      thresholdValue = convertFromDisplayUnits(val, glucoseUnits.current);
+    }
+  }
+
+  function onRocRateInput(e: Event) {
+    const input = e.currentTarget as HTMLInputElement;
+    const val = parseFloat(input.value);
+    if (!Number.isNaN(val)) {
+      rocRate = convertFromDisplayUnits(val, glucoseUnits.current);
+    }
+  }
 </script>
 
 <div class="space-y-4">
@@ -146,11 +168,13 @@
           </Select.Root>
         </div>
         <div class="space-y-2">
-          <Label for="threshold-value">Value (mg/dL)</Label>
+          <Label for="threshold-value">Value ({unitLabel})</Label>
           <Input
             id="threshold-value"
             type="number"
-            bind:value={thresholdValue}
+            value={displayThreshold}
+            oninput={onThresholdInput}
+            step={glucoseUnits.current === "mmol" ? "0.1" : "1"}
           />
         </div>
       {:else if conditionType === AlertConditionType.RateOfChange}
@@ -167,8 +191,14 @@
           </Select.Root>
         </div>
         <div class="space-y-2">
-          <Label for="roc-rate">Rate (mg/dL/min)</Label>
-          <Input id="roc-rate" type="number" step="0.1" bind:value={rocRate} />
+          <Label for="roc-rate">Rate ({unitLabel}/min)</Label>
+          <Input
+            id="roc-rate"
+            type="number"
+            step="0.1"
+            value={displayRocRate}
+            oninput={onRocRateInput}
+          />
         </div>
       {:else if conditionType === AlertConditionType.SignalLoss}
         <div class="space-y-2">

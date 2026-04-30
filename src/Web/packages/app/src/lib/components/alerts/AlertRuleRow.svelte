@@ -6,6 +6,7 @@
   import { Switch } from "$lib/components/ui/switch";
   import { Separator } from "$lib/components/ui/separator";
   import * as AlertDialog from "$lib/components/ui/alert-dialog";
+  import { bgValue, bgLabel } from "$lib/utils/formatting";
   import {
     Bell,
     Trash2,
@@ -81,16 +82,26 @@
     const params = rule.conditionParams;
     if (!params) return "No condition configured";
 
+    const label = bgLabel();
+
+    function formatThreshold(raw: unknown): string {
+      const val = Number(raw);
+      if (Number.isNaN(val)) return "?";
+      return String(bgValue(val));
+    }
+
     switch (rule.conditionType) {
       case AlertConditionType.Threshold: {
         const dir = (params as Record<string, unknown>)["direction"];
-        if (dir === "below") return `Below ${(params as Record<string, unknown>)["threshold"] ?? "?"} mg/dL`;
-        if (dir === "above") return `Above ${(params as Record<string, unknown>)["threshold"] ?? "?"} mg/dL`;
-        return `Threshold: ${(params as Record<string, unknown>)["threshold"] ?? "?"} mg/dL`;
+        const display = formatThreshold((params as Record<string, unknown>)["threshold"]);
+        if (dir === "below") return `Below ${display} ${label}`;
+        if (dir === "above") return `Above ${display} ${label}`;
+        return `Threshold: ${display} ${label}`;
       }
       case AlertConditionType.RateOfChange: {
         const dir = (params as Record<string, unknown>)["direction"] === "falling" ? "Falling" : "Rising";
-        return `${dir} faster than ${(params as Record<string, unknown>)["rateThreshold"] ?? "?"} mg/dL/min`;
+        const display = formatThreshold((params as Record<string, unknown>)["rateThreshold"]);
+        return `${dir} faster than ${display} ${label}/min`;
       }
       case AlertConditionType.SignalLoss:
         return `No data for ${(params as Record<string, unknown>)["minutes"] ?? "?"} minutes`;
