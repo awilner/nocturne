@@ -163,28 +163,21 @@ internal sealed class TherapyTimelineResolver : ITherapyTimelineResolver
         var resolvedProfile = profileName ?? "Default";
         var anchorDt = DateTimeOffset.FromUnixTimeMilliseconds(anchorMills).UtcDateTime;
 
-        // Resolve all profile-segment-anchored values in parallel.
-        var diaTask = _therapySettings.GetDIAAsync(anchorMills, resolvedProfile, ct);
-        var carbsHrTask = _therapySettings.GetCarbAbsorptionRateAsync(anchorMills, resolvedProfile, ct);
-        var timezoneTask = _therapySettings.GetTimezoneAsync(resolvedProfile, ct);
-        var sensTask = _sensitivityRepo.GetActiveAtAsync(resolvedProfile, anchorDt, ct);
-        var carbRatioTask = _carbRatioRepo.GetActiveAtAsync(resolvedProfile, anchorDt, ct);
-        var basalTask = _basalRepo.GetActiveAtAsync(resolvedProfile, anchorDt, ct);
-        var ccpTask = _activeProfileResolver.GetCircadianAdjustmentAsync(anchorMills, ct);
-
-        await Task.WhenAll(diaTask, carbsHrTask, timezoneTask, sensTask, carbRatioTask, basalTask, ccpTask);
-
-        var timezone = ResolveTimezone(await timezoneTask);
-        var ccp = await ccpTask;
-        var sens = await sensTask;
-        var carbRatio = await carbRatioTask;
-        var basal = await basalTask;
+        // Resolve sequentially: each repo here shares a single scoped DbContext, so parallel
+        // awaits would trigger "A second operation was started on this context instance".
+        var dia = await _therapySettings.GetDIAAsync(anchorMills, resolvedProfile, ct);
+        var carbsHr = await _therapySettings.GetCarbAbsorptionRateAsync(anchorMills, resolvedProfile, ct);
+        var timezoneId = await _therapySettings.GetTimezoneAsync(resolvedProfile, ct);
+        var sens = await _sensitivityRepo.GetActiveAtAsync(resolvedProfile, anchorDt, ct);
+        var carbRatio = await _carbRatioRepo.GetActiveAtAsync(resolvedProfile, anchorDt, ct);
+        var basal = await _basalRepo.GetActiveAtAsync(resolvedProfile, anchorDt, ct);
+        var ccp = await _activeProfileResolver.GetCircadianAdjustmentAsync(anchorMills, ct);
 
         return new TherapySnapshot(
-            dia: await diaTask,
+            dia: dia,
             peakMinutes: TherapySnapshot.DefaultPeakMinutes,
-            carbsPerHour: await carbsHrTask,
-            timezone: timezone,
+            carbsPerHour: carbsHr,
+            timezone: ResolveTimezone(timezoneId),
             ccpPercentage: ccp?.Percentage,
             ccpTimeshiftMs: ccp?.TimeshiftMs ?? 0,
             sensitivityEntries: sens?.Entries,
