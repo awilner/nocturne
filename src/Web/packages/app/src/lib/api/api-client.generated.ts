@@ -5,6 +5,7 @@
 import {
   AccessRequestClient,
   ActivityClient,
+  ActogramClient,
   AlertCustomSoundsClient,
   AlertInvitesClient,
   AlertRulesClient,
@@ -101,6 +102,7 @@ export class ApiClient {
   public readonly baseUrl: string;
   public readonly accessRequest: AccessRequestClient;
   public readonly activity: ActivityClient;
+  public readonly actogram: ActogramClient;
   public readonly alertCustomSounds: AlertCustomSoundsClient;
   public readonly alertInvites: AlertInvitesClient;
   public readonly alertRules: AlertRulesClient;
@@ -197,6 +199,7 @@ export class ApiClient {
 
     this.accessRequest = new AccessRequestClient(apiBaseUrl, http);
     this.activity = new ActivityClient(apiBaseUrl, http);
+    this.actogram = new ActogramClient(apiBaseUrl, http);
     this.alertCustomSounds = new AlertCustomSoundsClient(apiBaseUrl, http);
     this.alertInvites = new AlertInvitesClient(apiBaseUrl, http);
     this.alertRules = new AlertRulesClient(apiBaseUrl, http);

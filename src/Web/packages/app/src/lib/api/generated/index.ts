@@ -57,6 +57,7 @@ export * from './batteries.generated.remote';
 // './uploaderSnapshots.generated.remote' - all exports collide, import directly
 export * from './configurations.generated.remote';
 export * from './audits.generated.remote';
+export * from './actograms.generated.remote';
 export * from './chartDatas.generated.remote';
 export * from './dataOverviews.generated.remote';
 export { getPredictions } from './predictions.generated.remote';

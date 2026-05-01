@@ -17287,6 +17287,63 @@
         ]
       }
     },
+    "/api/v4/Actogram": {
+      "get": {
+        "tags": [
+          "Actogram"
+        ],
+        "summary": "Get actogram report data for a time window.",
+        "operationId": "Actogram_GetActogram",
+        "parameters": [
+          {
+            "name": "startTime",
+            "in": "query",
+            "description": "Start of the window as Unix milliseconds (inclusive).",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "description": "End of the window as Unix milliseconds (exclusive).\n            Must be greater than startTime.",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActogramReportData"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": ""
+          }
+        },
+        "x-remote-type": "query"
+      }
+    },
     "/api/v4/Analytics/status": {
       "get": {
         "tags": [
@@ -36652,6 +36709,132 @@
           }
         }
       },
+      "ActogramReportData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "glucose": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GlucosePointDto"
+            }
+          },
+          "thresholds": {
+            "$ref": "#/components/schemas/ChartThresholdsDto"
+          },
+          "heartRates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HeartRatePointDto"
+            }
+          },
+          "stepCounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StepBubbleDto"
+            }
+          },
+          "sleepSpans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActogramSleepSpan"
+            }
+          }
+        }
+      },
+      "GlucosePointDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "time": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sgv": {
+            "type": "number",
+            "format": "double"
+          },
+          "direction": {
+            "type": "string",
+            "nullable": true
+          },
+          "dataSource": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ChartThresholdsDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "low": {
+            "type": "number",
+            "format": "double"
+          },
+          "high": {
+            "type": "number",
+            "format": "double"
+          },
+          "veryLow": {
+            "type": "number",
+            "format": "double"
+          },
+          "veryHigh": {
+            "type": "number",
+            "format": "double"
+          },
+          "glucoseYMax": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "HeartRatePointDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "time": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "bpm": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "StepBubbleDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "time": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "steps": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ActogramSleepSpan": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "startMills": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endMills": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "state": {
+            "type": "string"
+          }
+        }
+      },
       "PerformanceMetrics": {
         "type": "object",
         "additionalProperties": false,
@@ -37127,54 +37310,6 @@
           "primary"
         ]
       },
-      "GlucosePointDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "time": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "sgv": {
-            "type": "number",
-            "format": "double"
-          },
-          "direction": {
-            "type": "string",
-            "nullable": true
-          },
-          "dataSource": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "ChartThresholdsDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "low": {
-            "type": "number",
-            "format": "double"
-          },
-          "high": {
-            "type": "number",
-            "format": "double"
-          },
-          "veryLow": {
-            "type": "number",
-            "format": "double"
-          },
-          "veryHigh": {
-            "type": "number",
-            "format": "double"
-          },
-          "glucoseYMax": {
-            "type": "number",
-            "format": "double"
-          }
-        }
-      },
       "BolusMarkerDto": {
         "type": "object",
         "additionalProperties": false,
@@ -37425,34 +37560,6 @@
           },
           "color": {
             "$ref": "#/components/schemas/ChartColor"
-          }
-        }
-      },
-      "HeartRatePointDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "time": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "bpm": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "StepBubbleDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "time": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "steps": {
-            "type": "integer",
-            "format": "int32"
           }
         }
       },
