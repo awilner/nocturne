@@ -5,7 +5,7 @@ Snapshot of a single tenant's identity and configuration data for dev-only expor
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Tenant** | [**TenantEntityDto**](TenantEntityDto.md) |  | [optional] 
+**Tenant** | [**TenantEntityDto**](TenantEntityDto.md) | The tenant entity itself. | [optional] 
 **Subjects** | [**List&lt;SubjectEntityDto&gt;**](SubjectEntityDto.md) | All subjects (users/service accounts) belonging to this tenant. | [optional] 
 **PasskeyCredentials** | [**List&lt;PasskeyCredentialEntityDto&gt;**](PasskeyCredentialEntityDto.md) | All passkey credentials registered for this tenant&#39;s subjects. | [optional] 
 **Roles** | [**List&lt;TenantRoleEntityDto&gt;**](TenantRoleEntityDto.md) | All tenant-scoped roles. | [optional] 

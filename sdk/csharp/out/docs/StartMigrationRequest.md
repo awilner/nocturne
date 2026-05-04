@@ -5,7 +5,7 @@ Parameters for starting a new data migration from Nightscout or MongoDB.
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Mode** | **MigrationMode** |  | [optional] 
+**Mode** | **MigrationMode** | Migration mode (API or MongoDB) | [optional] 
 **NightscoutUrl** | **string** | Nightscout URL (for API mode) | [optional] 
 **NightscoutApiSecret** | **string** | Nightscout API secret (for API mode) | [optional] 
 **MongoConnectionString** | **string** | MongoDB connection string (for MongoDB mode) | [optional] 

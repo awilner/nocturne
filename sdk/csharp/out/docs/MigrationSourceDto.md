@@ -6,7 +6,7 @@ Migration source DTO for API responses
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Id** | **string** | Unique identifier for this source | [optional] 
-**Mode** | **MigrationMode** |  | [optional] 
+**Mode** | **MigrationMode** | Migration mode (Api or MongoDb) | [optional] 
 **NightscoutUrl** | **string** | Nightscout URL (for API mode) | [optional] 
 **MongoDatabaseName** | **string** | MongoDB database name (for MongoDB mode) | [optional] 
 **LastMigrationAt** | **DateTimeOffset?** | When the last successful migration completed | [optional] 

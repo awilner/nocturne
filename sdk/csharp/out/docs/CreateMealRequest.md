@@ -9,7 +9,7 @@ Name | Type | Description | Notes
 **UtcOffset** | **int?** | UTC offset in minutes at the time of the event, for local-time display. | [optional] 
 **Insulin** | **double** | Total insulin amount in units for the meal bolus. | [optional] 
 **Carbs** | **double** | Amount of carbohydrates consumed in grams. | [optional] 
-**BolusType** | **BolusType** |  | [optional] 
+**BolusType** | **BolusType** | Bolus delivery pattern (normal, square wave, dual wave, etc.). | [optional] 
 **Duration** | **double?** | Extended/square bolus duration in minutes. | [optional] 
 **AbsorptionTime** | **int?** | Expected carb absorption duration in minutes. | [optional] 
 **CarbTime** | **double?** | Minutes from bolus time to expected carb absorption start (pre-bolus offset). | [optional] 

@@ -13,7 +13,7 @@ Name | Type | Description | Notes
 **Cob** | **double** | Current carbs on board (g) | [optional] 
 **SensitivityRatio** | **double?** | Sensitivity ratio used (1.0 &#x3D; normal) | [optional] 
 **IntervalMinutes** | **int** | Prediction interval in minutes | [optional] 
-**Predictions** | [**PredictionCurves**](PredictionCurves.md) |  | [optional] 
+**Predictions** | [**PredictionCurves**](PredictionCurves.md) | Prediction curves with different scenarios | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

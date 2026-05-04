@@ -34,14 +34,16 @@ namespace NightscoutFoundation.Nocturne.Model
     {
 
         /// <summary>
-        /// Gets or Sets BolusType
+        /// Bolus delivery pattern (normal, square wave, dual wave, etc.).
         /// </summary>
+        /// <value>Bolus delivery pattern (normal, square wave, dual wave, etc.).</value>
         [DataMember(Name = "bolusType", EmitDefaultValue = true)]
         public BolusType? BolusType { get; set; }
 
         /// <summary>
-        /// Gets or Sets Kind
+        /// Whether this bolus was manually entered or originated from a pump/loop system.
         /// </summary>
+        /// <value>Whether this bolus was manually entered or originated from a pump/loop system.</value>
         [DataMember(Name = "kind", EmitDefaultValue = false)]
         public BolusKind? Kind { get; set; }
         /// <summary>
@@ -55,17 +57,18 @@ namespace NightscoutFoundation.Nocturne.Model
         /// <param name="insulin">Total insulin amount in units..</param>
         /// <param name="programmed">Programmed insulin amount in units (may differ from delivered for interrupted boluses)..</param>
         /// <param name="delivered">Actually delivered insulin amount in units..</param>
-        /// <param name="bolusType">bolusType.</param>
-        /// <param name="kind">kind.</param>
+        /// <param name="bolusType">Bolus delivery pattern (normal, square wave, dual wave, etc.)..</param>
+        /// <param name="kind">Whether this bolus was manually entered or originated from a pump/loop system..</param>
         /// <param name="automatic">Whether this bolus was delivered automatically by an APS/loop system..</param>
         /// <param name="duration">Extended/square bolus duration in minutes..</param>
         /// <param name="syncIdentifier">Upstream sync identifier for deduplication, paired with DataSource..</param>
         /// <param name="insulinType">Type or brand of insulin used (e.g. \&quot;Humalog\&quot;, \&quot;NovoRapid\&quot;)..</param>
+        /// <param name="patientInsulinId">Optional reference to a PatientInsulin. When provided, the server resolves it to a TreatmentInsulinContext snapshot and overwrites InsulinType with the insulin&#39;s name..</param>
         /// <param name="unabsorbed">Insulin on board (unabsorbed) at the time of the bolus, in units..</param>
         /// <param name="bolusCalculationId">Links this bolus to the bolus calculation that recommended it..</param>
         /// <param name="apsSnapshotId">Links this bolus to the APS decision snapshot that triggered it..</param>
         /// <param name="correlationId">Correlation identifier for grouping related events (e.g. a meal bolus and carb intake)..</param>
-        public CreateBolusRequest(DateTimeOffset timestamp = default, int? utcOffset = default, string device = default, string app = default, string dataSource = default, double insulin = default, double? programmed = default, double? delivered = default, BolusType? bolusType = default, BolusKind? kind = default, bool automatic = default, double? duration = default, string syncIdentifier = default, string insulinType = default, double? unabsorbed = default, string bolusCalculationId = default, string apsSnapshotId = default, string correlationId = default)
+        public CreateBolusRequest(DateTimeOffset timestamp = default, int? utcOffset = default, string device = default, string app = default, string dataSource = default, double insulin = default, double? programmed = default, double? delivered = default, BolusType? bolusType = default, BolusKind? kind = default, bool automatic = default, double? duration = default, string syncIdentifier = default, string insulinType = default, string patientInsulinId = default, double? unabsorbed = default, string bolusCalculationId = default, string apsSnapshotId = default, string correlationId = default)
         {
             this.Timestamp = timestamp;
             this.UtcOffset = utcOffset;
@@ -81,6 +84,7 @@ namespace NightscoutFoundation.Nocturne.Model
             this.Duration = duration;
             this.SyncIdentifier = syncIdentifier;
             this.InsulinType = insulinType;
+            this.PatientInsulinId = patientInsulinId;
             this.Unabsorbed = unabsorbed;
             this.BolusCalculationId = bolusCalculationId;
             this.ApsSnapshotId = apsSnapshotId;
@@ -172,6 +176,13 @@ namespace NightscoutFoundation.Nocturne.Model
         public string InsulinType { get; set; }
 
         /// <summary>
+        /// Optional reference to a PatientInsulin. When provided, the server resolves it to a TreatmentInsulinContext snapshot and overwrites InsulinType with the insulin&#39;s name.
+        /// </summary>
+        /// <value>Optional reference to a PatientInsulin. When provided, the server resolves it to a TreatmentInsulinContext snapshot and overwrites InsulinType with the insulin&#39;s name.</value>
+        [DataMember(Name = "patientInsulinId", EmitDefaultValue = true)]
+        public string PatientInsulinId { get; set; }
+
+        /// <summary>
         /// Insulin on board (unabsorbed) at the time of the bolus, in units.
         /// </summary>
         /// <value>Insulin on board (unabsorbed) at the time of the bolus, in units.</value>
@@ -221,6 +232,7 @@ namespace NightscoutFoundation.Nocturne.Model
             sb.Append("  Duration: ").Append(Duration).Append("\n");
             sb.Append("  SyncIdentifier: ").Append(SyncIdentifier).Append("\n");
             sb.Append("  InsulinType: ").Append(InsulinType).Append("\n");
+            sb.Append("  PatientInsulinId: ").Append(PatientInsulinId).Append("\n");
             sb.Append("  Unabsorbed: ").Append(Unabsorbed).Append("\n");
             sb.Append("  BolusCalculationId: ").Append(BolusCalculationId).Append("\n");
             sb.Append("  ApsSnapshotId: ").Append(ApsSnapshotId).Append("\n");

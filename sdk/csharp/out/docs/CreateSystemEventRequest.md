@@ -5,8 +5,8 @@ Request body for creating a new SystemEvent record.
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**EventType** | **SystemEventType** |  | [optional] 
-**Category** | **SystemEventCategory** |  | [optional] 
+**EventType** | **SystemEventType** | Gets or sets the event type (alarm, warning, or info). | [optional] 
+**Category** | **SystemEventCategory** | Gets or sets the event category. | [optional] 
 **Code** | **string** | Gets or sets an optional short code identifying the event. | [optional] 
 **Description** | **string** | Gets or sets a human-readable description of the event. | [optional] 
 **Mills** | **long** | Gets or sets the Unix millisecond timestamp of the event. | [optional] 

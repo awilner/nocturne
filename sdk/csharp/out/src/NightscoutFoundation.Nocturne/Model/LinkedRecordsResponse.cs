@@ -34,15 +34,16 @@ namespace NightscoutFoundation.Nocturne.Model
     {
 
         /// <summary>
-        /// Gets or Sets RecordType
+        /// Gets or sets the record type of the canonical group.
         /// </summary>
+        /// <value>Gets or sets the record type of the canonical group.</value>
         [DataMember(Name = "recordType", EmitDefaultValue = false)]
         public RecordType? RecordType { get; set; }
         /// <summary>
         /// Initializes a new instance of the <see cref="LinkedRecordsResponse" /> class.
         /// </summary>
         /// <param name="canonicalId">Gets or sets the canonical record identifier shared by all linked records..</param>
-        /// <param name="recordType">recordType.</param>
+        /// <param name="recordType">Gets or sets the record type of the canonical group..</param>
         /// <param name="linkedRecords">Gets or sets the full list of records linked to the canonical group..</param>
         public LinkedRecordsResponse(string canonicalId = default, RecordType? recordType = default, List<LinkedRecord> linkedRecords = default)
         {

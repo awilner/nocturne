@@ -16,7 +16,7 @@ Name | Type | Description | Notes
 **InsulinOnBoard** | **double?** | Insulin on board at the time of calculation, in units. | [optional] 
 **InsulinRecommendation** | **double?** | Total insulin dose recommended by the calculator, in units. | [optional] 
 **CarbRatio** | **double?** | Insulin-to-carb ratio used in the calculation (grams per unit). Must be strictly positive. | [optional] 
-**CalculationType** | **CalculationType** |  | [optional] 
+**CalculationType** | **CalculationType** | Type of calculation performed (e.g. correction only, meal only, combined). | [optional] 
 **InsulinRecommendationForCarbs** | **double?** | Portion of the recommendation attributable to carb coverage. | [optional] 
 **InsulinProgrammed** | **double?** | Insulin amount actually programmed into the pump. | [optional] 
 **EnteredInsulin** | **double?** | Insulin amount manually entered by the user. | [optional] 

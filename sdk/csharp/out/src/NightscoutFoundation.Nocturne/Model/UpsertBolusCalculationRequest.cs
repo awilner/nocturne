@@ -34,8 +34,9 @@ namespace NightscoutFoundation.Nocturne.Model
     {
 
         /// <summary>
-        /// Gets or Sets CalculationType
+        /// Type of calculation performed (e.g. correction only, meal only, combined).
         /// </summary>
+        /// <value>Type of calculation performed (e.g. correction only, meal only, combined).</value>
         [DataMember(Name = "calculationType", EmitDefaultValue = true)]
         public CalculationType? CalculationType { get; set; }
         /// <summary>
@@ -52,7 +53,7 @@ namespace NightscoutFoundation.Nocturne.Model
         /// <param name="insulinOnBoard">Insulin on board at the time of calculation, in units..</param>
         /// <param name="insulinRecommendation">Total insulin dose recommended by the calculator, in units..</param>
         /// <param name="carbRatio">Insulin-to-carb ratio used in the calculation (grams per unit). Must be strictly positive..</param>
-        /// <param name="calculationType">calculationType.</param>
+        /// <param name="calculationType">Type of calculation performed (e.g. correction only, meal only, combined)..</param>
         /// <param name="insulinRecommendationForCarbs">Portion of the recommendation attributable to carb coverage..</param>
         /// <param name="insulinProgrammed">Insulin amount actually programmed into the pump..</param>
         /// <param name="enteredInsulin">Insulin amount manually entered by the user..</param>

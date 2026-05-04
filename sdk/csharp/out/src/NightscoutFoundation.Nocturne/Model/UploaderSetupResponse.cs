@@ -35,7 +35,7 @@ namespace NightscoutFoundation.Nocturne.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="UploaderSetupResponse" /> class.
         /// </summary>
-        /// <param name="app">app.</param>
+        /// <param name="app">The uploader app details.</param>
         /// <param name="baseUrl">Base URL for this Nocturne instance.</param>
         /// <param name="connectUrl">Deep-link URL for apps that support OAuth device authorization via QR code (e.g. xdrip://connect/nocturne?url&#x3D;https://your-instance.com). When present, the frontend shows a QR code and inline device-code input..</param>
         public UploaderSetupResponse(UploaderApp app = default, string baseUrl = default, string connectUrl = default)
@@ -46,8 +46,9 @@ namespace NightscoutFoundation.Nocturne.Model
         }
 
         /// <summary>
-        /// Gets or Sets App
+        /// The uploader app details
         /// </summary>
+        /// <value>The uploader app details</value>
         [DataMember(Name = "app", EmitDefaultValue = false)]
         public UploaderApp App { get; set; }
 

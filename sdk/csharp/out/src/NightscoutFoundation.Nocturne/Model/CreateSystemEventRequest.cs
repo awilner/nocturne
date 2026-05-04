@@ -34,21 +34,23 @@ namespace NightscoutFoundation.Nocturne.Model
     {
 
         /// <summary>
-        /// Gets or Sets EventType
+        /// Gets or sets the event type (alarm, warning, or info).
         /// </summary>
+        /// <value>Gets or sets the event type (alarm, warning, or info).</value>
         [DataMember(Name = "eventType", EmitDefaultValue = false)]
         public SystemEventType? EventType { get; set; }
 
         /// <summary>
-        /// Gets or Sets Category
+        /// Gets or sets the event category.
         /// </summary>
+        /// <value>Gets or sets the event category.</value>
         [DataMember(Name = "category", EmitDefaultValue = false)]
         public SystemEventCategory? Category { get; set; }
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateSystemEventRequest" /> class.
         /// </summary>
-        /// <param name="eventType">eventType.</param>
-        /// <param name="category">category.</param>
+        /// <param name="eventType">Gets or sets the event type (alarm, warning, or info)..</param>
+        /// <param name="category">Gets or sets the event category..</param>
         /// <param name="code">Gets or sets an optional short code identifying the event..</param>
         /// <param name="description">Gets or sets a human-readable description of the event..</param>
         /// <param name="mills">Gets or sets the Unix millisecond timestamp of the event..</param>

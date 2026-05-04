@@ -36,7 +36,7 @@ namespace NightscoutFoundation.Nocturne.Model
         /// Initializes a new instance of the <see cref="TimeInRangeRequest" /> class.
         /// </summary>
         /// <param name="entries">Collection of sensor glucose readings.</param>
-        /// <param name="thresholds">thresholds.</param>
+        /// <param name="thresholds">Optional glycemic thresholds.</param>
         public TimeInRangeRequest(List<SensorGlucose> entries = default, GlycemicThresholds thresholds = default)
         {
             this.Entries = entries;
@@ -51,8 +51,9 @@ namespace NightscoutFoundation.Nocturne.Model
         public List<SensorGlucose> Entries { get; set; }
 
         /// <summary>
-        /// Gets or Sets Thresholds
+        /// Optional glycemic thresholds
         /// </summary>
+        /// <value>Optional glycemic thresholds</value>
         [DataMember(Name = "thresholds", EmitDefaultValue = true)]
         public GlycemicThresholds Thresholds { get; set; }
 

@@ -10,7 +10,7 @@ Name | Type | Description | Notes
 **Device** | **string** | Identifier of the device involved in the event. | [optional] 
 **App** | **string** | Name of the application that submitted this record. | [optional] 
 **DataSource** | **string** | Upstream data source identifier. | [optional] 
-**EventType** | **DeviceEventType** |  | [optional] 
+**EventType** | **DeviceEventType** | The type of device event (e.g. site change, sensor start, pump resume). | [optional] 
 **Notes** | **string** | Free-text notes associated with the event (capped at 10,000 characters). | [optional] 
 **SyncIdentifier** | **string** | Upstream sync identifier for deduplication. | [optional] 
 

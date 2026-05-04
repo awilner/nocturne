@@ -34,15 +34,16 @@ namespace NightscoutFoundation.Nocturne.Model
     {
 
         /// <summary>
-        /// Gets or Sets Mode
+        /// Migration mode from MIGRATION_MODE env var
         /// </summary>
+        /// <value>Migration mode from MIGRATION_MODE env var</value>
         [DataMember(Name = "mode", EmitDefaultValue = true)]
         public MigrationMode? Mode { get; set; }
         /// <summary>
         /// Initializes a new instance of the <see cref="PendingMigrationConfig" /> class.
         /// </summary>
         /// <param name="hasPendingConfig">Whether there is a pending migration configuration in env vars.</param>
-        /// <param name="mode">mode.</param>
+        /// <param name="mode">Migration mode from MIGRATION_MODE env var.</param>
         /// <param name="nightscoutUrl">Nightscout URL from MIGRATION_NS_URL env var.</param>
         /// <param name="hasApiSecret">Whether MIGRATION_NS_API_SECRET is set (never returns the actual secret).</param>
         /// <param name="hasMongoConnectionString">Whether MIGRATION_MONGO_CONNECTION_STRING is set (never returns the actual string).</param>

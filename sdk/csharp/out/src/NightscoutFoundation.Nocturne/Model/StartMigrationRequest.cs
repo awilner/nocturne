@@ -34,14 +34,15 @@ namespace NightscoutFoundation.Nocturne.Model
     {
 
         /// <summary>
-        /// Gets or Sets Mode
+        /// Migration mode (API or MongoDB)
         /// </summary>
+        /// <value>Migration mode (API or MongoDB)</value>
         [DataMember(Name = "mode", EmitDefaultValue = false)]
         public MigrationMode? Mode { get; set; }
         /// <summary>
         /// Initializes a new instance of the <see cref="StartMigrationRequest" /> class.
         /// </summary>
-        /// <param name="mode">mode.</param>
+        /// <param name="mode">Migration mode (API or MongoDB).</param>
         /// <param name="nightscoutUrl">Nightscout URL (for API mode).</param>
         /// <param name="nightscoutApiSecret">Nightscout API secret (for API mode).</param>
         /// <param name="mongoConnectionString">MongoDB connection string (for MongoDB mode).</param>

@@ -6,7 +6,7 @@ Auto-start migration configuration discovered from environment variables (MIGRAT
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **HasPendingConfig** | **bool** | Whether there is a pending migration configuration in env vars | [optional] 
-**Mode** | **MigrationMode** |  | [optional] 
+**Mode** | **MigrationMode** | Migration mode from MIGRATION_MODE env var | [optional] 
 **NightscoutUrl** | **string** | Nightscout URL from MIGRATION_NS_URL env var | [optional] 
 **HasApiSecret** | **bool** | Whether MIGRATION_NS_API_SECRET is set (never returns the actual secret) | [optional] 
 **HasMongoConnectionString** | **bool** | Whether MIGRATION_MONGO_CONNECTION_STRING is set (never returns the actual string) | [optional] 

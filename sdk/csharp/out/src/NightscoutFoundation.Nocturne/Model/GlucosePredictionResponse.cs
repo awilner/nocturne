@@ -43,7 +43,7 @@ namespace NightscoutFoundation.Nocturne.Model
         /// <param name="cob">Current carbs on board (g).</param>
         /// <param name="sensitivityRatio">Sensitivity ratio used (1.0 &#x3D; normal).</param>
         /// <param name="intervalMinutes">Prediction interval in minutes.</param>
-        /// <param name="predictions">predictions.</param>
+        /// <param name="predictions">Prediction curves with different scenarios.</param>
         public GlucosePredictionResponse(DateTimeOffset timestamp = default, double currentBg = default, double delta = default, double eventualBg = default, double iob = default, double cob = default, double? sensitivityRatio = default, int intervalMinutes = default, PredictionCurves predictions = default)
         {
             this.Timestamp = timestamp;
@@ -114,8 +114,9 @@ namespace NightscoutFoundation.Nocturne.Model
         public int IntervalMinutes { get; set; }
 
         /// <summary>
-        /// Gets or Sets Predictions
+        /// Prediction curves with different scenarios
         /// </summary>
+        /// <value>Prediction curves with different scenarios</value>
         [DataMember(Name = "predictions", EmitDefaultValue = false)]
         public PredictionCurves Predictions { get; set; }
 
