@@ -1,8 +1,6 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import { getRules } from "$api/generated/alertRules.generated.remote";
-  import type { AlertRuleResponse } from "$api-clients";
   import { Button } from "$lib/components/ui/button";
   import {
     Card,
@@ -11,19 +9,10 @@
     CardTitle,
     CardDescription,
   } from "$lib/components/ui/card";
-  import { ArrowLeft, PlayCircle } from "lucide-svelte";
+  import { ArrowLeft, PlayCircle, Loader2 } from "lucide-svelte";
   import ReplayPanel from "$lib/components/alerts/ReplayPanel.svelte";
 
-  let rules = $state<AlertRuleResponse[]>([]);
-
-  onMount(async () => {
-    try {
-      const r = await getRules();
-      rules = Array.isArray(r) ? r : [];
-    } catch {
-      rules = [];
-    }
-  });
+  const rulesQuery = $derived(getRules());
 </script>
 
 <svelte:head>
@@ -59,7 +48,18 @@
       </CardDescription>
     </CardHeader>
     <CardContent>
-      <ReplayPanel availableRules={rules} />
+      <svelte:boundary>
+        {#snippet pending()}
+          <div class="flex items-center justify-center py-6 text-muted-foreground">
+            <Loader2 class="h-5 w-5 animate-spin" />
+          </div>
+        {/snippet}
+        {#snippet failed()}
+          <ReplayPanel availableRules={[]} />
+        {/snippet}
+        {@const rules = (await rulesQuery) ?? []}
+        <ReplayPanel availableRules={rules} />
+      </svelte:boundary>
     </CardContent>
   </Card>
 </div>

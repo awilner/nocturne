@@ -27687,7 +27687,6 @@ export interface AlertReplayResult {
     windowStart?: Date;
     windowEnd?: Date;
     events?: AlertReplayEvent[];
-    limitations?: string;
     leafTransitionsByRule?: { [key: string]: LeafTransitionLog[]; };
     factTimelines?: { [key: string]: FactSnapshotPoint[]; };
 }

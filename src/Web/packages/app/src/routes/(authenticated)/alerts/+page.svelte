@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import {
     getRules,
@@ -36,27 +35,18 @@
   import AlertRuleRow from "$lib/components/alerts/AlertRuleRow.svelte";
   import ArmedStatusStrip from "$lib/components/alerts/ArmedStatusStrip.svelte";
 
-  // ---- State ----
-  let rules = $state<AlertRuleResponse[]>([]);
-  let activeAlerts = $state<ActiveExcursionResponse[]>([]);
-  let firedThisWeek = $state<number>(0);
-  let dnd = $state<TenantAlertSettingsResponse | null>(null);
+  // ---- Queries ----
+  const rulesQuery = $derived(getRules());
+  const activeAlertsQuery = $derived(getActiveAlerts());
+  const historyQuery = $derived(getAlertHistory({ page: 1, pageSize: 50 }));
+  const dndQuery = $derived(getTenantAlertSettings());
 
-  let loading = $state(true);
-  let error = $state<string | null>(null);
+  // ---- Mutation state ----
   let togglingRuleId = $state<string | null>(null);
   let deletingRuleId = $state<string | null>(null);
   let testingRuleId = $state<string | null>(null);
   let acknowledging = $state(false);
   let disablingDnd = $state(false);
-
-  // ---- Derived ----
-  let enabledCount = $derived(rules.filter((r) => r.isEnabled).length);
-  let totalCount = $derived(rules.length);
-  let armedState = $derived(deriveArmedState(dnd, activeAlerts));
-  let ruleNamesById = $derived(
-    new Map(rules.map((r) => [r.id ?? "", r.name ?? "(unnamed)"])),
-  );
 
   function deriveArmedState(
     s: TenantAlertSettingsResponse | null,
@@ -72,43 +62,12 @@
     return "warn";
   }
 
-  // ---- Load ----
-  async function load(): Promise<void> {
-    loading = true;
-    error = null;
-    try {
-      const [rulesResult, alertsResult, historyResult, dndResult] = await Promise.all([
-        getRules(),
-        getActiveAlerts(),
-        getAlertHistory({ page: 1, pageSize: 50 }),
-        getTenantAlertSettings().catch(() => null),
-      ]);
-      rules = Array.isArray(rulesResult) ? rulesResult : [];
-      activeAlerts = Array.isArray(alertsResult) ? alertsResult : [];
-      dnd = dndResult ?? null;
-
-      // "Fired this week" — count history rows in the last 7 days. Falls back
-      // to the unfiltered count if the timestamp shape isn't what we expect.
-      const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-      const items = historyResult?.items ?? [];
-      firedThisWeek = items.filter((h) => {
-        const t = h.startedAt ? new Date(h.startedAt).getTime() : NaN;
-        return Number.isFinite(t) && t >= cutoff;
-      }).length;
-    } catch (e) {
-      error = e instanceof Error ? e.message : "Failed to load alerts";
-    } finally {
-      loading = false;
-    }
-  }
-
   // ---- Mutations ----
   async function handleToggleRule(ruleId: string): Promise<void> {
     togglingRuleId = ruleId;
     try {
       await toggleRule(ruleId);
-      const result = await getRules();
-      rules = Array.isArray(result) ? result : [];
+      await rulesQuery.refresh();
     } finally {
       togglingRuleId = null;
     }
@@ -118,7 +77,7 @@
     deletingRuleId = ruleId;
     try {
       await deleteRule(ruleId);
-      rules = rules.filter((r) => r.id !== ruleId);
+      await rulesQuery.refresh();
     } finally {
       deletingRuleId = null;
     }
@@ -133,19 +92,20 @@
     }
   }
 
-  async function handleDisableDnd(): Promise<void> {
-    if (!dnd) return;
+  async function handleDisableDnd(
+    current: TenantAlertSettingsResponse,
+  ): Promise<void> {
     disablingDnd = true;
     try {
-      const next = await updateTenantAlertSettings({
+      await updateTenantAlertSettings({
         dndManualActive: false,
         dndManualUntil: undefined,
         dndScheduleEnabled: false,
-        dndScheduleStart: dnd.dndScheduleStart,
-        dndScheduleEnd: dnd.dndScheduleEnd,
-        timezone: dnd.timezone ?? "UTC",
+        dndScheduleStart: current.dndScheduleStart,
+        dndScheduleEnd: current.dndScheduleEnd,
+        timezone: current.timezone ?? "UTC",
       });
-      dnd = next;
+      await dndQuery.refresh();
     } finally {
       disablingDnd = false;
     }
@@ -155,8 +115,7 @@
     acknowledging = true;
     try {
       await acknowledge({ acknowledgedBy: "web_user" });
-      const result = await getActiveAlerts();
-      activeAlerts = Array.isArray(result) ? result : [];
+      await activeAlertsQuery.refresh();
     } finally {
       acknowledging = false;
     }
@@ -169,10 +128,6 @@
   function editRule(rule: AlertRuleResponse): void {
     goto(`/alerts/${rule.id}`);
   }
-
-  onMount(() => {
-    load();
-  });
 </script>
 
 <svelte:head>
@@ -198,23 +153,45 @@
     </div>
   </div>
 
-  {#if loading}
-    <SettingsPageSkeleton cardCount={3} />
-  {:else if error}
-    <Card class="border-destructive">
-      <CardContent class="flex items-center gap-3">
-        <AlertTriangle class="h-5 w-5 text-destructive" />
-        <div>
-          <p class="font-medium">Failed to load alerts</p>
-          <p class="text-sm text-muted-foreground">{error}</p>
-        </div>
-      </CardContent>
-    </Card>
-  {:else}
+  <svelte:boundary>
+    {#snippet pending()}
+      <SettingsPageSkeleton cardCount={3} />
+    {/snippet}
+
+    {#snippet failed(error)}
+      <Card class="border-destructive">
+        <CardContent class="flex items-center gap-3">
+          <AlertTriangle class="h-5 w-5 text-destructive" />
+          <div>
+            <p class="font-medium">Failed to load alerts</p>
+            <p class="text-sm text-muted-foreground">
+              {error instanceof Error ? error.message : "Unknown error"}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    {/snippet}
+
+    {@const rules = (await rulesQuery) ?? []}
+    {@const activeAlerts = (await activeAlertsQuery) ?? []}
+    {@const history = await historyQuery}
+    {@const dnd = (await dndQuery) ?? null}
+    {@const enabledCount = rules.filter((r) => r.isEnabled).length}
+    {@const totalCount = rules.length}
+    {@const armedState = deriveArmedState(dnd, activeAlerts)}
+    {@const ruleNamesById = new Map(
+      rules.map((r) => [r.id ?? "", r.name ?? "(unnamed)"]),
+    )}
+    {@const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000}
+    {@const firedThisWeek = (history?.items ?? []).filter((h) => {
+      const t = h.startedAt ? new Date(h.startedAt).getTime() : NaN;
+      return Number.isFinite(t) && t >= cutoff;
+    }).length}
+
     <!-- Armed status strip -->
     <ArmedStatusStrip
       state={armedState}
-      onDisableDnd={armedState === "dnd" ? handleDisableDnd : undefined}
+      onDisableDnd={armedState === "dnd" && dnd ? () => handleDisableDnd(dnd) : undefined}
       {disablingDnd}
     />
 
@@ -320,5 +297,5 @@
         {/if}
       </CardContent>
     </Card>
-  {/if}
+  </svelte:boundary>
 </div>

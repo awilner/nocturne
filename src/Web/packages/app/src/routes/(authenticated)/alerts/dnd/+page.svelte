@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { untrack } from "svelte";
   import { goto } from "$app/navigation";
   import {
     get as getDnd,
@@ -22,10 +22,13 @@
   import * as Select from "$lib/components/ui/select";
   import { ArrowLeft, BellOff, Save, Loader2 } from "lucide-svelte";
 
-  // ---- State ----
-  let loading = $state(true);
+  // Queries seed the form once on first response.
+  const dndQuery = $derived(getDnd());
+  const profileQuery = $derived(getProfileSummary(undefined));
+
   let saving = $state(false);
   let error = $state<string | null>(null);
+  let seeded = $state(false);
 
   let dndManualActive = $state(false);
   let dndManualUntilLocal = $state<string>(""); // datetime-local string
@@ -87,24 +90,20 @@
     timezone = r?.timezone || fallbackTz || browserTimezone() || "UTC";
   }
 
-  async function load(): Promise<void> {
-    loading = true;
-    error = null;
-    try {
-      const [r, summary] = await Promise.all([
-        getDnd(),
-        getProfileSummary(undefined).catch(() => null),
-      ]);
+  // Seed form state from query results on first successful response. Subsequent
+  // refreshes do NOT clobber user edits.
+  $effect(() => {
+    const dnd = dndQuery.current;
+    const summary = profileQuery.current;
+    if (seeded || dnd === undefined) return;
+    untrack(() => {
       const profileTz =
         (summary?.therapySettings?.find((ts) => ts.isDefault) ??
           summary?.therapySettings?.[0])?.timezone ?? null;
-      applyResponse(r, profileTz);
-    } catch (e) {
-      error = e instanceof Error ? e.message : "Failed to load DND settings";
-    } finally {
-      loading = false;
-    }
-  }
+      applyResponse(dnd ?? null, profileTz);
+      seeded = true;
+    });
+  });
 
   async function save(): Promise<void> {
     saving = true;
@@ -125,8 +124,6 @@
       saving = false;
     }
   }
-
-  onMount(load);
 </script>
 
 <svelte:head>
@@ -154,7 +151,7 @@
         </p>
       </div>
     </div>
-    <Button onclick={save} disabled={saving || loading}>
+    <Button onclick={save} disabled={saving || !seeded}>
       {#if saving}
         <Loader2 class="h-4 w-4 mr-2 animate-spin" />
       {:else}

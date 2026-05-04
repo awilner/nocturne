@@ -32484,9 +32484,6 @@
               "$ref": "#/components/schemas/AlertReplayEvent"
             }
           },
-          "limitations": {
-            "type": "string"
-          },
           "leafTransitionsByRule": {
             "type": "object",
             "additionalProperties": {

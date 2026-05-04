@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
-  import { onMount } from "svelte";
+  import { untrack } from "svelte";
   import {
     getRule,
     getRules,
@@ -63,19 +63,36 @@
   let ruleId = $derived(page.params.id);
   let isNew = $derived(ruleId === "new");
 
-  let loading = $state(true);
   let saving = $state(false);
   let deleting = $state(false);
   let testingSaved = $state(false);
   let error = $state<string | null>(null);
 
   let state = $state<RuleEditorState>(parseRule(null));
-  let availableRules = $state<{ id: string; name: string }[]>([]);
+  let seededId = $state<string | null>(null);
 
-  // Per-rule excursion history surfaced in the right rail. Loaded after the
-  // rule itself so the rail doesn't block the editor render.
-  let history = $state<HistoryExcursionResponse[]>([]);
-  let historyLoading = $state(false);
+  // Queries — fire on the server during SSR, results land in cache for hydration.
+  const rulesQuery = $derived(getRules());
+  const ruleQuery = $derived(isNew ? null : getRule(ruleId));
+  const historyQuery = $derived(
+    isNew ? null : getAlertHistory({ page: 1, pageSize: 25, alertRuleId: ruleId }),
+  );
+
+  const availableRules = $derived<{ id: string; name: string }[]>(
+    (rulesQuery.current ?? [])
+      .filter((r) => r.id !== ruleId)
+      .map((r) => ({ id: r.id ?? "", name: r.name ?? "(unnamed)" })),
+  );
+  const history = $derived<HistoryExcursionResponse[]>(
+    historyQuery?.current?.items ?? [],
+  );
+  const historyLoading = $derived(
+    historyQuery !== null && historyQuery.current === undefined,
+  );
+  const loading = $derived(
+    rulesQuery.current === undefined ||
+      (ruleQuery !== null && ruleQuery.current === undefined),
+  );
 
   // Replay dialog state — opened either by the "Test alert" button (no preset)
   // or by clicking a historic firing (preset to that day).
@@ -88,41 +105,23 @@
     state.clientConfig.snooze.smartSnoozeExtendMinutes
   );
 
-  onMount(async () => {
-    try {
-      // Fetch all rules in parallel: one for the rule under edit, one for the
-      // sibling list used by the alert_state condition picker.
-      const [siblings, rule] = await Promise.all([
-        getRules(),
-        isNew
-          ? Promise.resolve<AlertRuleResponse | null>(null)
-          : getRule(ruleId),
-      ]);
-      availableRules = (siblings ?? [])
-        .filter((r) => r.id !== ruleId)
-        .map((r) => ({ id: r.id ?? "", name: r.name ?? "(unnamed)" }));
-      state = parseRule(rule);
-    } catch (e) {
-      error = e instanceof Error ? e.message : String(e);
-    } finally {
-      loading = false;
+  // Seed the editor state from the loaded rule once per ruleId. Rebuilds when
+  // the route param changes (e.g. navigating from /alerts/foo to /alerts/bar).
+  $effect(() => {
+    if (seededId === ruleId) return;
+    if (isNew) {
+      untrack(() => {
+        state = parseRule(null);
+        seededId = ruleId;
+      });
+      return;
     }
-
-    if (!isNew) {
-      historyLoading = true;
-      try {
-        const r = await getAlertHistory({
-          page: 1,
-          pageSize: 25,
-          alertRuleId: ruleId,
-        });
-        history = r?.items ?? [];
-      } catch {
-        history = [];
-      } finally {
-        historyLoading = false;
-      }
-    }
+    const rule = ruleQuery?.current;
+    if (rule === undefined) return;
+    untrack(() => {
+      state = parseRule(rule ?? null);
+      seededId = ruleId;
+    });
   });
 
   // ---- Save ------------------------------------------------------------

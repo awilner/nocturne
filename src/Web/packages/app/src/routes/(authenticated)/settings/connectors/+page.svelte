@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
   import { getAllConnectorStatus } from "$api/generated/configurations.generated.remote";
   import {
     getServicesOverview,
@@ -61,9 +60,26 @@
   import { coachmark } from "@nocturne/coach";
   import { getRealtimeStore } from "$lib/stores/realtime-store.svelte";
 
-  let servicesOverview = $state<ServicesOverview | null>(null);
-  let isLoading = $state(true);
-  let error = $state<string | null>(null);
+  // Queries — fire on the server during SSR; results land in cache for hydration.
+  const servicesOverviewQuery = $derived(getServicesOverview());
+  const connectorStatusesQuery = $derived(getAllConnectorStatus());
+
+  const servicesOverview = $derived<ServicesOverview | null>(
+    servicesOverviewQuery.current ?? null,
+  );
+  const connectorStatuses = $derived<ConnectorStatusInfo[]>(
+    connectorStatusesQuery.current ?? [],
+  );
+  const isLoading = $derived(
+    servicesOverviewQuery.current === undefined,
+  );
+  const isLoadingConnectorStatuses = $derived(
+    connectorStatusesQuery.current === undefined,
+  );
+
+  const error = $derived<string | null>(
+    !isLoading && !servicesOverview ? "Failed to load services" : null,
+  );
   let selectedUploader = $state<UploaderApp | null>(null);
   let showSetupDialog = $state(false);
   let copiedField = $state<string | null>(null);
@@ -81,8 +97,6 @@
   let manualSyncResult = $state<BatchSyncResult | null>(null);
 
   // Connector heartbeat metrics state
-  let connectorStatuses = $state<ConnectorStatusInfo[]>([]);
-  let isLoadingConnectorStatuses = $state(false);
   let selectedConnector = $state<ConnectorStatusWithDescription | null>(null);
   let selectedConnectorCapabilities = $state<ConnectorCapabilities | null>(null);
   let connectorCapabilitiesById = $state<Record<string, ConnectorCapabilities | null>>({});
@@ -103,8 +117,18 @@
       (p) => p.phase === "Completed" || p.phase === "Failed"
     );
     if (hasCompleted) {
-      loadConnectorStatuses();
+      connectorStatusesQuery.refresh();
     }
+  });
+
+  // Fan-out load of capability descriptors once the services overview is in.
+  $effect(() => {
+    const overview = servicesOverviewQuery.current;
+    if (!overview?.availableConnectors) {
+      connectorCapabilitiesById = {};
+      return;
+    }
+    loadConnectorCapabilitiesMap(overview.availableConnectors);
   });
 
   // API token create dialog (triggered from uploader setup)
@@ -116,43 +140,19 @@
   let showDeduplicationDialog = $state(false);
   let isDeduplicating = $state(false);
 
-  onMount(async () => {
-    await Promise.all([loadServices(), loadConnectorStatuses()]);
-  });
-
-  onDestroy(() => {});
-
   async function refreshAll() {
-    await Promise.all([loadServices(), loadConnectorStatuses()]);
+    await Promise.all([
+      servicesOverviewQuery.refresh(),
+      connectorStatusesQuery.refresh(),
+    ]);
   }
 
   async function loadServices() {
-    isLoading = true;
-    error = null;
-    try {
-      servicesOverview = await getServicesOverview();
-      if (servicesOverview?.availableConnectors) {
-        await loadConnectorCapabilitiesMap(servicesOverview.availableConnectors);
-      } else {
-        connectorCapabilitiesById = {};
-      }
-    } catch (e) {
-      error = e instanceof Error ? e.message : "Failed to load services";
-    } finally {
-      isLoading = false;
-    }
+    await servicesOverviewQuery.refresh();
   }
 
   async function loadConnectorStatuses() {
-    isLoadingConnectorStatuses = true;
-    try {
-      connectorStatuses = await getAllConnectorStatus();
-    } catch (e) {
-      console.error("Failed to load connector statuses", e);
-      connectorStatuses = [];
-    } finally {
-      isLoadingConnectorStatuses = false;
-    }
+    await connectorStatusesQuery.refresh();
   }
 
   async function loadConnectorCapabilitiesFor(connectorId?: string) {
