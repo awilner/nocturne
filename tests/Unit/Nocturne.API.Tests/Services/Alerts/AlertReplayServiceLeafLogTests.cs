@@ -30,9 +30,11 @@ public class AlertReplayServiceLeafLogTests
     private readonly Mock<IAlertRepository> _alertRepository = new();
     private readonly Mock<ISensorGlucoseRepository> _glucoseRepository = new();
     private readonly Mock<ITenantAccessor> _tenantAccessor = new();
-    private readonly Mock<IIobService> _iobService = new();
-    private readonly Mock<ICobService> _cobService = new();
+    private readonly Mock<IIobCalculator> _iobCalculator = new();
+    private readonly Mock<ICobCalculator> _cobCalculator = new();
     private readonly Mock<ITreatmentService> _treatmentService = new();
+    private readonly Mock<IBolusRepository> _bolusRepository = new();
+    private readonly Mock<ICarbIntakeRepository> _carbIntakeRepository = new();
     private readonly Mock<IDeviceEventRepository> _deviceEventRepository = new();
     private readonly Mock<IPumpSnapshotRepository> _pumpSnapshotRepository = new();
     private readonly Mock<IApsSnapshotRepository> _apsSnapshotRepository = new();
@@ -48,9 +50,11 @@ public class AlertReplayServiceLeafLogTests
         _tenantAccessor.Setup(t => t.TenantId).Returns(_tenantId);
 
         var enricherDeps = new SensorContextEnricherDependencies(
-            _iobService.Object,
-            _cobService.Object,
+            _iobCalculator.Object,
+            _cobCalculator.Object,
             _treatmentService.Object,
+            _bolusRepository.Object,
+            _carbIntakeRepository.Object,
             _deviceEventRepository.Object,
             _pumpSnapshotRepository.Object,
             _apsSnapshotRepository.Object,

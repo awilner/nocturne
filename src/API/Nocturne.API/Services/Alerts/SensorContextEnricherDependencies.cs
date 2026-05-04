@@ -22,9 +22,11 @@ namespace Nocturne.API.Services.Alerts;
 /// would produce.
 /// </remarks>
 internal sealed record SensorContextEnricherDependencies(
-    IIobService Iob,
-    ICobService Cob,
+    IIobCalculator Iob,
+    ICobCalculator Cob,
     ITreatmentService Treatments,
+    IBolusRepository Boluses,
+    ICarbIntakeRepository CarbIntakes,
     IDeviceEventRepository DeviceEvents,
     IPumpSnapshotRepository PumpSnapshots,
     IApsSnapshotRepository ApsSnapshots,
