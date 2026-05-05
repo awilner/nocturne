@@ -209,7 +209,10 @@
             }
           }
         },
-        "x-remote-type": "command"
+        "x-remote-type": "command",
+        "x-remote-invalidates": [
+          "GetAll"
+        ]
       }
     },
     "/api/v4/connectors/status": {
@@ -24778,6 +24781,11 @@
             "format": "guid",
             "nullable": true
           },
+          "patientDeviceId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
           "pumpRecordId": {
             "type": "string",
             "nullable": true
@@ -36760,6 +36768,16 @@
             "type": "string",
             "nullable": true
           },
+          "deviceId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "patientDeviceId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
           "app": {
             "type": "string",
             "nullable": true
@@ -37303,6 +37321,16 @@
             "type": "string",
             "nullable": true
           },
+          "deviceId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "patientDeviceId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
           "app": {
             "type": "string",
             "nullable": true
@@ -37575,6 +37603,11 @@
             "nullable": true
           },
           "deviceId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "patientDeviceId": {
             "type": "string",
             "format": "guid",
             "nullable": true

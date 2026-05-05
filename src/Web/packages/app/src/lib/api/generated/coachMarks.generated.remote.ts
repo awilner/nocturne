@@ -51,6 +51,9 @@ export const updateStatus = command(z.object({ key: z.string(), request: UpdateC
   const apiClient = getRequestEvent().locals.apiClient;
   try {
     const result = await apiClient.coachMark.updateStatus(key, request as UpdateCoachMarkRequest);
+    await Promise.all([
+      getAll(undefined).refresh()
+    ]);
     return result;
   } catch (err) {
     const status = (err as any)?.status;

@@ -53,7 +53,7 @@ public class CoachMarkController : ControllerBase
     /// <param name="request">The new status value.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     [HttpPatch("{key}")]
-    [RemoteCommand]
+    [RemoteCommand(Invalidates = ["GetAll"])]
     public async Task<ActionResult<CoachMarkState>> UpdateStatus(
         string key,
         [FromBody] UpdateCoachMarkRequest request,
