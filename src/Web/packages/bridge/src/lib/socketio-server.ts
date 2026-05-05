@@ -266,6 +266,10 @@ class SocketIOServer {
     };
   }
 
+  setTenantSlugs(slugs: string[]): void {
+    this.tenantSlugs = slugs;
+  }
+
   getIO(): SocketIOServerClass | null {
     return this.io;
   }
