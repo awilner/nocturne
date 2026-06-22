@@ -46555,6 +46555,14 @@
             "type": "number",
             "format": "double"
           },
+          "basalInjectionInsulin": {
+            "type": "number",
+            "format": "double"
+          },
+          "basalInjectionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
           "reliability": {
             "nullable": true,
             "oneOf": [

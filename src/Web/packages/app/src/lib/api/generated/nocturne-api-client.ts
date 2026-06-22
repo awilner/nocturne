@@ -34797,6 +34797,8 @@ export interface InsulinDeliveryStatistics {
     carbBolusCount?: number;
     microBolusCount?: number;
     microBolusInsulin?: number;
+    basalInjectionInsulin?: number;
+    basalInjectionCount?: number;
     reliability?: StatisticReliability | undefined;
 }
 
