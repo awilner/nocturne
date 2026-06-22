@@ -283,7 +283,7 @@ public interface IStatisticsService
 
     /// <summary>
     /// Calculate comprehensive insulin delivery statistics.
-    /// Basal data comes from TempBasals and algorithmBoluses; pass empty collections if none are available.
+    /// Basal data comes from TempBasals, algorithmBoluses, and basalInjections (MDI); pass empty collections if none are available.
     /// </summary>
     InsulinDeliveryStatistics CalculateInsulinDeliveryStatistics(
         IEnumerable<Bolus> boluses,
@@ -291,7 +291,8 @@ public interface IStatisticsService
         IEnumerable<TempBasal> tempBasals,
         IEnumerable<CarbIntake> carbIntakes,
         DateTime startDate,
-        DateTime endDate
+        DateTime endDate,
+        IEnumerable<BasalInjection>? basalInjections = null
     );
 
     // Formatting Utilities
@@ -378,13 +379,14 @@ public interface IStatisticsService
 
     /// <summary>
     /// Calculate daily basal/bolus ratio breakdown.
-    /// Basal data comes from TempBasals and algorithm boluses; pass empty collections if none are available.
+    /// Basal data comes from TempBasals, algorithm boluses, and basalInjections (MDI); pass empty collections if none are available.
     /// </summary>
     DailyBasalBolusRatioResponse CalculateDailyBasalBolusRatios(
         IEnumerable<Bolus> boluses,
         IEnumerable<Bolus> algorithmBoluses,
         IEnumerable<TempBasal> tempBasals,
-        TimeZoneInfo? userTimeZone = null);
+        TimeZoneInfo? userTimeZone = null,
+        IEnumerable<BasalInjection>? basalInjections = null);
 
     /// <summary>
     /// Calculate comprehensive basal analysis statistics from TempBasals. Hourly percentiles are

@@ -59,6 +59,7 @@ public class StatisticsController : ControllerBase
     private readonly IApsSnapshotRepository _apsSnapshotRepository;
     private readonly IDeviceEventRepository _deviceEventRepository;
     private readonly ITargetRangeScheduleRepository _targetRangeScheduleRepository;
+    private readonly IBasalInjectionRepository _basalInjectionRepository;
 
     private string TenantCacheId =>
         _tenantAccessor.Context?.TenantId.ToString()
@@ -80,7 +81,8 @@ public class StatisticsController : ControllerBase
         IPatientDeviceRepository patientDeviceRepository,
         IApsSnapshotRepository apsSnapshotRepository,
         IDeviceEventRepository deviceEventRepository,
-        ITargetRangeScheduleRepository targetRangeScheduleRepository
+        ITargetRangeScheduleRepository targetRangeScheduleRepository,
+        IBasalInjectionRepository basalInjectionRepository
     )
     {
         _statisticsService = statisticsService;
@@ -99,6 +101,7 @@ public class StatisticsController : ControllerBase
         _apsSnapshotRepository = apsSnapshotRepository;
         _deviceEventRepository = deviceEventRepository;
         _targetRangeScheduleRepository = targetRangeScheduleRepository;
+        _basalInjectionRepository = basalInjectionRepository;
     }
 
     /// <summary>
@@ -700,11 +703,13 @@ public class StatisticsController : ControllerBase
                     // Deduplicate by 30s window + rate to eliminate duplicates from multiple connectors
                     var tempBasalTask = _tempBasalRepository.GetAsync(from: startTimestamp, to: endTimestamp, device: null, source: null, limit: int.MaxValue, descending: false, ct: cancellationToken);
                     var algoTask      = _bolusRepository.GetAsync(from: startTimestamp, to: endTimestamp, device: null, source: null, limit: int.MaxValue, descending: false, kind: BolusKind.Algorithm, ct: cancellationToken);
+                    var basalInjTask  = _basalInjectionRepository.GetAsync(startTimestamp, endTimestamp, null, null, int.MaxValue, 0, false, cancellationToken);
 
-                    await Task.WhenAll(tempBasalTask, algoTask);
+                    await Task.WhenAll(tempBasalTask, algoTask, basalInjTask);
 
                     var tempBasals       = (await tempBasalTask).ToList();
                     var algorithmBoluses = (await algoTask).ToList();
+                    var basalInjections  = (await basalInjTask).ToList();
 
                     insulinDelivery = _statisticsService.CalculateInsulinDeliveryStatistics(
                         filteredBoluses,
@@ -712,13 +717,15 @@ public class StatisticsController : ControllerBase
                         tempBasals,
                         filteredCarbs,
                         startDate,
-                        endDate
+                        endDate,
+                        basalInjections
                     );
 
-                    // If no TempBasals/algorithm boluses but we have profile data, augment with scheduled basal
+                    // If no TempBasals/algorithm boluses/basal injections but we have profile data, augment with scheduled basal
                     if (
                         tempBasals.Count == 0
                         && algorithmBoluses.Count == 0
+                        && basalInjections.Count == 0
                         && hasProfileData
                     )
                     {
@@ -893,12 +900,14 @@ public class StatisticsController : ControllerBase
             var bolusesTask   = _bolusRepository.GetAsync(startDt, endDt, null, null, 10000, descending: false, kind: BolusKind.Manual);
             var tempBasalTask = _tempBasalRepository.GetAsync(startDt, endDt, null, null, 10000, descending: false);
             var algoTask      = _bolusRepository.GetAsync(startDt, endDt, null, null, 10000, descending: false, kind: BolusKind.Algorithm);
+            var basalInjTask  = _basalInjectionRepository.GetAsync(startDt, endDt, null, null, 10000, 0, false);
 
-            await Task.WhenAll(bolusesTask, tempBasalTask, algoTask);
+            await Task.WhenAll(bolusesTask, tempBasalTask, algoTask, basalInjTask);
 
             var boluses          = await bolusesTask;
             var tempBasals       = (await tempBasalTask).ToList();
             var algorithmBoluses = await algoTask;
+            var basalInjections  = (await basalInjTask).ToList();
 
             var tzId = await _therapySettingsResolver.GetTimezoneAsync();
             var tz = !string.IsNullOrEmpty(tzId)
@@ -909,7 +918,8 @@ public class StatisticsController : ControllerBase
                 boluses,
                 algorithmBoluses,
                 tempBasals,
-                tz
+                tz,
+                basalInjections
             );
             return Ok(result);
         }
@@ -953,19 +963,21 @@ public class StatisticsController : ControllerBase
             var carbTask      = _carbIntakeRepository.GetAsync(startDt, endDt, null, null, 10_000, descending: false, ct: cancellationToken);
             var algoTask      = _bolusRepository.GetAsync(startDt, endDt, null, null, 10_000, descending: false, kind: BolusKind.Algorithm, ct: cancellationToken);
             var tempBasalTask = _tempBasalRepository.GetAsync(startDt, endDt, null, null, 10_000, descending: false, ct: cancellationToken);
+            var basalInjTask  = _basalInjectionRepository.GetAsync(startDt, endDt, null, null, 10_000, 0, false, ct: cancellationToken);
 
-            await Task.WhenAll(glucoseTask, bolusTask, carbTask, algoTask, tempBasalTask);
+            await Task.WhenAll(glucoseTask, bolusTask, carbTask, algoTask, tempBasalTask, basalInjTask);
 
             var glucoseData      = (await glucoseTask).ToList();
             var manualBoluses    = (await bolusTask).ToList();
             var carbs            = (await carbTask).ToList();
             var algorithmBoluses = (await algoTask).ToList();
             var tempBasals       = (await tempBasalTask).ToList();
+            var basalInjections  = (await basalInjTask).ToList();
 
             // Daily basal totals come from the existing service path so the calendar's "totalBasal"
             // matches what /daily-basal-bolus-ratios would return for the same window.
             var dailyBasalBolus = _statisticsService.CalculateDailyBasalBolusRatios(
-                manualBoluses, algorithmBoluses, tempBasals, tz);
+                manualBoluses, algorithmBoluses, tempBasals, tz, basalInjections);
             var dailyBasalMap = new Dictionary<string, double>(StringComparer.Ordinal);
             foreach (var d in dailyBasalBolus.DailyData)
             {
@@ -1158,14 +1170,16 @@ public class StatisticsController : ControllerBase
             var tempBasalsTask = _tempBasalRepository.GetAsync(startDt, endDt, null, null, 10000, descending: false);
             var algoTask       = _bolusRepository.GetAsync(startDt, endDt, null, null, 10000, descending: false, kind: BolusKind.Algorithm);
             var carbsTask      = _carbIntakeRepository.GetAsync(startDt, endDt, null, null, 10000, descending: false);
+            var basalInjTask   = _basalInjectionRepository.GetAsync(startDt, endDt, null, null, 10000, 0, false);
             var resolverTask   = _basalRateResolver.BuildResolverAsync(startMs, endMs);
 
-            await Task.WhenAll(bolusesTask, tempBasalsTask, algoTask, carbsTask, resolverTask);
+            await Task.WhenAll(bolusesTask, tempBasalsTask, algoTask, carbsTask, basalInjTask, resolverTask);
 
             var boluses          = await bolusesTask;
             var tempBasals       = (await tempBasalsTask).ToList();
             var algorithmBoluses = await algoTask;
             var carbs            = await carbsTask;
+            var basalInjections  = (await basalInjTask).ToList();
             var rateAt           = await resolverTask;
 
             foreach (var tb in tempBasals)
@@ -1180,7 +1194,8 @@ public class StatisticsController : ControllerBase
                 tempBasals,
                 carbs,
                 startDate,
-                endDate
+                endDate,
+                basalInjections
             );
             return Ok(result);
         }

@@ -1921,7 +1921,8 @@ public class StatisticsService : IStatisticsService
         IEnumerable<TempBasal> tempBasals,
         IEnumerable<CarbIntake> carbIntakes,
         DateTime startDate,
-        DateTime endDate
+        DateTime endDate,
+        IEnumerable<BasalInjection>? basalInjections = null
     )
     {
         // Start with bolus-based calculation (includes carb stats)
@@ -1964,7 +1965,23 @@ public class StatisticsService : IStatisticsService
         // Algorithm (micro) boluses are additional basal above scheduled
         additionalBasalInsulin += algorithmBolusInsulin;
 
-        var totalBasal = tempBasalInsulin + algorithmBolusInsulin;
+        // Sum basal injections (MDI long-acting insulin) — these are scheduled baseline coverage
+        var basalInjectionInsulin = 0.0;
+        var basalInjectionCount = 0;
+        if (basalInjections != null)
+        {
+            foreach (var bi in basalInjections)
+            {
+                if (bi.Units > 0)
+                {
+                    basalInjectionInsulin += bi.Units;
+                    basalInjectionCount++;
+                }
+            }
+        }
+        scheduledBasalInsulin += basalInjectionInsulin;
+
+        var totalBasal = tempBasalInsulin + algorithmBolusInsulin + basalInjectionInsulin;
         var totalInsulin = stats.TotalBolus + totalBasal;
 
         stats.TotalBasal = Math.Round(totalBasal * 100) / 100;
@@ -1978,6 +1995,8 @@ public class StatisticsService : IStatisticsService
             totalInsulin > 0 ? Math.Round(stats.TotalBolus / totalInsulin * 100 * 10) / 10 : 0;
         stats.MicroBolusCount = algorithmBolusList.Count;
         stats.MicroBolusInsulin = Math.Round(algorithmBolusInsulin * 100) / 100;
+        stats.BasalInjectionInsulin = Math.Round(basalInjectionInsulin * 100) / 100;
+        stats.BasalInjectionCount = basalInjectionCount;
 
         return stats;
     }
@@ -1989,7 +2008,8 @@ public class StatisticsService : IStatisticsService
         IEnumerable<Bolus> boluses,
         IEnumerable<Bolus> algorithmBoluses,
         IEnumerable<TempBasal> tempBasals,
-        TimeZoneInfo? userTimeZone = null
+        TimeZoneInfo? userTimeZone = null,
+        IEnumerable<BasalInjection>? basalInjections = null
     )
     {
         var tz = userTimeZone ?? TimeZoneInfo.Utc;
@@ -2037,6 +2057,23 @@ public class StatisticsService : IStatisticsService
 
             var (currentBasal, currentBolus) = dailyData[dateKey];
             dailyData[dateKey] = (currentBasal + ab.Insulin, currentBolus);
+        }
+
+        // Process basal injections (MDI long-acting insulin — treated as basal)
+        if (basalInjections != null)
+        {
+            foreach (var bi in basalInjections)
+            {
+                if (bi.Units <= 0)
+                    continue;
+
+                var dateKey = MillsToLocalDateString(bi.Mills, tz);
+                if (!dailyData.ContainsKey(dateKey))
+                    dailyData[dateKey] = (0, 0);
+
+                var (currentBasal, currentBolus) = dailyData[dateKey];
+                dailyData[dateKey] = (currentBasal + bi.Units, currentBolus);
+            }
         }
 
         // Build response

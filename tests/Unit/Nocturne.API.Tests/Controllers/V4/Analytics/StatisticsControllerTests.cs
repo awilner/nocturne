@@ -43,7 +43,8 @@ public class StatisticsControllerTests
             Mock.Of<IPatientDeviceRepository>(),
             Mock.Of<IApsSnapshotRepository>(),
             Mock.Of<IDeviceEventRepository>(),
-            Mock.Of<ITargetRangeScheduleRepository>());
+            Mock.Of<ITargetRangeScheduleRepository>(),
+            Mock.Of<IBasalInjectionRepository>());
 
         controller.ControllerContext = new ControllerContext
         {
@@ -96,7 +97,8 @@ public class StatisticsControllerTests
                 It.IsAny<IEnumerable<Bolus>>(),
                 It.IsAny<IEnumerable<Bolus>>(),
                 It.IsAny<IEnumerable<TempBasal>>(),
-                It.IsAny<TimeZoneInfo?>()))
+                It.IsAny<TimeZoneInfo?>(),
+                It.IsAny<IEnumerable<BasalInjection>?>()))
             .Returns(new DailyBasalBolusRatioResponse());
     }
 
