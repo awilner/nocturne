@@ -141,7 +141,7 @@ public static class KnownOAuthClients
             DisplayName = "Nocturne Windows Widget",
             Homepage = "https://github.com/nightscout/nocturne",
             LogoUri = "/logos/nocturne.svg",
-            RedirectUris = [],
+            RedirectUris = ["com.nocturne.widget.windows://oauth/callback"],
             TypicalScopes =
             [
                 OAuthScopes.GlucoseRead,

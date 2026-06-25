@@ -2820,6 +2820,16 @@ namespace Nocturne.Infrastructure.Data.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("name");
 
+                    b.Property<string>("OAuth2SettingsJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("oauth2_settings");
+
+                    b.Property<string>("ProviderType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("provider_type");
+
                     b.PrimitiveCollection<string>("Scopes")
                         .IsRequired()
                         .HasColumnType("jsonb")

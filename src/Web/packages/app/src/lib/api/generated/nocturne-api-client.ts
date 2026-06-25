@@ -30099,6 +30099,21 @@ export interface OidcProviderResponse {
     displayOrder?: number;
     icon?: string | undefined;
     buttonColor?: string | undefined;
+    providerType?: OidcProviderType;
+    oAuth2?: OAuth2ProviderSettings | undefined;
+}
+
+export enum OidcProviderType {
+    Oidc = "Oidc",
+    OAuth2 = "OAuth2",
+}
+
+export interface OAuth2ProviderSettings {
+    authorizationEndpoint?: string;
+    tokenEndpoint?: string;
+    userInfoEndpoint?: string;
+    userInfoEmailEndpoint?: string | undefined;
+    claimMappings?: { [key: string]: string; };
 }
 
 export interface CreateOidcProviderRequest {
@@ -30113,6 +30128,8 @@ export interface CreateOidcProviderRequest {
     displayOrder?: number;
     icon?: string | undefined;
     buttonColor?: string | undefined;
+    providerType?: OidcProviderType;
+    oAuth2?: OAuth2ProviderSettings | undefined;
 }
 
 export interface ConfigManagedResponse {
@@ -30131,6 +30148,8 @@ export interface UpdateOidcProviderRequest {
     displayOrder?: number;
     icon?: string | undefined;
     buttonColor?: string | undefined;
+    providerType?: OidcProviderType;
+    oAuth2?: OAuth2ProviderSettings | undefined;
 }
 
 export interface OidcProviderTestResult {

@@ -31853,6 +31853,54 @@
           "buttonColor": {
             "type": "string",
             "nullable": true
+          },
+          "providerType": {
+            "$ref": "#/components/schemas/OidcProviderType"
+          },
+          "oAuth2": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OAuth2ProviderSettings"
+              }
+            ]
+          }
+        }
+      },
+      "OidcProviderType": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "Oidc",
+          "OAuth2"
+        ],
+        "enum": [
+          "Oidc",
+          "OAuth2"
+        ]
+      },
+      "OAuth2ProviderSettings": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "authorizationEndpoint": {
+            "type": "string"
+          },
+          "tokenEndpoint": {
+            "type": "string"
+          },
+          "userInfoEndpoint": {
+            "type": "string"
+          },
+          "userInfoEmailEndpoint": {
+            "type": "string",
+            "nullable": true
+          },
+          "claimMappings": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           }
         }
       },
@@ -31908,6 +31956,17 @@
           "buttonColor": {
             "type": "string",
             "nullable": true
+          },
+          "providerType": {
+            "$ref": "#/components/schemas/OidcProviderType"
+          },
+          "oAuth2": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OAuth2ProviderSettings"
+              }
+            ]
           }
         }
       },
@@ -31972,6 +32031,17 @@
           "buttonColor": {
             "type": "string",
             "nullable": true
+          },
+          "providerType": {
+            "$ref": "#/components/schemas/OidcProviderType"
+          },
+          "oAuth2": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OAuth2ProviderSettings"
+              }
+            ]
           }
         }
       },
