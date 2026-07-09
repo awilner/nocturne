@@ -10,7 +10,7 @@ namespace Nocturne.Infrastructure.Data.Entities.V4;
 /// Maps to Nocturne.Core.Models.V4.MeterGlucose
 /// </summary>
 [Table("meter_glucose")]
-public class MeterGlucoseEntity : ITenantScoped, ISoftDeletable, IV4Entity, ISystemTimestamped
+public class MeterGlucoseEntity : ITenantScoped, IAuditable, ISoftDeletable, IV4TimeSeriesEntity, ISystemTimestamped
 {
     /// <summary>
     /// The unique identifier of the tenant this record belongs to.
@@ -67,8 +67,14 @@ public class MeterGlucoseEntity : ITenantScoped, ISoftDeletable, IV4Entity, ISys
     /// Original v1/v3 record ID for migration traceability
     /// </summary>
     [Column("legacy_id")]
-    [MaxLength(64)]
+    [MaxLength(255)]
     public string? LegacyId { get; set; }
+
+    /// <summary>
+    /// FK to the PatientDevice (meter) this reading is attributed to
+    /// </summary>
+    [Column("patient_device_id")]
+    public Guid? PatientDeviceId { get; set; }
 
     /// <summary>
     /// System tracking: when record was inserted

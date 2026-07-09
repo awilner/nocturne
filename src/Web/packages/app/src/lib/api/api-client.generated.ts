@@ -26,6 +26,7 @@ import {
   ChartDataClient,
   ChatIdentityClient,
   ChatIdentityDirectoryClient,
+  ClientDevicesClient,
   ClockFacesClient,
   CoachMarkClient,
   CompatibilityClient,
@@ -46,6 +47,7 @@ import {
   DeviceEventClient,
   DirectGrantClient,
   DiscrepancyClient,
+  DndWindowsClient,
   FoodsClient,
   GlucoseProcessingSettingsClient,
   GuestLinkClient,
@@ -78,11 +80,14 @@ import {
   ProcessingClient,
   ProfileClient,
   PumpSnapshotClient,
+  ReservoirClient,
+  ReservoirReportsClient,
   RetrospectiveClient,
   RoleClient,
   SensorGlucoseClient,
   SensorIntegrityClient,
   ServicesClient,
+  SessionsClient,
   SetupClient,
   ShareLinkClient,
   StateSpansClient,
@@ -99,7 +104,6 @@ import {
   TimezoneTimelineClient,
   TlsAuthorizationClient,
   TotpClient,
-  TrackerAlertsClient,
   TrackersClient,
   UISettingsClient,
   UploaderSnapshotClient,
@@ -136,6 +140,7 @@ export class ApiClient {
   public readonly chartData: ChartDataClient;
   public readonly chatIdentity: ChatIdentityClient;
   public readonly chatIdentityDirectory: ChatIdentityDirectoryClient;
+  public readonly clientDevices: ClientDevicesClient;
   public readonly clockFaces: ClockFacesClient;
   public readonly coachMark: CoachMarkClient;
   public readonly compatibility: CompatibilityClient;
@@ -156,6 +161,7 @@ export class ApiClient {
   public readonly deviceEvent: DeviceEventClient;
   public readonly directGrant: DirectGrantClient;
   public readonly discrepancy: DiscrepancyClient;
+  public readonly dndWindows: DndWindowsClient;
   public readonly foodsV4: FoodsClient;
   public readonly glucoseProcessingSettings: GlucoseProcessingSettingsClient;
   public readonly guestLink: GuestLinkClient;
@@ -188,11 +194,14 @@ export class ApiClient {
   public readonly processing: ProcessingClient;
   public readonly profile: ProfileClient;
   public readonly pumpSnapshot: PumpSnapshotClient;
+  public readonly reservoir: ReservoirClient;
+  public readonly reservoirReports: ReservoirReportsClient;
   public readonly retrospective: RetrospectiveClient;
   public readonly role: RoleClient;
   public readonly sensorGlucose: SensorGlucoseClient;
   public readonly sensorIntegrity: SensorIntegrityClient;
   public readonly services: ServicesClient;
+  public readonly sessions: SessionsClient;
   public readonly setup: SetupClient;
   public readonly shareLink: ShareLinkClient;
   public readonly stateSpans: StateSpansClient;
@@ -209,7 +218,6 @@ export class ApiClient {
   public readonly timezoneTimeline: TimezoneTimelineClient;
   public readonly tlsAuthorization: TlsAuthorizationClient;
   public readonly totp: TotpClient;
-  public readonly trackerAlerts: TrackerAlertsClient;
   public readonly trackers: TrackersClient;
   public readonly uiSettings: UISettingsClient;
   public readonly uploaderSnapshot: UploaderSnapshotClient;
@@ -246,6 +254,7 @@ export class ApiClient {
     this.chartData = new ChartDataClient(apiBaseUrl, http);
     this.chatIdentity = new ChatIdentityClient(apiBaseUrl, http);
     this.chatIdentityDirectory = new ChatIdentityDirectoryClient(apiBaseUrl, http);
+    this.clientDevices = new ClientDevicesClient(apiBaseUrl, http);
     this.clockFaces = new ClockFacesClient(apiBaseUrl, http);
     this.coachMark = new CoachMarkClient(apiBaseUrl, http);
     this.compatibility = new CompatibilityClient(apiBaseUrl, http);
@@ -266,6 +275,7 @@ export class ApiClient {
     this.deviceEvent = new DeviceEventClient(apiBaseUrl, http);
     this.directGrant = new DirectGrantClient(apiBaseUrl, http);
     this.discrepancy = new DiscrepancyClient(apiBaseUrl, http);
+    this.dndWindows = new DndWindowsClient(apiBaseUrl, http);
     this.foodsV4 = new FoodsClient(apiBaseUrl, http);
     this.glucoseProcessingSettings = new GlucoseProcessingSettingsClient(apiBaseUrl, http);
     this.guestLink = new GuestLinkClient(apiBaseUrl, http);
@@ -298,11 +308,14 @@ export class ApiClient {
     this.processing = new ProcessingClient(apiBaseUrl, http);
     this.profile = new ProfileClient(apiBaseUrl, http);
     this.pumpSnapshot = new PumpSnapshotClient(apiBaseUrl, http);
+    this.reservoir = new ReservoirClient(apiBaseUrl, http);
+    this.reservoirReports = new ReservoirReportsClient(apiBaseUrl, http);
     this.retrospective = new RetrospectiveClient(apiBaseUrl, http);
     this.role = new RoleClient(apiBaseUrl, http);
     this.sensorGlucose = new SensorGlucoseClient(apiBaseUrl, http);
     this.sensorIntegrity = new SensorIntegrityClient(apiBaseUrl, http);
     this.services = new ServicesClient(apiBaseUrl, http);
+    this.sessions = new SessionsClient(apiBaseUrl, http);
     this.setup = new SetupClient(apiBaseUrl, http);
     this.shareLink = new ShareLinkClient(apiBaseUrl, http);
     this.stateSpans = new StateSpansClient(apiBaseUrl, http);
@@ -319,7 +332,6 @@ export class ApiClient {
     this.timezoneTimeline = new TimezoneTimelineClient(apiBaseUrl, http);
     this.tlsAuthorization = new TlsAuthorizationClient(apiBaseUrl, http);
     this.totp = new TotpClient(apiBaseUrl, http);
-    this.trackerAlerts = new TrackerAlertsClient(apiBaseUrl, http);
     this.trackers = new TrackersClient(apiBaseUrl, http);
     this.uiSettings = new UISettingsClient(apiBaseUrl, http);
     this.uploaderSnapshot = new UploaderSnapshotClient(apiBaseUrl, http);

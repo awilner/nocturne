@@ -2,11 +2,15 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OpenApi.Remote.Attributes;
 using Nocturne.API.Extensions;
+using Nocturne.API.Services.Monitoring;
+using Nocturne.Core.Contracts.Alerts;
 using Nocturne.Core.Models;
 using Nocturne.Infrastructure.Data.Entities;
 using Nocturne.Infrastructure.Data.Abstractions;
+using Nocturne.Infrastructure.Data.Services;
 using Nocturne.API.Services.Realtime;
 
 namespace Nocturne.API.Controllers.V4.Monitoring;
@@ -23,6 +27,9 @@ public class TrackersController : ControllerBase
 {
     private readonly ITrackerRepository _repository;
     private readonly ISignalRBroadcastService _broadcast;
+    private readonly ITrackerAlertRuleSyncService _ruleSync;
+    private readonly ITenantDbContextFactory _contextFactory;
+    private readonly IAlertAcknowledgementService _acknowledgementService;
     private readonly ILogger<TrackersController> _logger;
 
     /// <summary>
@@ -30,15 +37,24 @@ public class TrackersController : ControllerBase
     /// </summary>
     /// <param name="repository">Repository for tracker definition and log persistence.</param>
     /// <param name="broadcast">Service for broadcasting real-time tracker updates via SignalR.</param>
+    /// <param name="ruleSync">Synthesises managed alert rules from notification thresholds.</param>
+    /// <param name="contextFactory">Tenant-scoped database context factory (managed-rule lookups).</param>
+    /// <param name="acknowledgementService">Acknowledges alert excursions when a tracker is acked.</param>
     /// <param name="logger">Logger instance.</param>
     public TrackersController(
         ITrackerRepository repository,
         ISignalRBroadcastService broadcast,
+        ITrackerAlertRuleSyncService ruleSync,
+        ITenantDbContextFactory contextFactory,
+        IAlertAcknowledgementService acknowledgementService,
         ILogger<TrackersController> logger
     )
     {
         _repository = repository;
         _broadcast = broadcast;
+        _ruleSync = ruleSync;
+        _contextFactory = contextFactory;
+        _acknowledgementService = acknowledgementService;
         _logger = logger;
     }
 
@@ -93,6 +109,48 @@ public class TrackersController : ControllerBase
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Validate the low-reservoir level threshold for a definition
+    /// </summary>
+    private static string? ValidateLowReservoirUnits(double? units, TrackerCategory category)
+    {
+        if (units is not { } value) return null;
+        if (category != TrackerCategory.Reservoir)
+            return "Low reservoir units apply only to Reservoir category trackers";
+        if (value <= 0)
+            return "Low reservoir units must be greater than zero";
+        if (value > 1000)
+            return "Low reservoir units must be at most 1000";
+        return null;
+    }
+
+    /// <summary>
+    /// Acknowledges every open, unacknowledged excursion belonging to the managed alert
+    /// rules synthesised from <paramref name="definitionId"/>'s thresholds.
+    /// </summary>
+    private async Task AcknowledgeManagedRuleExcursionsAsync(
+        Guid definitionId, string userId, CancellationToken ct)
+    {
+        await using var db = await _contextFactory.CreateAsync(ct);
+        var tag = TrackerAlertRuleSyncService.ManagedByTag(definitionId);
+
+        var excursions = await db.AlertExcursions
+            .AsNoTracking()
+            .Where(e => e.EndedAt == null && e.AcknowledgedAt == null)
+            .Join(
+                db.AlertRules.Where(r => r.ManagedBy == tag),
+                e => e.AlertRuleId,
+                r => r.Id,
+                (e, r) => e.Id)
+            .ToListAsync(ct);
+
+        foreach (var excursionId in excursions)
+        {
+            await _acknowledgementService.AcknowledgeExcursionAsync(
+                db.TenantId, excursionId, userId, broadcast: true, ct);
+        }
     }
 
     #endregion
@@ -184,6 +242,10 @@ public class TrackersController : ControllerBase
         if (request.Mode == TrackerMode.Event && request.LifespanHours.HasValue)
             return Problem(detail: "Event mode trackers should not have a lifespan", statusCode: 400, title: "Bad Request");
 
+        var lowReservoirError = ValidateLowReservoirUnits(request.LowReservoirUnits, request.Category);
+        if (lowReservoirError != null)
+            return Problem(detail: lowReservoirError, statusCode: 400, title: "Bad Request");
+
         var entity = new TrackerDefinitionEntity
         {
             UserId = userId,
@@ -194,6 +256,8 @@ public class TrackersController : ControllerBase
             TriggerEventTypes = JsonSerializer.Serialize(request.TriggerEventTypes ?? []),
             TriggerNotesContains = request.TriggerNotesContains,
             LifespanHours = request.LifespanHours,
+            LowReservoirUnits = request.LowReservoirUnits,
+            LowReservoirUrgency = request.LowReservoirUrgency,
             IsFavorite = request.IsFavorite,
             DashboardVisibility = request.DashboardVisibility,
             Visibility = request.Visibility,
@@ -228,6 +292,11 @@ public class TrackersController : ControllerBase
         }
 
         var created = await _repository.CreateDefinitionAsync(entity, HttpContext.RequestAborted);
+
+        // CancellationToken.None: the definition is already committed, so a client
+        // disconnect must not leave it without its managed rules until the next startup
+        // backfill.
+        await _ruleSync.SyncDefinitionAsync(created.Id, CancellationToken.None);
 
         _logger.LogInformation(
             "Created tracker definition {Id} for user {UserId}",
@@ -276,6 +345,11 @@ public class TrackersController : ControllerBase
         if (mode == TrackerMode.Event && lifespan.HasValue)
             return Problem(detail: "Event mode trackers should not have a lifespan", statusCode: 400, title: "Bad Request");
 
+        var category = request.Category ?? existing.Category;
+        var lowReservoirError = ValidateLowReservoirUnits(request.LowReservoirUnits, category);
+        if (lowReservoirError != null)
+            return Problem(detail: lowReservoirError, statusCode: 400, title: "Bad Request");
+
         existing.Name = request.Name ?? existing.Name;
         existing.Description = request.Description ?? existing.Description;
         existing.Category = request.Category ?? existing.Category;
@@ -287,6 +361,12 @@ public class TrackersController : ControllerBase
         existing.TriggerNotesContains =
             request.TriggerNotesContains ?? existing.TriggerNotesContains;
         existing.LifespanHours = request.LifespanHours ?? existing.LifespanHours;
+        // Applied as-is (not null-means-keep): the tracker editor posts the whole
+        // definition, and null must clear the level rule. Forced null for any
+        // non-Reservoir category.
+        existing.LowReservoirUnits =
+            category == TrackerCategory.Reservoir ? request.LowReservoirUnits : null;
+        existing.LowReservoirUrgency = request.LowReservoirUrgency ?? existing.LowReservoirUrgency;
         existing.IsFavorite = request.IsFavorite ?? existing.IsFavorite;
         existing.DashboardVisibility = request.DashboardVisibility ?? existing.DashboardVisibility;
         existing.Visibility = request.Visibility ?? existing.Visibility;
@@ -327,6 +407,12 @@ public class TrackersController : ControllerBase
             HttpContext.RequestAborted
         );
 
+        // Lifespan/mode/name changes shift the synthesised conditions even when the
+        // threshold list itself didn't change, so re-sync unconditionally.
+        // CancellationToken.None: the threshold writes are already committed; aborting
+        // here would leave stale rules firing at the old minutes.
+        await _ruleSync.SyncDefinitionAsync(id, CancellationToken.None);
+
         return Ok(TrackerDefinitionDto.FromEntity(updated!));
     }
 
@@ -347,7 +433,12 @@ public class TrackersController : ControllerBase
         if (existing.UserId != userId && !HttpContext.IsAdmin())
             return Forbid();
 
+        // Definition first, rules second: if the definition delete fails the tracker
+        // keeps its rules; if the rule cleanup is interrupted the leftover rules fail
+        // closed (no active instance for a deleted definition) rather than a live
+        // tracker losing its alerts. CancellationToken.None for the same reason.
         await _repository.DeleteDefinitionAsync(id, HttpContext.RequestAborted);
+        await _ruleSync.DeleteRulesForDefinitionAsync(id, CancellationToken.None);
 
         _logger.LogInformation("Deleted tracker definition {Id}", id);
 
@@ -526,7 +617,10 @@ public class TrackersController : ControllerBase
     }
 
     /// <summary>
-    /// Acknowledge/snooze a tracker notification
+    /// Acknowledge a tracker notification. <c>SnoozeMins</c> is stored on the instance
+    /// (pill display/legacy clients); the alert-engine side is a plain acknowledgement of
+    /// the managed rules' open excursions — re-notification is the threshold ladder's and
+    /// alert_state escalation rules' job, not a snooze re-fire.
     /// </summary>
     [HttpPost("instances/{id:guid}/ack")]
     [Authorize]
@@ -543,6 +637,11 @@ public class TrackersController : ControllerBase
             return Forbid();
 
         await _repository.AckInstanceAsync(id, request.SnoozeMins, HttpContext.RequestAborted);
+
+        // Acknowledge the active excursions of this definition's managed alert rules so
+        // the alert surface (history, escalation via alert_state, device intents) agrees
+        // with the tracker ack instead of showing a still-unacknowledged alert.
+        await AcknowledgeManagedRuleExcursionsAsync(existing.DefinitionId, userId, HttpContext.RequestAborted);
 
         // Broadcast ack if global
         if (request.Global)
@@ -755,6 +854,17 @@ public class TrackerDefinitionDto
     public string? TriggerNotesContains { get; set; }
     public int? LifespanHours { get; set; }
 
+    /// <summary>
+    /// Reservoir category only: units level below which the synced managed reservoir
+    /// rule fires. Null = no level rule.
+    /// </summary>
+    public double? LowReservoirUnits { get; set; }
+
+    /// <summary>
+    /// Urgency of the low-reservoir level rule.
+    /// </summary>
+    public NotificationUrgency LowReservoirUrgency { get; set; } = NotificationUrgency.Warn;
+
     // Notification thresholds (many-to-one relationship)
     public List<NotificationThresholdDto> NotificationThresholds { get; set; } = [];
 
@@ -800,6 +910,8 @@ public class TrackerDefinitionDto
                 JsonSerializer.Deserialize<List<string>>(entity.TriggerEventTypes) ?? [],
             TriggerNotesContains = entity.TriggerNotesContains,
             LifespanHours = entity.LifespanHours,
+            LowReservoirUnits = entity.LowReservoirUnits,
+            LowReservoirUrgency = entity.LowReservoirUrgency,
             // Notification thresholds
             NotificationThresholds =
                 entity
@@ -894,6 +1006,17 @@ public class CreateTrackerDefinitionRequest
     public string? TriggerNotesContains { get; set; }
     public int? LifespanHours { get; set; }
 
+    /// <summary>
+    /// Reservoir category only: units level below which the synced managed reservoir
+    /// rule fires. Null = no level rule.
+    /// </summary>
+    public double? LowReservoirUnits { get; set; }
+
+    /// <summary>
+    /// Urgency of the low-reservoir level rule.
+    /// </summary>
+    public NotificationUrgency LowReservoirUrgency { get; set; } = NotificationUrgency.Warn;
+
     // Notification thresholds (many-to-one relationship)
     public List<CreateNotificationThresholdRequest>? NotificationThresholds { get; set; }
     public bool IsFavorite { get; set; }
@@ -933,6 +1056,19 @@ public class UpdateTrackerDefinitionRequest
     public List<string>? TriggerEventTypes { get; set; }
     public string? TriggerNotesContains { get; set; }
     public int? LifespanHours { get; set; }
+
+    /// <summary>
+    /// Reservoir category only: units level below which the synced managed reservoir
+    /// rule fires. The tracker editor posts the whole definition, so for a Reservoir
+    /// definition this value is applied as-is on every update — null clears the rule
+    /// (null-means-keep cannot express clearing).
+    /// </summary>
+    public double? LowReservoirUnits { get; set; }
+
+    /// <summary>
+    /// Urgency of the low-reservoir level rule. Null keeps the current value.
+    /// </summary>
+    public NotificationUrgency? LowReservoirUrgency { get; set; }
 
     // Notification thresholds (if provided, replaces all existing thresholds)
     public List<CreateNotificationThresholdRequest>? NotificationThresholds { get; set; }

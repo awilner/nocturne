@@ -21,14 +21,18 @@ plus the current value, trend arrow and an optional loop-status line (IOB/COB).
 The widget auto-positions just left of the centred app icons and slides as apps
 open/close.
 
-**Data source:** the mod reads a local JSON file (default
-`%LOCALAPPDATA%\Nocturne\glucose.json`) that the Nocturne desktop companion
-writes on each poll. The file is the raw `V4SummaryResponse` from the Nocturne
-`GET /api/v4/summary` endpoint (sgv, history, iob, cob, predictions, alarm), with
-all glucose values in mg/dL; the mod converts to the configured display unit.
-There is no network access from `explorer.exe` — the mod only ever reads that
-file. If the file is missing or stale, the sparkline dims; when the server alert
-engine reports an active alarm the card pulses a coloured border.
+**Data source:** the mod reads a local JSON file written by either (or both) of
+two Nocturne clients that poll the server: the desktop companion (default
+`%LOCALAPPDATA%\Nocturne\glucose.json`) and the packaged Windows 11 widget
+(which writes the same logical path; Windows may redirect that write into the
+widget's package container). The mod reads every candidate path and renders
+whichever source is freshest, so it keeps working if only one is running. The file is the raw `V4SummaryResponse` from the
+Nocturne `GET /api/v4/summary` endpoint (sgv, history, iob, cob, predictions,
+alarm), with all glucose values in mg/dL; the mod converts to the configured
+display unit. There is no network access from `explorer.exe` — the mod only ever
+reads those files. If none are present or all are stale, the sparkline dims; when
+the server alert engine reports an active alarm the card pulses a coloured
+border.
 
 ## How the positioning works
 The mod hooks
@@ -50,7 +54,7 @@ two coexist. Windows 11 only.
 /*
 - dataPath: ""
   $name: Summary JSON path
-  $description: Path to the companion's V4 summary JSON (the raw V4SummaryResponse from GET /api/v4/summary). Blank = %LOCALAPPDATA%\Nocturne\glucose.json. Supports %ENV% and ~.
+  $description: Path to a V4 summary JSON (the raw V4SummaryResponse from GET /api/v4/summary). Set this to force a single source. Blank = auto: the desktop companion's %LOCALAPPDATA%\Nocturne\glucose.json plus the packaged Win11 widget's file, whichever is freshest. Supports %ENV% and ~.
 - pollSeconds: 15
   $name: Poll interval (seconds)
   $description: How often the mod re-reads the summary JSON.
@@ -157,7 +161,7 @@ using winrt::Windows::Foundation::Point;
 // Settings
 // ---------------------------------------------------------------------------
 struct Settings {
-    std::wstring dataPath;          // resolved summary JSON path
+    std::vector<std::wstring> dataPaths;  // candidate summary JSON paths, tried freshest-wins
     int pollSeconds = 15;
     int staleAfterSeconds = 600;
     std::wstring unit = L"mmol/L";  // display unit: "mmol/L" or "mg/dL"
@@ -239,6 +243,39 @@ static std::wstring ExpandConfigPath(const std::wstring& in) {
     s = ExpandEnv(s);
     for (auto& c : s) if (c == L'/') c = L'\\';
     return s;
+}
+
+// Append the packaged Win11 widget's glucose file(s) to `out`. The widget writes to
+// %LOCALAPPDATA%\Nocturne\glucose.json; depending on the OS/packaging, Windows may redirect that
+// AppData write into the widget's package container (%LOCALAPPDATA%\Packages\<PFN>\LocalCache\...).
+// The PFN suffix is a publisher hash, so we glob the identity prefix and probe the known redirect
+// subpaths; missing ones simply fail to read later. If the write is NOT redirected, the widget
+// shares the companion's real path (covered by the companion candidate) and these globs find
+// nothing — harmless. Either way the freshest readable source wins.
+static void AddWidgetCandidatePaths(std::vector<std::wstring>& out) {
+    wchar_t lad[MAX_PATH];
+    DWORD n = GetEnvironmentVariableW(L"LOCALAPPDATA", lad, MAX_PATH);
+    if (!n || n >= MAX_PATH) return;
+    std::wstring packages = std::wstring(lad, n) + L"\\Packages";
+    std::wstring search = packages + L"\\Nightscout.Nocturne.Widget_*";
+
+    WIN32_FIND_DATAW fd{};
+    HANDLE h = FindFirstFileW(search.c_str(), &fd);
+    if (h == INVALID_HANDLE_VALUE) return;
+    do {
+        if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) continue;
+        if (fd.cFileName[0] == L'.') continue;
+        std::wstring base = packages + L"\\" + fd.cFileName;
+        // Desktop-bridge AppData redirect targets, most-likely first.
+        static const wchar_t* kSubs[] = {
+            L"\\LocalCache\\Local\\Nocturne\\glucose.json",
+            L"\\LocalCache\\Roaming\\Nocturne\\glucose.json",
+            L"\\LocalCache\\Nocturne\\glucose.json",
+            L"\\LocalState\\Nocturne\\glucose.json",
+        };
+        for (auto* s : kSubs) out.push_back(base + s);
+    } while (FindNextFileW(h, &fd));
+    FindClose(h);
 }
 
 static int64_t NowMsEpoch() {
@@ -421,15 +458,14 @@ static void ParseHistory(const JsonValue* arr, std::vector<GPoint>& out) {
     std::sort(out.begin(), out.end(), [](const GPoint& a, const GPoint& b) { return a.tMs < b.tMs; });
 }
 
-// Read + parse the V4SummaryResponse JSON into a snapshot. Never throws; ok=false
+// Read + parse one V4SummaryResponse JSON file into a snapshot. Never throws; ok=false
 // on any miss. All glucose values are converted from canonical mg/dL to the
 // display unit here so the UI thread renders them verbatim.
-static GlucoseSnapshot ReadGlucose() {
+static GlucoseSnapshot ReadOneGlucoseFile(const std::wstring& path) {
     GlucoseSnapshot s;
     s.valid = true;
     std::string raw;
-    if (!ReadFileUtf8(g_settings.dataPath, raw)) {
-        Wh_Log(L"[read] summary JSON not readable: %s", g_settings.dataPath.c_str());
+    if (!ReadFileUtf8(path, raw)) {
         return s;
     }
     bool ok = false;
@@ -481,6 +517,34 @@ static GlucoseSnapshot ReadGlucose() {
 
     s.ok = !s.readings.empty();
     return s;
+}
+
+// Effective freshness of a snapshot for source selection: current.mills when present, else the
+// last reading's time. Lets us pick the most up-to-date source when several are readable.
+static double SnapshotFreshness(const GlucoseSnapshot& s) {
+    if (s.currentMills > 0) return s.currentMills;
+    return s.readings.empty() ? 0.0 : s.readings.back().tMs;
+}
+
+// Read every candidate path (companion + packaged widget) and return the freshest parsed snapshot,
+// so whichever source is live and most current wins and a dead/stale source can't mask it. Returns
+// a valid-but-not-ok snapshot (UI dims) when none are readable.
+static GlucoseSnapshot ReadGlucose() {
+    GlucoseSnapshot best;
+    bool haveBest = false;
+    for (const auto& path : g_settings.dataPaths) {
+        GlucoseSnapshot s = ReadOneGlucoseFile(path);
+        if (!s.ok) continue;
+        if (!haveBest || SnapshotFreshness(s) > SnapshotFreshness(best)) {
+            best = std::move(s);
+            haveBest = true;
+        }
+    }
+    if (!haveBest) {
+        Wh_Log(L"[read] no readable summary JSON among %zu candidate(s)", g_settings.dataPaths.size());
+        best.valid = true;
+    }
+    return best;
 }
 
 // ---------------------------------------------------------------------------
@@ -1128,9 +1192,16 @@ static void ReaderLoop() {
 // Settings + lifecycle
 // ---------------------------------------------------------------------------
 void LoadSettings() {
+    g_settings.dataPaths.clear();
     PCWSTR dataPath = Wh_GetStringSetting(L"dataPath");
-    if (dataPath && *dataPath) g_settings.dataPath = ExpandConfigPath(dataPath);
-    else g_settings.dataPath = ExpandConfigPath(L"%LOCALAPPDATA%\\Nocturne\\glucose.json");
+    if (dataPath && *dataPath) {
+        // Explicit override: this path is the sole source (single-source, back-compat).
+        g_settings.dataPaths.push_back(ExpandConfigPath(dataPath));
+    } else {
+        // Auto: the desktop companion's file, then the packaged widget's redirected file(s).
+        g_settings.dataPaths.push_back(ExpandConfigPath(L"%LOCALAPPDATA%\\Nocturne\\glucose.json"));
+        AddWidgetCandidatePaths(g_settings.dataPaths);
+    }
     Wh_FreeStringSetting(dataPath);
 
     int poll = Wh_GetIntSetting(L"pollSeconds");
@@ -1193,7 +1264,8 @@ static void StopReader() {
 BOOL Wh_ModInit() {
     Wh_Log(L"Init nocturne-glucose-sparkline");
     LoadSettings();
-    Wh_Log(L"[init] dataPath=%s", g_settings.dataPath.c_str());
+    Wh_Log(L"[init] %zu data path candidate(s):", g_settings.dataPaths.size());
+    for (const auto& p : g_settings.dataPaths) Wh_Log(L"[init]   %s", p.c_str());
 
     if (HMODULE tv = GetTaskbarViewModuleHandle()) {
         if (HookTaskbarViewSymbols(tv)) {

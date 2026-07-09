@@ -109,24 +109,37 @@
             "spacing": "Medium"
         },
         {
-            "type": "TextBlock",
-            "text": "Updated ${lastUpdate}",
-            "size": "Small",
-            "isSubtle": true,
-            "horizontalAlignment": "Right",
-            "spacing": "Small"
-        }
-    ],
-    "actions": [
-        {
-            "type": "Action.Execute",
-            "title": "Refresh",
-            "verb": "refresh"
-        },
-        {
-            "type": "Action.Execute",
-            "title": "Open",
-            "verb": "openApp"
+            "type": "ColumnSet",
+            "spacing": "Small",
+            "columns": [
+                {
+                    "type": "Column",
+                    "width": "stretch",
+                    "verticalContentAlignment": "Center",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "Updated ${lastUpdate}",
+                            "size": "Small",
+                            "isSubtle": true
+                        }
+                    ]
+                },
+                {
+                    "type": "Column",
+                    "width": "auto",
+                    "verticalContentAlignment": "Center",
+                    "items": [
+                        {
+                            "type": "Image",
+                            "url": "${refreshIcon}",
+                            "width": "16px",
+                            "altText": "Refresh",
+                            "selectAction": { "type": "Action.Execute", "verb": "refresh" }
+                        }
+                    ]
+                }
+            ]
         }
     ],
     "selectAction": {

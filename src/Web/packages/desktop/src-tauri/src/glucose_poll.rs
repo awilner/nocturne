@@ -13,11 +13,13 @@ use serde::Deserialize;
 // has no prediction engine — the field just comes back empty.
 const SUMMARY_HOURS: u32 = 3;
 
-/// The latest reading, parsed from the summary for the tray icon. `sgv` is mg/dL.
+/// The latest reading, parsed from the summary for the tray icon and the readout. `sgv`/`delta`
+/// are mg/dL; display-unit conversion is the consumer's job.
 #[derive(Clone, Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CurrentBg {
     pub sgv_mgdl: f64,
+    pub delta_mgdl: Option<f64>,
     pub direction: Option<String>,
     pub mills: i64,
 }
@@ -30,8 +32,32 @@ struct SummaryHead {
 #[derive(Deserialize)]
 struct CurrentReading {
     sgv: Option<f64>,
+    delta: Option<f64>,
     direction: Option<String>,
     mills: Option<i64>,
+}
+
+impl CurrentReading {
+    /// Maps the parsed `current` to a `CurrentBg`, or `None` when there is no `sgv`.
+    fn into_current_bg(self) -> Option<CurrentBg> {
+        self.sgv.map(|sgv| CurrentBg {
+            sgv_mgdl: sgv,
+            delta_mgdl: self.delta,
+            direction: self.direction,
+            mills: self.mills.unwrap_or(0),
+        })
+    }
+}
+
+/// Reads the last-written glucose file and parses just `current` (None if the file is missing,
+/// unreadable, or carries no current reading). Lets the UI show the latest value on launch,
+/// before the first poll of the session completes.
+pub fn read_current_from_file() -> Option<CurrentBg> {
+    let bytes = std::fs::read(crate::glucose_file::glucose_file_path()).ok()?;
+    serde_json::from_slice::<SummaryHead>(&bytes)
+        .ok()?
+        .current?
+        .into_current_bg()
 }
 
 /// Fetches `GET /api/v4/summary` and writes the raw response to the local file (atomic). Returns
@@ -49,7 +75,7 @@ pub async fn poll_once(
         .bearer_auth(token)
         .send()
         .await
-        .map_err(|e| format!("Could not reach {server}: {e}"))?;
+        .map_err(|e| format!("Could not reach {server}: {}", crate::error_chain(&e)))?;
 
     if !resp.status().is_success() {
         return Err(format!("summary returned HTTP {}", resp.status().as_u16()));
@@ -68,12 +94,6 @@ pub async fn poll_once(
     let current = serde_json::from_slice::<SummaryHead>(&body)
         .ok()
         .and_then(|h| h.current)
-        .and_then(|c| {
-            c.sgv.map(|sgv| CurrentBg {
-                sgv_mgdl: sgv,
-                direction: c.direction,
-                mills: c.mills.unwrap_or(0),
-            })
-        });
+        .and_then(CurrentReading::into_current_bg);
     Ok(current)
 }

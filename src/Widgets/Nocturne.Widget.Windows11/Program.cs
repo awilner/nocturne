@@ -150,6 +150,9 @@ internal static class Program
         // API client
         services.AddSingleton<INocturneApiClient, NocturneApiClient>();
 
+        // Publishes the raw V4 summary to the shared glucose file the taskbar mod reads.
+        services.AddSingleton<IGlucoseFilePublisher, GlucoseFilePublisher>();
+
         return services.BuildServiceProvider();
     }
 }

@@ -12,9 +12,15 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod alert_actuation;
 mod auth;
+mod client_devices;
 mod glucose_file;
 mod glucose_poll;
+mod http;
+mod install_id;
+mod signalr;
+mod toast;
 mod tray;
 
 use serde::{Deserialize, Serialize};
@@ -23,6 +29,7 @@ use tauri::{Emitter, Manager, State};
 use url::Url;
 
 const LOGIN_WINDOW_LABEL: &str = "carelink-login";
+const FLOATING_WINDOW_LABEL: &str = "floating-clock";
 // Match on the scheme prefix, not ":/sso" — the observed redirect uses a single slash.
 const REDIRECT_SCHEME_PREFIX: &str = "com.medtronic.carepartner:";
 
@@ -78,11 +85,22 @@ struct CompleteResponse {
 }
 
 fn http_client() -> CommandResult<reqwest::Client> {
-    reqwest::Client::builder()
-        // Local dev runs behind the Aspire gateway's self-signed certificate.
-        .danger_accept_invalid_certs(cfg!(debug_assertions))
-        .build()
-        .map_err(|e| CommandError::new(format!("Could not create HTTP client: {e}")))
+    http::client().map_err(CommandError::new)
+}
+
+/// Formats an error with its full `source()` chain. `reqwest::Error`'s own Display stops at
+/// "error sending request for url (…)" and hides the underlying transport cause (DNS failure,
+/// invalid/untrusted certificate, connection reset), which is exactly what we need when a
+/// request won't go through.
+pub(crate) fn error_chain(err: &dyn std::error::Error) -> String {
+    let mut msg = err.to_string();
+    let mut source = err.source();
+    while let Some(cause) = source {
+        msg.push_str(": ");
+        msg.push_str(&cause.to_string());
+        source = cause.source();
+    }
+    msg
 }
 
 /// Parses and stores a `nocturne-connect://link?server=…&token=…` link code.
@@ -284,6 +302,10 @@ async fn companion_link_start(
         };
         match auth::await_authorization(&client, pending).await {
             Ok(()) => {
+                // Fresh credentials were just stored (this is the only path that writes them, so
+                // it also covers a relink without a prior unlink): reset the actuation loop's
+                // registration and wake it out of any backoff.
+                alert_actuation::on_link(&app);
                 let _ = app.emit("companion-linked", ());
                 // Populate the taskbar/widget now rather than waiting for the next poll tick.
                 poll_glucose(&client, &app).await;
@@ -302,9 +324,150 @@ fn companion_is_linked() -> bool {
     auth::is_linked()
 }
 
+/// Link state plus whether device alerts need a relink (the stored grant lacks the device scopes,
+/// or the server refuses this install's registration).
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LinkStatus {
+    linked: bool,
+    needs_relink: bool,
+}
+
 #[tauri::command]
-fn companion_unlink() -> CommandResult<()> {
-    auth::clear().map_err(CommandError::new)
+fn companion_link_status() -> LinkStatus {
+    LinkStatus {
+        linked: auth::is_linked(),
+        needs_relink: alert_actuation::needs_relink(),
+    }
+}
+
+#[tauri::command]
+fn companion_unlink(app: tauri::AppHandle) -> CommandResult<()> {
+    auth::clear().map_err(CommandError::new)?;
+    // Unlink definitively withdraws every device actuation: flashes stop and the tray repaints now;
+    // the actuation loop drops its state and registration on its next pass.
+    alert_actuation::on_unlink(&app);
+    Ok(())
+}
+
+/// The latest reading from the last-written glucose file, for the readout to show on load. Live
+/// updates arrive via the `glucose-updated` event; this is the initial value.
+#[tauri::command]
+fn get_current_glucose() -> Option<glucose_poll::CurrentBg> {
+    glucose_poll::read_current_from_file()
+}
+
+// ── Floating clock ────────────────────────────────────────────────────────────────
+// An always-on-top, borderless overlay that hosts the web app's public clock page
+// (`{server}/clock/{id}`) so the clock face renders from one place. The window chrome (drag,
+// opacity, always-on-top, double-click-to-close) lives in the `float` route; this side just owns
+// the window's lifecycle and exposes the linked server URL the route needs to build the clock URL.
+
+/// Creates the floating window (or reveals it if already open) with overlay chrome: no title bar,
+/// transparent, always-on-top, off the taskbar. Built async — building a window from a sync
+/// command deadlocks on Windows (see `start_connect`).
+fn open_floating_window(app: &tauri::AppHandle) -> tauri::Result<()> {
+    if let Some(window) = app.get_webview_window(FLOATING_WINDOW_LABEL) {
+        window.show()?;
+        window.set_focus()?;
+        return Ok(());
+    }
+    tauri::WebviewWindowBuilder::new(
+        app,
+        FLOATING_WINDOW_LABEL,
+        // Trailing slash so this resolves in both dev (Vite serves the `/float/` route) and prod
+        // (adapter-static emits `float/index.html`, which Tauri serves for `float/`).
+        tauri::WebviewUrl::App("float/".into()),
+    )
+    .title("Nocturne Glucose")
+    .inner_size(220.0, 220.0)
+    .min_inner_size(120.0, 120.0)
+    .decorations(false)
+    .transparent(true)
+    .always_on_top(true)
+    .skip_taskbar(true)
+    // No title bar means no maximize affordance; disabling it also frees double-click on the drag
+    // region for the route's close gesture instead of the default maximize toggle.
+    .maximizable(false)
+    .build()?;
+    Ok(())
+}
+
+#[tauri::command]
+async fn open_floating_clock(app: tauri::AppHandle) -> CommandResult<()> {
+    open_floating_window(&app).map_err(|e| CommandError::new(format!("Could not open the floating clock: {e}")))
+}
+
+#[tauri::command]
+fn close_floating_clock(app: tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window(FLOATING_WINDOW_LABEL) {
+        let _ = window.close();
+    }
+}
+
+#[tauri::command]
+fn is_floating_clock_open(app: tauri::AppHandle) -> bool {
+    app.get_webview_window(FLOATING_WINDOW_LABEL).is_some()
+}
+
+/// The linked server's base URL, for the float route to compose `{server}/clock/{id}`. `None` when
+/// the companion isn't linked.
+#[tauri::command]
+fn companion_server_url() -> Option<String> {
+    auth::server_url()
+}
+
+/// One of the user's clock faces, for the Settings picker. The id is the public-display capability
+/// the floating window opens.
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ClockFaceSummary {
+    id: String,
+    name: String,
+}
+
+/// Lists the linked user's clock faces (`GET /api/v4/clockfaces`, bearer-authenticated) so the
+/// picker shows their clocks by name instead of asking for a pasted link.
+#[tauri::command]
+async fn list_clock_faces() -> CommandResult<Vec<ClockFaceSummary>> {
+    let client = http_client()?;
+    let (server, token) = auth::get_valid_token(&client)
+        .await
+        .map_err(|e| CommandError::new(e.to_string()))?;
+    let resp = client
+        .get(format!("{server}/api/v4/clockfaces"))
+        .bearer_auth(&token)
+        .send()
+        .await
+        .map_err(|e| CommandError::new(format!("Could not reach {server}: {e}")))?;
+
+    let status = resp.status().as_u16();
+    if !resp.status().is_success() {
+        return Err(CommandError::http(status, format!("Could not load clocks (HTTP {status}).")));
+    }
+
+    resp.json::<Vec<ClockFaceSummary>>()
+        .await
+        .map_err(|e| CommandError::new(format!("Unexpected response from the server: {e}")))
+}
+
+// ── Settings ────────────────────────────────────────────────────────────────────
+
+/// Whether the app is registered to launch at login. Reads the OS-persisted autostart state.
+#[tauri::command]
+fn get_run_on_startup(app: tauri::AppHandle) -> CommandResult<bool> {
+    use tauri_plugin_autostart::ManagerExt;
+    app.autolaunch().is_enabled().map_err(|e| CommandError::new(e.to_string()))
+}
+
+/// Registers/unregisters launch-at-login. The choice is OS-persisted and survives restarts;
+/// the first-run auto-enable in `setup` won't clobber it (see the marker check there).
+#[tauri::command]
+fn set_run_on_startup(enabled: bool, app: tauri::AppHandle) -> CommandResult<()> {
+    use tauri_plugin_autostart::ManagerExt;
+    let manager = app.autolaunch();
+    let result = if enabled { manager.enable() } else { manager.disable() };
+    result.map_err(|e| CommandError::new(e.to_string()))
 }
 
 /// One poll cycle: refresh the token, write glucose.json, emit `glucose-updated`. Best-effort —
@@ -327,8 +490,10 @@ async fn poll_glucose(client: &reqwest::Client, app: &tauri::AppHandle) {
 }
 
 /// Background poll loop. Polls before sleeping, so a launch (or a just-completed link) populates
-/// promptly; idles while unlinked.
-fn spawn_glucose_poller(app: tauri::AppHandle) {
+/// promptly; idles while unlinked. `refresh_rx` carries "data changed" nudges from the shared
+/// SignalR session (alert_actuation) to poll early; the timer remains the fallback whenever the
+/// hub is down.
+fn spawn_glucose_poller(app: tauri::AppHandle, mut refresh_rx: tokio::sync::mpsc::Receiver<()>) {
     tauri::async_runtime::spawn(async move {
         let client = match http_client() {
             Ok(c) => c,
@@ -337,11 +502,18 @@ fn spawn_glucose_poller(app: tauri::AppHandle) {
                 return;
             }
         };
+
         loop {
             if auth::is_linked() {
                 poll_glucose(&client, &app).await;
             }
-            tokio::time::sleep(std::time::Duration::from_secs(GLUCOSE_POLL_SECS)).await;
+            tokio::select! {
+                _ = tokio::time::sleep(std::time::Duration::from_secs(GLUCOSE_POLL_SECS)) => {}
+                _ = refresh_rx.recv() => {
+                    // Drain a burst of events so many arrivals collapse into a single poll.
+                    while refresh_rx.try_recv().is_ok() {}
+                }
+            }
         }
     });
 }
@@ -362,13 +534,44 @@ fn main() {
             tray::build_tray(handle)?;
             tray::update_tray(handle, None);
 
-            // Launch to the tray at Windows login. Idempotent — ignore "already enabled".
+            // Launch to the tray at login. Enabled on first run only — afterwards the user's
+            // Settings choice (set_run_on_startup) is OS-persisted and must be respected, so a
+            // marker file records that the initial opt-in already happened.
             {
                 use tauri_plugin_autostart::ManagerExt;
-                let _ = app.autolaunch().enable();
+                let marker = app
+                    .path()
+                    .app_config_dir()
+                    .ok()
+                    .map(|dir| dir.join("autostart-initialized"));
+                let initialized = marker.as_ref().is_some_and(|m| m.exists());
+                // Write the marker only after a successful enable, so a failed first-run attempt
+                // retries on the next launch instead of being permanently recorded as "done".
+                if !initialized && app.autolaunch().enable().is_ok() {
+                    if let Some(m) = marker {
+                        if let Some(parent) = m.parent() {
+                            let _ = std::fs::create_dir_all(parent);
+                        }
+                        let _ = std::fs::write(&m, b"1");
+                    }
+                }
             }
 
-            spawn_glucose_poller(handle.clone());
+            // Realtime "data changed" nudges flow from the shared SignalR session (owned by the
+            // actuation loop) to the glucose poll loop. Capacity 1: a full channel means a refresh
+            // is already pending, so nudges coalesce.
+            let (refresh_tx, refresh_rx) = tokio::sync::mpsc::channel::<()>(1);
+            spawn_glucose_poller(handle.clone(), refresh_rx);
+
+            // Device-action actuation: register this install and toast on alerts (notify capability).
+            // Also owns the SignalR connection that feeds `refresh_tx`. Self-idles while unlinked,
+            // so it is safe to start unconditionally here.
+            {
+                let handle = handle.clone();
+                tauri::async_runtime::spawn(async move {
+                    alert_actuation::run(handle, refresh_tx).await;
+                });
+            }
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -379,6 +582,15 @@ fn main() {
                     api.prevent_close();
                     let _ = window.hide();
                 }
+                return;
+            }
+
+            // Tell Settings the floating clock is gone (double-click-to-close, or any other close
+            // path) so its toggle flips back off.
+            if window.label() == FLOATING_WINDOW_LABEL
+                && matches!(event, tauri::WindowEvent::Destroyed)
+            {
+                let _ = window.app_handle().emit("floating-clock-closed", ());
                 return;
             }
 
@@ -397,7 +609,16 @@ fn main() {
             cancel_login,
             companion_link_start,
             companion_is_linked,
-            companion_unlink
+            companion_link_status,
+            companion_unlink,
+            get_current_glucose,
+            open_floating_clock,
+            close_floating_clock,
+            is_floating_clock_open,
+            companion_server_url,
+            list_clock_faces,
+            get_run_on_startup,
+            set_run_on_startup
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

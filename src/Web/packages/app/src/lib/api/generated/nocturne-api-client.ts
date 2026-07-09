@@ -13009,6 +13009,161 @@ export class AlertsClient {
     }
 }
 
+export class DndWindowsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * List the tenant's DND windows that are active right now (resolved on read).
+     */
+    getActive(signal?: AbortSignal): Promise<DndWindowResponse[]> {
+        let url_ = this.baseUrl + "/api/v4/alerts/dnd/windows/active";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetActive(_response);
+        });
+    }
+
+    protected processGetActive(response: Response): Promise<DndWindowResponse[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DndWindowResponse[];
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DndWindowResponse[]>(null as any);
+    }
+
+    /**
+     * Create (or idempotently return) a DND window. Supersedes any active window of the same
+    scope so at most one is ever active per scope.
+     */
+    create(request: CreateDndWindowRequest, signal?: AbortSignal): Promise<DndWindowResponse> {
+        let url_ = this.baseUrl + "/api/v4/alerts/dnd/windows";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            signal,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreate(_response);
+        });
+    }
+
+    protected processCreate(response: Response): Promise<DndWindowResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DndWindowResponse;
+            return result200;
+            });
+        } else if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            result201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DndWindowResponse;
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            result409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result409);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DndWindowResponse>(null as any);
+    }
+
+    /**
+     * Clear a DND window (turn the mute off). Idempotent: a window already cleared (by the user
+    or by supersede) is returned unchanged so a retry never rewrites the audit timestamp.
+     */
+    clear(id: string, signal?: AbortSignal): Promise<DndWindowResponse> {
+        let url_ = this.baseUrl + "/api/v4/alerts/dnd/windows/{id}/clear";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processClear(_response);
+        });
+    }
+
+    protected processClear(response: Response): Promise<DndWindowResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DndWindowResponse;
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            result404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DndWindowResponse>(null as any);
+    }
+}
+
 export class NotificationsClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -13345,7 +13500,8 @@ export class TenantAlertSettingsClient {
     }
 
     /**
-     * Replace the current tenant's alert settings. Upserts on first call.
+     * Replace the current tenant's alert settings. Upserts on first call. The manual-DND toggle
+    creates/clears the tenant's scope=all window; scheduled fields persist on the row.
      */
     update(request: UpdateTenantAlertSettingsRequest, signal?: AbortSignal): Promise<TenantAlertSettingsResponse> {
         let url_ = this.baseUrl + "/api/v4/tenant-alert-settings";
@@ -13389,89 +13545,6 @@ export class TenantAlertSettingsClient {
             });
         }
         return Promise.resolve<TenantAlertSettingsResponse>(null as any);
-    }
-}
-
-export class TrackerAlertsClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
-    }
-
-    getPendingAlerts(signal?: AbortSignal): Promise<TrackerAlertDto[]> {
-        let url_ = this.baseUrl + "/api/v4/trackers/alerts/pending";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            signal,
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetPendingAlerts(_response);
-        });
-    }
-
-    protected processGetPendingAlerts(response: Response): Promise<TrackerAlertDto[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as TrackerAlertDto[];
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<TrackerAlertDto[]>(null as any);
-    }
-
-    /**
-     * Get available alert sounds
-     * @return List of available sound preset names
-     */
-    getAvailableSounds(signal?: AbortSignal): Promise<string[]> {
-        let url_ = this.baseUrl + "/api/v4/trackers/alerts/sounds";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            signal,
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetAvailableSounds(_response);
-        });
-    }
-
-    protected processGetAvailableSounds(response: Response): Promise<string[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as string[];
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<string[]>(null as any);
     }
 }
 
@@ -13896,7 +13969,10 @@ export class TrackersClient {
     }
 
     /**
-     * Acknowledge/snooze a tracker notification
+     * Acknowledge a tracker notification. SnoozeMins is stored on the instance
+    (pill display/legacy clients); the alert-engine side is a plain acknowledgement of
+    the managed rules' open excursions — re-notification is the threshold ladder's and
+    alert_state escalation rules' job, not a snooze re-fire.
      */
     ackInstance(id: string, request: AckTrackerRequest, signal?: AbortSignal): Promise<void> {
         let url_ = this.baseUrl + "/api/v4/trackers/instances/{id}/ack";
@@ -15806,6 +15882,40 @@ export class MyTenantsClient {
         return Promise.resolve<TenantCreatedDto>(null as any);
     }
 
+    getOverview(signal?: AbortSignal): Promise<TenantOverviewResponse> {
+        let url_ = this.baseUrl + "/api/v4/me/tenants/overview";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetOverview(_response);
+        });
+    }
+
+    protected processGetOverview(response: Response): Promise<TenantOverviewResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as TenantOverviewResponse;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TenantOverviewResponse>(null as any);
+    }
+
     validateSlug(slug?: string | undefined, signal?: AbortSignal): Promise<SlugValidationResult> {
         let url_ = this.baseUrl + "/api/v4/me/tenants/validate-slug?";
         if (slug === null)
@@ -16042,6 +16152,141 @@ export class RoleClient {
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+}
+
+export class SessionsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * List the authenticated user's active login sessions, most recently active first.
+     */
+    list(signal?: AbortSignal): Promise<SessionDto[]> {
+        let url_ = this.baseUrl + "/api/v4/account/sessions";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processList(_response);
+        });
+    }
+
+    protected processList(response: Response): Promise<SessionDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SessionDto[];
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SessionDto[]>(null as any);
+    }
+
+    /**
+     * Revoke a login session, logging that device out. Revoking the current
+    session is allowed and acts as a logout.
+     */
+    revoke(sessionId: string, signal?: AbortSignal): Promise<void> {
+        let url_ = this.baseUrl + "/api/v4/account/sessions/{sessionId}";
+        if (sessionId === undefined || sessionId === null)
+            throw new globalThis.Error("The parameter 'sessionId' must be defined.");
+        url_ = url_.replace("{sessionId}", encodeURIComponent("" + sessionId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            signal,
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRevoke(_response);
+        });
+    }
+
+    protected processRevoke(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            result404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Revoke every session except the current one (log out everywhere else).
+     */
+    revokeOthers(signal?: AbortSignal): Promise<RevokeOthersResultDto> {
+        let url_ = this.baseUrl + "/api/v4/account/sessions/revoke-others";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRevokeOthers(_response);
+        });
+    }
+
+    protected processRevokeOthers(response: Response): Promise<RevokeOthersResultDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as RevokeOthersResultDto;
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RevokeOthersResultDto>(null as any);
     }
 }
 
@@ -17288,6 +17533,44 @@ export class PatientRecordClient {
     }
 
     /**
+     * Lists distinct (DataSource, Device) combinations seen in recent unattributed readings —
+    candidate streams the user can register as devices from the settings UI.
+     */
+    getDiscoveredSources(signal?: AbortSignal): Promise<DiscoveredSource[]> {
+        let url_ = this.baseUrl + "/api/v4/patient-record/devices/discovered-sources";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetDiscoveredSources(_response);
+        });
+    }
+
+    protected processGetDiscoveredSources(response: Response): Promise<DiscoveredSource[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DiscoveredSource[];
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DiscoveredSource[]>(null as any);
+    }
+
+    /**
      * Update a patient device
      */
     updateDevice(id: string, model: PatientDevice, signal?: AbortSignal): Promise<PatientDevice> {
@@ -17366,6 +17649,49 @@ export class PatientRecordClient {
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Reassigns device priority in a single batch. Drag-to-reorder in the UI sends the full ordered
+    list; each entry's position becomes its Rank. One round trip instead
+    of one PUT per device. An imperative command (no HTML form), mirroring the delete/restore surface.
+     */
+    reorderDevices(ranks: DeviceRankAssignment[], signal?: AbortSignal): Promise<PatientDevice[]> {
+        let url_ = this.baseUrl + "/api/v4/patient-record/devices/reorder";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(ranks);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            signal,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReorderDevices(_response);
+        });
+    }
+
+    protected processReorderDevices(response: Response): Promise<PatientDevice[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as PatientDevice[];
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PatientDevice[]>(null as any);
     }
 
     /**
@@ -19032,6 +19358,19 @@ export class SensorGlucoseClient {
         this.baseUrl = baseUrl ?? "";
     }
 
+    /**
+     * Lists sensor glucose readings. Adds an optional patientDeviceId query filter on top of the base
+    list surface: when set, results are that registered device's raw readings (canonical stream selection is
+    bypassed); when unset, the caller sees every stored reading. Pagination totals match the base
+    device/source behaviour (the count is unscoped by the device filters).
+     * @param from (optional) 
+     * @param to (optional) 
+     * @param limit (optional) 
+     * @param offset (optional) 
+     * @param sort (optional) 
+     * @param device (optional) 
+     * @param source (optional) 
+     */
     getAll(from?: Date | null | undefined, to?: Date | null | undefined, limit?: number | undefined, offset?: number | undefined, sort?: string | undefined, device?: string | null | undefined, source?: string | null | undefined, signal?: AbortSignal): Promise<PaginatedResponseOfSensorGlucose> {
         let url_ = this.baseUrl + "/api/v4/glucose/sensor?";
         if (from !== undefined && from !== null)
@@ -19778,8 +20117,10 @@ export class DevAdminClient {
     }
 
     /**
-     * Create a tenant, owner subject, owner membership, and a session in one call.
-    Used exclusively by the E2E test suite to bypass passkey/OIDC ceremonies.
+     * Create a tenant, owner subject, synthetic passkey, owner membership, and a session
+    in one call. The synthetic passkey satisfies the TenantSetupMiddleware credential
+    check so the returned session can immediately call tenant APIs.
+    Used by E2E tests and headless dev tooling to bypass passkey/OIDC ceremonies.
      */
     seedTenant(request: DevSeedTenantRequest, signal?: AbortSignal): Promise<DevSeedTenantResponse> {
         let url_ = this.baseUrl + "/api/v4/dev-only/admin/seed-tenant";
@@ -21058,6 +21399,116 @@ export class PumpSnapshotClient {
     }
 }
 
+export class ReservoirClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * Get the current reservoir estimate.
+     * @return The estimate, or found = false when no snapshot carries a reservoir value.
+     */
+    getEstimate(signal?: AbortSignal): Promise<ReservoirEstimateResponse> {
+        let url_ = this.baseUrl + "/api/v4/reservoir";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetEstimate(_response);
+        });
+    }
+
+    protected processGetEstimate(response: Response): Promise<ReservoirEstimateResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ReservoirEstimateResponse;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ReservoirEstimateResponse>(null as any);
+    }
+}
+
+export class ReservoirReportsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * Report a known reservoir value: a spot reading of the pump's current level,
+    or the amount just filled into a fresh reservoir/pod.
+     * @param request The reservoir report.
+     * @return The stored pump snapshot carrying the reported value.
+     */
+    create(request: CreateReservoirReportRequest, signal?: AbortSignal): Promise<PumpSnapshot> {
+        let url_ = this.baseUrl + "/api/v4/reservoir/reports";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            signal,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreate(_response);
+        });
+    }
+
+    protected processCreate(response: Response): Promise<PumpSnapshot> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as PumpSnapshot;
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PumpSnapshot>(null as any);
+    }
+}
+
 export class UploaderSnapshotClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -21873,6 +22324,311 @@ export class WebhookSettingsClient {
             });
         }
         return Promise.resolve<WebhookTestResult>(null as any);
+    }
+}
+
+export class ClientDevicesClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * Register or refresh this device. Idempotent upsert keyed on the install id — apps call it on
+    every startup to keep their advertised capabilities and last-seen time current.
+     */
+    register(request: RegisterDeviceRequest, signal?: AbortSignal): Promise<ClientDeviceDto> {
+        let url_ = this.baseUrl + "/api/v4/client-devices";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            signal,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRegister(_response);
+        });
+    }
+
+    protected processRegister(response: Response): Promise<ClientDeviceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ClientDeviceDto;
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            result401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            result409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result409);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ClientDeviceDto>(null as any);
+    }
+
+    /**
+     * Lists the devices registered by the current user, most-recently-seen first.
+     */
+    getDevices(signal?: AbortSignal): Promise<ClientDeviceDto[]> {
+        let url_ = this.baseUrl + "/api/v4/client-devices";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetDevices(_response);
+        });
+    }
+
+    protected processGetDevices(response: Response): Promise<ClientDeviceDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ClientDeviceDto[];
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            result401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ClientDeviceDto[]>(null as any);
+    }
+
+    /**
+     * The static device-action capability catalog (kinds + capabilities) that drives the rule
+    builder's device-action authoring UI. Static metadata, so no device scope is required.
+     */
+    getCapabilityCatalog(signal?: AbortSignal): Promise<DeviceCapabilityCatalog> {
+        let url_ = this.baseUrl + "/api/v4/client-devices/capabilities";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetCapabilityCatalog(_response);
+        });
+    }
+
+    protected processGetCapabilityCatalog(response: Response): Promise<DeviceCapabilityCatalog> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DeviceCapabilityCatalog;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DeviceCapabilityCatalog>(null as any);
+    }
+
+    /**
+     * Rename a device you own.
+     */
+    rename(id: string, request: RenameDeviceRequest, signal?: AbortSignal): Promise<ClientDeviceDto> {
+        let url_ = this.baseUrl + "/api/v4/client-devices/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            signal,
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRename(_response);
+        });
+    }
+
+    protected processRename(response: Response): Promise<ClientDeviceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ClientDeviceDto;
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            result401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            result404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ClientDeviceDto>(null as any);
+    }
+
+    /**
+     * Revoke (remove) a device you own. Its future registrations start fresh.
+     */
+    revoke(id: string, signal?: AbortSignal): Promise<void> {
+        let url_ = this.baseUrl + "/api/v4/client-devices/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            signal,
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRevoke(_response);
+        });
+    }
+
+    protected processRevoke(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            result401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            result404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * The actuation intents currently active for this device — the reconcile snapshot a push-mode
+    device reads on (re)connect to start anything still active and drop anything resolved. Empty
+    for a local-engine device or one the caller does not own.
+     */
+    getActiveIntents(id: string, signal?: AbortSignal): Promise<DeviceActionIntent[]> {
+        let url_ = this.baseUrl + "/api/v4/client-devices/{id}/active-intents";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            signal,
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetActiveIntents(_response);
+        });
+    }
+
+    protected processGetActiveIntents(response: Response): Promise<DeviceActionIntent[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DeviceActionIntent[];
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            let result401: any = null;
+            result401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
+            return throwException("A server side error occurred.", status, _responseText, _headers, result401);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DeviceActionIntent[]>(null as any);
     }
 }
 
@@ -24692,9 +25448,10 @@ export class StatisticsClient {
      * @param startDate (optional) Start of the window (inclusive, UTC).
      * @param endDate (optional) End of the window (exclusive, UTC).
      * @param population (optional) Diabetes population for clinical target assessment. Defaults to Type 1 adult.
+     * @param patientDeviceId (optional) 
      * @return The extended analytics and time-of-day averaged stats for the window.
      */
-    getRangeAnalytics(startDate?: Date | undefined, endDate?: Date | undefined, population?: DiabetesPopulation | undefined, signal?: AbortSignal): Promise<ReportAnalysisResult> {
+    getRangeAnalytics(startDate?: Date | undefined, endDate?: Date | undefined, population?: DiabetesPopulation | undefined, patientDeviceId?: string | null | undefined, signal?: AbortSignal): Promise<ReportAnalysisResult> {
         let url_ = this.baseUrl + "/api/v4/Statistics/range-analytics?";
         if (startDate === null)
             throw new globalThis.Error("The parameter 'startDate' cannot be null.");
@@ -24708,6 +25465,8 @@ export class StatisticsClient {
             throw new globalThis.Error("The parameter 'population' cannot be null.");
         else if (population !== undefined)
             url_ += "population=" + encodeURIComponent("" + population) + "&";
+        if (patientDeviceId !== undefined && patientDeviceId !== null)
+            url_ += "patientDeviceId=" + encodeURIComponent("" + patientDeviceId) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -27702,116 +28461,6 @@ export class PasskeyClient {
     }
 
     /**
-     * Generate registration options for the first user during initial setup.
-    Only available when no non-system subjects exist (setup mode).
-    Creates the subject, assigns admin role, and returns passkey registration options.
-     */
-    setupOptions(request: SetupOptionsRequest, signal?: AbortSignal): Promise<PasskeyOptionsResponse> {
-        let url_ = this.baseUrl + "/api/auth/passkey/setup/options";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(request);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            signal,
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSetupOptions(_response);
-        });
-    }
-
-    protected processSetupOptions(response: Response): Promise<PasskeyOptionsResponse> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as PasskeyOptionsResponse;
-            return result200;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            let result400: any = null;
-            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            result403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<PasskeyOptionsResponse>(null as any);
-    }
-
-    /**
-     * Complete passkey registration during initial setup.
-    Verifies attestation, generates recovery codes, issues a full JWT session,
-    and exits setup mode.
-     */
-    setupComplete(request: SetupCompleteRequest, signal?: AbortSignal): Promise<SetupCompleteResponse> {
-        let url_ = this.baseUrl + "/api/auth/passkey/setup/complete";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(request);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            signal,
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSetupComplete(_response);
-        });
-    }
-
-    protected processSetupComplete(response: Response): Promise<SetupCompleteResponse> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SetupCompleteResponse;
-            return result200;
-            });
-        } else if (status === 400) {
-            return response.text().then((_responseText) => {
-            let result400: any = null;
-            result400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            let result403: any = null;
-            result403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProblemDetails;
-            return throwException("A server side error occurred.", status, _responseText, _headers, result403);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<SetupCompleteResponse>(null as any);
-    }
-
-    /**
      * Begin passkey registration for an anonymous access request.
     Creates a pending subject and returns WebAuthn registration options.
     Only available when AllowAccessRequests is enabled on the default tenant.
@@ -27986,7 +28635,7 @@ export class PasskeyClient {
      * Complete passkey registration for an invite acceptance.
     Verifies attestation, accepts the invite, generates recovery codes, and issues a session.
      */
-    inviteComplete(request: InviteCompleteRequest, signal?: AbortSignal): Promise<SetupCompleteResponse> {
+    inviteComplete(request: InviteCompleteRequest, signal?: AbortSignal): Promise<PasskeyRegistrationResponse> {
         let url_ = this.baseUrl + "/api/auth/passkey/invite/complete";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -28007,13 +28656,13 @@ export class PasskeyClient {
         });
     }
 
-    protected processInviteComplete(response: Response): Promise<SetupCompleteResponse> {
+    protected processInviteComplete(response: Response): Promise<PasskeyRegistrationResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SetupCompleteResponse;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as PasskeyRegistrationResponse;
             return result200;
             });
         } else if (status === 400) {
@@ -28033,7 +28682,7 @@ export class PasskeyClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<SetupCompleteResponse>(null as any);
+        return Promise.resolve<PasskeyRegistrationResponse>(null as any);
     }
 }
 
@@ -28333,6 +28982,7 @@ export interface ConditionNode {
     day_of_week?: DayOfWeekCondition | undefined;
     pump_state?: PumpStateCondition | undefined;
     state_span_active?: StateSpanActiveCondition | undefined;
+    tracker_age?: TrackerAgeCondition | undefined;
 }
 
 export interface ThresholdCondition {
@@ -28548,6 +29198,12 @@ export enum StateSpanCategory {
     Travel = "Travel",
     DataExclusion = "DataExclusion",
     TemporaryTarget = "TemporaryTarget",
+}
+
+export interface TrackerAgeCondition {
+    tracker_definition_id?: string;
+    operator?: string;
+    minutes?: number;
 }
 
 /** Metadata about authentication error codes for NSwag generation */
@@ -28881,6 +29537,7 @@ export interface BasalInjection {
     syncIdentifier?: string | undefined;
     correlationId?: string | undefined;
     legacyId?: string | undefined;
+    patientDeviceId?: string | undefined;
     createdAt?: Date;
     modifiedAt?: Date;
     units?: number;
@@ -31640,6 +32297,7 @@ export enum ChannelType {
     WhatsAppDm = "whatsapp_dm",
     HomeAssistant = "home_assistant",
     ResendEmail = "resend_email",
+    DeviceAction = "device_action",
 }
 
 export enum ChannelStatus {
@@ -31826,6 +32484,7 @@ export enum AlertConditionType {
     DayOfWeek = "day_of_week",
     PumpState = "pump_state",
     StateSpanActive = "state_span_active",
+    TrackerAge = "tracker_age",
 }
 
 export interface AlertRuleResponse {
@@ -31840,11 +32499,28 @@ export interface AlertRuleResponse {
     /** When true, this rule still fires while the tenant is in Do Not Disturb mode.
             Critical rules implicitly bypass DND regardless of this flag. */
     allowThroughDnd?: boolean;
+    /** Low/high classification for scoped Do Not Disturb (ADR 0004), derived by the
+            shared engine from the rule's directional leaves. Read-only — computed server-side on
+            create/update; a scoped lows/highs window silences a rule only when its
+            class matches. */
+    scopeClass?: RuleScopeClass;
+    /** Owner tag when this rule is synthesised from another feature's configuration
+            (e.g. tracker:{definitionId}). Null for user-authored rules. Managed rules
+            cannot be deleted here — the owning configuration re-syncs their condition, name and
+            severity; channels and client configuration remain user-editable. */
+    managedBy?: string | undefined;
     autoResolveEnabled?: boolean;
     autoResolveParams?: any | undefined;
     clientConfiguration?: any;
     /** Flat list of delivery channels. Dispatched in parallel when the rule fires. */
     channels?: AlertRuleChannelResponse[];
+}
+
+export enum RuleScopeClass {
+    Low = "low",
+    High = "high",
+    Composite = "composite",
+    Undirected = "undirected",
 }
 
 export interface AlertRuleChannelResponse {
@@ -31853,6 +32529,8 @@ export interface AlertRuleChannelResponse {
     destination?: string;
     destinationLabel?: string | undefined;
     sortOrder?: number;
+    /** Channel-specific config (e.g. device_action capabilities). Null when unset. */
+    metadata?: any | undefined;
 }
 
 export interface CreateAlertRuleRequest {
@@ -31872,9 +32550,11 @@ export interface CreateAlertRuleRequest {
 
 export interface CreateAlertRuleChannelRequest {
     channelType?: ChannelType;
-    /** Channel-specific address: webhook URL, chat handle, etc. Empty for in-app/web-push. */
+    /** Channel-specific address: webhook URL, chat handle, device kind for device_action, etc. Empty for in-app/web-push. */
     destination?: string | undefined;
     destinationLabel?: string | undefined;
+    /** Channel-specific config, persisted as JSONB. For device_action: { "capabilities": ["notify", ...] }. */
+    metadata?: any | undefined;
 }
 
 export interface UpdateAlertRuleRequest {
@@ -31973,6 +32653,38 @@ export interface PendingDeliveryResponse {
     retryCount?: number;
 }
 
+/** A DND window with its resolver fields. active state is computed on read. */
+export interface DndWindowResponse {
+    id?: string;
+    scope?: DndScope;
+    startedAt?: Date;
+    endsAt?: Date | undefined;
+    clearedAt?: Date | undefined;
+    clearedBy?: string | undefined;
+    source?: string | undefined;
+    createdAt?: Date;
+}
+
+export enum DndScope {
+    Lows = "lows",
+    Highs = "highs",
+    All = "all",
+}
+
+/** Request to create a DND window. Id is client-supplied for idempotency. */
+export interface CreateDndWindowRequest {
+    /** Client-generated UUID. Re-sending the same id is a no-op that returns the stored window. */
+    id?: string;
+    /** Which alerts to silence: lows | highs | all. */
+    scope?: DndScope;
+    /** When the mute takes effect (may predate receipt for offline authoring). */
+    startedAt?: Date;
+    /** Auto-expiry instant; null mutes until explicitly cleared. */
+    endsAt?: Date | undefined;
+    /** Audit label for what created the window (e.g. web, prelude-device). */
+    source?: string | undefined;
+}
+
 export interface InAppNotificationDto {
     id?: string;
     type?: string;
@@ -32060,20 +32772,6 @@ export interface UpdateTenantAlertSettingsRequest {
     dndScheduleEnd?: string | undefined;
 }
 
-/** DTO for tracker alerts returned to the frontend */
-export interface TrackerAlertDto {
-    instanceId?: string;
-    definitionId?: string;
-    thresholdId?: string;
-    trackerName?: string;
-    urgency?: NotificationUrgency;
-    message?: string;
-    pushEnabled?: boolean;
-    audioEnabled?: boolean;
-    audioSound?: string | undefined;
-    vibrateEnabled?: boolean;
-}
-
 export interface TrackerDefinitionDto {
     id?: string;
     name?: string;
@@ -32083,6 +32781,11 @@ export interface TrackerDefinitionDto {
     triggerEventTypes?: string[];
     triggerNotesContains?: string | undefined;
     lifespanHours?: number | undefined;
+    /** Reservoir category only: units level below which the synced managed reservoir
+rule fires. Null = no level rule. */
+    lowReservoirUnits?: number | undefined;
+    /** Urgency of the low-reservoir level rule. */
+    lowReservoirUrgency?: NotificationUrgency;
     notificationThresholds?: NotificationThresholdDto[];
     isFavorite?: boolean;
     /** Dashboard visibility: Off, Always, Info, Warn, Hazard, Urgent */
@@ -32153,6 +32856,11 @@ export interface CreateTrackerDefinitionRequest {
     triggerEventTypes?: string[] | undefined;
     triggerNotesContains?: string | undefined;
     lifespanHours?: number | undefined;
+    /** Reservoir category only: units level below which the synced managed reservoir
+rule fires. Null = no level rule. */
+    lowReservoirUnits?: number | undefined;
+    /** Urgency of the low-reservoir level rule. */
+    lowReservoirUrgency?: NotificationUrgency;
     notificationThresholds?: CreateNotificationThresholdRequest[] | undefined;
     isFavorite?: boolean;
     /** Dashboard visibility: Off, Always, Info, Warn, Hazard, Urgent */
@@ -32189,6 +32897,13 @@ export interface UpdateTrackerDefinitionRequest {
     triggerEventTypes?: string[] | undefined;
     triggerNotesContains?: string | undefined;
     lifespanHours?: number | undefined;
+    /** Reservoir category only: units level below which the synced managed reservoir
+rule fires. The tracker editor posts the whole definition, so for a Reservoir
+definition this value is applied as-is on every update — null clears the rule
+(null-means-keep cannot express clearing). */
+    lowReservoirUnits?: number | undefined;
+    /** Urgency of the low-reservoir level rule. Null keeps the current value. */
+    lowReservoirUrgency?: NotificationUrgency | undefined;
     notificationThresholds?: CreateNotificationThresholdRequest[] | undefined;
     isFavorite?: boolean | undefined;
     /** Dashboard visibility: Off, Always, Info, Warn, Hazard, Urgent */
@@ -32462,6 +33177,60 @@ export interface UpdateMembershipRequestSettingsRequest {
     allowRequests?: boolean;
 }
 
+export interface TenantOverviewResponse {
+    tenants?: TenantOverviewItem[];
+}
+
+export interface TenantOverviewItem {
+    tenantId?: string;
+    slug?: string;
+    displayName?: string;
+    lastReadingAt?: Date | undefined;
+    latest?: TenantOverviewReading | undefined;
+    status?: GlucoseStatus;
+    thresholds?: TenantOverviewThresholds;
+    activeAlertCount?: number | undefined;
+    highestActiveSeverity?: AlertRuleSeverity | undefined;
+}
+
+export interface TenantOverviewReading {
+    mgdl?: number;
+    delta?: number | undefined;
+    direction?: GlucoseDirection | undefined;
+    trendRate?: number | undefined;
+    timestamp?: Date;
+}
+
+export enum GlucoseDirection {
+    None = "None",
+    DoubleUp = "DoubleUp",
+    SingleUp = "SingleUp",
+    FortyFiveUp = "FortyFiveUp",
+    Flat = "Flat",
+    FortyFiveDown = "FortyFiveDown",
+    SingleDown = "SingleDown",
+    DoubleDown = "DoubleDown",
+    NotComputable = "NotComputable",
+    RateOutOfRange = "RateOutOfRange",
+}
+
+export enum GlucoseStatus {
+    Unknown = "Unknown",
+    Stale = "Stale",
+    UrgentLow = "UrgentLow",
+    Low = "Low",
+    InRange = "InRange",
+    High = "High",
+    UrgentHigh = "UrgentHigh",
+}
+
+export interface TenantOverviewThresholds {
+    urgentLow?: number;
+    low?: number;
+    high?: number;
+    urgentHigh?: number;
+}
+
 export interface CreateMyTenantRequest {
     slug?: string;
     displayName?: string;
@@ -32488,6 +33257,21 @@ export interface UpdateRoleRequest {
     name?: string;
     description?: string | undefined;
     permissions?: string[];
+}
+
+/** Login session DTO returned by GET /api/v4/account/sessions. */
+export interface SessionDto {
+    sessionId?: string;
+    deviceDescription?: string | undefined;
+    ipAddress?: string | undefined;
+    lastActiveAt?: Date;
+    expiresAt?: Date;
+    isCurrent?: boolean;
+}
+
+/** Result of POST /api/v4/account/sessions/revoke-others. */
+export interface RevokeOthersResultDto {
+    revokedTokenCount?: number;
 }
 
 /** Current state of a tenant's single public share link. */
@@ -32667,6 +33451,7 @@ export interface PatientDevice {
     startDate?: Date | undefined;
     endDate?: Date | undefined;
     isCurrent?: boolean;
+    rank?: number | undefined;
     notes?: string | undefined;
     createdAt?: Date;
     modifiedAt?: Date;
@@ -32684,6 +33469,21 @@ export enum AidAlgorithm {
     MedtronicSmartGuard = "MedtronicSmartGuard",
     None = "None",
     Unknown = "Unknown",
+}
+
+export interface DiscoveredSource {
+    dataSource?: string | undefined;
+    device?: string | undefined;
+    readingCount?: number;
+    lastSeen?: Date;
+}
+
+/** A single device→rank assignment in a ReorderDevices batch. */
+export interface DeviceRankAssignment {
+    /** The patient device identifier. */
+    id?: string;
+    /** Its new priority (lower = higher priority). */
+    rank?: number;
 }
 
 export interface PatientInsulin {
@@ -32866,6 +33666,7 @@ export interface MeterGlucose {
     dataSource?: string | undefined;
     correlationId?: string | undefined;
     legacyId?: string | undefined;
+    patientDeviceId?: string | undefined;
     createdAt?: Date;
     modifiedAt?: Date;
     mgdl?: number;
@@ -32923,19 +33724,6 @@ export interface SensorGlucose {
     unsmoothedMgdl?: number | undefined;
     unsmoothedMmol?: number | undefined;
     additionalProperties?: { [key: string]: any; } | undefined;
-}
-
-export enum GlucoseDirection {
-    None = "None",
-    DoubleUp = "DoubleUp",
-    SingleUp = "SingleUp",
-    FortyFiveUp = "FortyFiveUp",
-    Flat = "Flat",
-    FortyFiveDown = "FortyFiveDown",
-    SingleDown = "SingleDown",
-    DoubleDown = "DoubleDown",
-    NotComputable = "NotComputable",
-    RateOutOfRange = "RateOutOfRange",
 }
 
 export enum GlucoseTrend {
@@ -33430,6 +34218,42 @@ export interface PumpSnapshot {
     additionalProperties?: { [key: string]: any; } | undefined;
 }
 
+/** The current reservoir level resolved by IReservoirEstimationService. Found is false when no snapshot in the estimation window carries a reservoir value; the remaining fields are then unset. */
+export interface ReservoirEstimateResponse {
+    /** Whether an estimate could be resolved. */
+    found?: boolean;
+    /** Remaining insulin in units. Null when Found is false. */
+    units?: number | undefined;
+    /** True when the value only proves the reservoir holds at least this much
+            (capped reading like "50+", or a bound overriding a lower estimate). */
+    isLowerBound?: boolean;
+    /** True when the value was projected from an older reading rather than
+            taken directly from the newest snapshot. */
+    isEstimated?: boolean;
+}
+
+/** Request body for reporting a known reservoir value via the V4 API. */
+export interface CreateReservoirReportRequest {
+    /** Insulin in the reservoir, in units. */
+    units?: number;
+    /** Whether this is a spot reading of the current level or a fresh fill. */
+    kind?: ReservoirReportKind;
+    /** When the value was observed. Defaults to the current time when omitted. */
+    timestamp?: Date | undefined;
+    /** UTC offset in minutes at the time of the observation, for local-time display. */
+    utcOffset?: number | undefined;
+    /** Identifier of the pump the value belongs to. */
+    device?: string | undefined;
+    /** Name of the application that submitted this record. */
+    app?: string | undefined;
+}
+
+/** Kind of a manually reported reservoir value. */
+export enum ReservoirReportKind {
+    Reading = "Reading",
+    Fill = "Fill",
+}
+
 export interface PaginatedResponseOfUploaderSnapshot {
     data?: UploaderSnapshot[];
     pagination?: PaginationInfo;
@@ -33539,6 +34363,53 @@ export interface WebhookTestResult {
 export interface WebhookTestRequest {
     urls?: string[];
     secret?: string | undefined;
+}
+
+export interface ClientDeviceDto {
+    id?: string;
+    installId?: string;
+    kind?: string;
+    label?: string | undefined;
+    capabilities?: string[];
+    lastSeenAt?: Date;
+    createdAt?: Date;
+}
+
+export interface RegisterDeviceRequest {
+    installId: string;
+    kind: string;
+    label?: string | undefined;
+    capabilities?: string[];
+}
+
+export interface DeviceCapabilityCatalog {
+    kinds?: string[];
+    capabilities?: DeviceCapabilityInfo[];
+}
+
+export interface DeviceCapabilityInfo {
+    key?: string;
+    label?: string;
+    requiredScope?: string;
+    kinds?: string[];
+    isHardware?: boolean;
+}
+
+export interface RenameDeviceRequest {
+    label?: string | undefined;
+}
+
+export interface DeviceActionIntent {
+    intent?: string;
+    excursionId?: string;
+    ruleName?: string;
+    severity?: AlertRuleSeverity;
+    targetKind?: string;
+    capabilities?: string[];
+    acknowledged?: boolean;
+    startedAt?: Date;
+    glucoseValue?: number | undefined;
+    trend?: string | undefined;
 }
 
 export interface PaginatedResponseOfMutationAuditDto {
@@ -34749,6 +35620,13 @@ export interface ExtendedGlucoseAnalyticsRequest {
 export interface ReportAnalysisResult {
     analysis?: ExtendedGlucoseAnalytics;
     averagedStats?: AveragedStats[];
+    contributingDevices?: ContributingDevice[];
+}
+
+export interface ContributingDevice {
+    patientDeviceId?: string | undefined;
+    name?: string;
+    readingCount?: number;
 }
 
 /** Request model for clinical assessment */
@@ -35448,27 +36326,6 @@ export interface AuthStatusResponse {
     onboardingCompleted?: boolean;
 }
 
-/** Request for initial setup registration options (first user creation) */
-export interface SetupOptionsRequest {
-    username?: string;
-    displayName?: string;
-}
-
-/** Response for completed setup registration */
-export interface SetupCompleteResponse {
-    success?: boolean;
-    recoveryCodes?: string[];
-    accessToken?: string;
-    refreshToken?: string | undefined;
-    expiresIn?: number;
-}
-
-/** Request to complete initial setup registration */
-export interface SetupCompleteRequest {
-    attestationResponseJson?: string;
-    challengeToken?: string;
-}
-
 export interface AccessRequestOptionsRequest {
     displayName?: string;
     message?: string | undefined;
@@ -35483,6 +36340,15 @@ export interface InviteOptionsRequest {
     token?: string;
     username?: string;
     displayName?: string;
+}
+
+/** Response for a completed passkey registration that issues a session (recovery codes plus session tokens). */
+export interface PasskeyRegistrationResponse {
+    success?: boolean;
+    recoveryCodes?: string[];
+    accessToken?: string;
+    refreshToken?: string | undefined;
+    expiresIn?: number;
 }
 
 export interface InviteCompleteRequest {

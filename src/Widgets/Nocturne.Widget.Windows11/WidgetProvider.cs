@@ -29,6 +29,7 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
     private IOAuthService? _oauth;
     private ILogger<NocturneWidgetProvider>? _log;
     private IWidgetSettingsStore? _settings;
+    private IGlucoseFilePublisher? _publisher;
 
     // Services resolve lazily on first use (a background widget update), never on the
     // COM activation thread. Building the DI container is slow on a cold start and the
@@ -38,6 +39,7 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
     private IOAuthService _oauthService => _oauth ??= Program.Services.GetRequiredService<IOAuthService>();
     private ILogger<NocturneWidgetProvider> _logger => _log ??= Program.Services.GetRequiredService<ILogger<NocturneWidgetProvider>>();
     private IWidgetSettingsStore _settingsStore => _settings ??= Program.Services.GetRequiredService<IWidgetSettingsStore>();
+    private IGlucoseFilePublisher _glucoseFilePublisher => _publisher ??= Program.Services.GetRequiredService<IGlucoseFilePublisher>();
 
     // Polling cancellation
     private CancellationTokenSource? _pollCts;
@@ -46,6 +48,7 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
     // when no widgets remain, so these are scoped to that lifetime.
     private Timer? _refreshTimer;
     private bool _realtimeWired;
+    private int _publishing;  // 0/1 guard so overlapping ticks don't double-publish the glucose file
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(60);
 
     private static readonly string TemplatesPath = Path.Combine(AppContext.BaseDirectory, "Templates");
@@ -55,14 +58,23 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
     /// </summary>
     public static class WidgetDefinitionIds
     {
-        /// <summary>Small widget showing glucose and trend only</summary>
-        public const string Small = "NocturneSmall";
+        /// <summary>Glucose widget rendered at small, medium, or large size.</summary>
+        public const string Glucose = "NocturneGlucose";
 
-        /// <summary>Medium widget showing glucose, trend, IOB/COB, and urgent tracker</summary>
-        public const string Medium = "NocturneMedium";
+        /// <summary>Daily glucose stats: average, GMI, variability</summary>
+        public const string Stats = "NocturneStats";
 
-        /// <summary>Large widget showing full dashboard with multiple trackers</summary>
-        public const string Large = "NocturneLarge";
+        /// <summary>Time-in-range bar for the last 24 hours</summary>
+        public const string Tir = "NocturneTir";
+
+        /// <summary>Time-in-range percentages stacked vertically (compact)</summary>
+        public const string TirStacked = "NocturneTirStacked";
+
+        /// <summary>Device ages: cannula, sensor, insulin, battery</summary>
+        public const string Ages = "NocturneAges";
+
+        /// <summary>Loop/AID status from the latest algorithm snapshot</summary>
+        public const string Loop = "NocturneLoop";
     }
 
     /// <summary>
@@ -103,7 +115,8 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
                     {
                         _activeWidgets[widgetId] = new WidgetInfo(widgetId, definitionId)
                         {
-                            CustomState = widgetInfo.CustomState
+                            CustomState = widgetInfo.CustomState,
+                            Size = SizeOf(widgetInfo.WidgetContext),
                         };
                     }
                 }
@@ -127,12 +140,19 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
 
         lock (_widgetLock)
         {
-            _activeWidgets[widgetId] = new WidgetInfo(widgetId, definitionId);
+            _activeWidgets[widgetId] = new WidgetInfo(widgetId, definitionId)
+            {
+                Size = SizeOf(widgetContext),
+            };
         }
 
         EnsureBackgroundUpdates();
         UpdateWidget(widgetId);
     }
+
+    /// <summary>The widget's current size as a lowercase string ("small"/"medium"/"large").</summary>
+    private static string SizeOf(WidgetContext widgetContext) =>
+        widgetContext.Size.ToString().ToLowerInvariant();
 
     /// <inheritdoc />
     public void DeleteWidget(string widgetId, string customState)
@@ -211,7 +231,17 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
     public void OnWidgetContextChanged(WidgetContextChangedArgs contextChangedArgs)
     {
         var widgetId = contextChangedArgs.WidgetContext.Id;
-        Console.WriteLine($"Widget context changed for {widgetId}");
+
+        // The user resized the widget — record the new size so the glucose widget re-renders
+        // the size-appropriate template.
+        lock (_widgetLock)
+        {
+            if (_activeWidgets.TryGetValue(widgetId, out var widgetInfo))
+            {
+                widgetInfo.Size = SizeOf(contextChangedArgs.WidgetContext);
+            }
+        }
+
         UpdateWidget(widgetId);
     }
 
@@ -226,6 +256,7 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
             if (_activeWidgets.TryGetValue(widgetId, out var widgetInfo))
             {
                 widgetInfo.IsActive = true;
+                widgetInfo.Size = SizeOf(widgetContext);
             }
         }
 
@@ -287,12 +318,71 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
     /// </summary>
     private void EnsureBackgroundUpdates()
     {
+        bool firstSetup = false;
         lock (_widgetLock)
         {
-            _refreshTimer ??= new Timer(_ => RefreshLiveWidgets(), null, RefreshInterval, RefreshInterval);
+            if (_refreshTimer is null)
+            {
+                _refreshTimer = new Timer(_ => OnRefreshTick(), null, RefreshInterval, RefreshInterval);
+                firstSetup = true;
+            }
+        }
+
+        // Publish the glucose file immediately on first setup so the taskbar mod has fresh data
+        // without waiting a full refresh interval.
+        if (firstSetup)
+        {
+            _ = PublishGlucoseFileAsync();
         }
 
         _ = EnsureRealtimeAsync();
+    }
+
+    /// <summary>
+    /// Periodic/real-time tick: refresh the live widget UIs and republish the shared glucose file.
+    /// </summary>
+    private void OnRefreshTick()
+    {
+        RefreshLiveWidgets();
+        _ = PublishGlucoseFileAsync();
+    }
+
+    /// <summary>
+    /// Fetches the raw V4 summary and writes it to the local glucose file the taskbar mod reads,
+    /// mirroring the desktop companion so either can supply data. Best-effort: requires credentials,
+    /// fetches the same window the companion does (so the file is equally rich regardless of which
+    /// widgets are pinned), and never throws into the caller.
+    /// </summary>
+    private async Task PublishGlucoseFileAsync()
+    {
+        // Skip if a publish is already in flight: the timer and SignalR pushes can fire together, and
+        // there is no value in two concurrent summary fetches racing to write the same file.
+        if (Interlocked.Exchange(ref _publishing, 1) == 1)
+        {
+            return;
+        }
+
+        try
+        {
+            if (!await _credentialStore.HasCredentialsAsync())
+            {
+                return;
+            }
+
+            var raw = await _apiClient.GetSummaryRawAsync(hours: 3, includePredictions: true);
+            if (!string.IsNullOrEmpty(raw))
+            {
+                await _glucoseFilePublisher.PublishAsync(raw);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Glucose file publish skipped");
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _publishing, 0);
+        }
     }
 
     /// <summary>
@@ -334,9 +424,9 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
             }
 
             _realtimeWired = true;
-            _apiClient.DataUpdated += (_, _) => RefreshLiveWidgets();
-            _apiClient.AlarmReceived += (_, _) => RefreshLiveWidgets();
-            _apiClient.AlarmCleared += (_, _) => RefreshLiveWidgets();
+            _apiClient.DataUpdated += (_, _) => OnRefreshTick();
+            _apiClient.AlarmReceived += (_, _) => OnRefreshTick();
+            _apiClient.AlarmCleared += (_, _) => OnRefreshTick();
             await _apiClient.ConnectSignalRAsync();
             _logger.LogInformation("Realtime updates connected");
         }
@@ -418,29 +508,7 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
                     }
                     else
                     {
-                        // Small shows only the current value; Medium/Large render a trend
-                        // sparkline, so they request recent history (and Large, predictions).
-                        var isLarge = widgetInfo.DefinitionId == WidgetDefinitionIds.Large;
-                        var isSmall = widgetInfo.DefinitionId == WidgetDefinitionIds.Small;
-                        var summary = await _apiClient.GetSummaryAsync(
-                            hours: isSmall ? 0 : 3,
-                            includePredictions: isLarge
-                        );
-
-                        if (summary is null)
-                        {
-                            template = GetErrorTemplate();
-                            dataNode = new JsonObject
-                            {
-                                ["errorMessage"] = "Unable to connect to Nocturne server"
-                            };
-                        }
-                        else
-                        {
-                            var settings = await _settingsStore.GetAsync();
-                            template = GetGlucoseTemplate(widgetInfo.DefinitionId);
-                            dataNode = CreateGlucoseData(summary, widgetInfo.DefinitionId, settings.Unit);
-                        }
+                        (template, dataNode) = await BuildAuthenticatedContentAsync(widgetInfo);
                     }
                     break;
             }
@@ -462,6 +530,10 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
 
     private static string GetServerUrlTemplate()
     {
+        // Kept compact so setup fits the small widget footprint (~146px) without
+        // clipping the input or pushing the actions off-screen: the label,
+        // description, and unit picker are dropped. Units default from settings
+        // and remain editable in the Settings card after connecting.
         return """
             {
                 "type": "AdaptiveCard",
@@ -471,34 +543,16 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
                     {
                         "type": "TextBlock",
                         "text": "Connect to Nocturne",
-                        "size": "Medium",
-                        "weight": "Bolder"
-                    },
-                    {
-                        "type": "TextBlock",
-                        "text": "Enter your Nocturne server URL to begin authentication.",
-                        "size": "Small",
+                        "weight": "Bolder",
                         "wrap": true,
-                        "isSubtle": true
+                        "spacing": "None"
                     },
                     {
                         "type": "Input.Text",
                         "id": "apiUrl",
-                        "label": "Server URL",
-                        "placeholder": "https://your-nocturne-server.com",
+                        "placeholder": "https://your-server.com",
                         "value": "${apiUrl}",
                         "isRequired": true
-                    },
-                    {
-                        "type": "Input.ChoiceSet",
-                        "id": "unit",
-                        "label": "Glucose units",
-                        "style": "compact",
-                        "value": "${unit}",
-                        "choices": [
-                            { "title": "mg/dL", "value": "MgDl" },
-                            { "title": "mmol/L", "value": "MmolL" }
-                        ]
                     }
                 ],
                 "actions": [
@@ -519,6 +573,9 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
 
     private static string GetAuthorizationPendingTemplate()
     {
+        // Compact so the code and link stay visible in the small widget: the
+        // verbose header and "Waiting..." footer are dropped, the prompt folded
+        // into one line, and the code stepped down from ExtraLarge to Large.
         return """
             {
                 "type": "AdaptiveCard",
@@ -527,41 +584,29 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
                 "body": [
                     {
                         "type": "TextBlock",
-                        "text": "Authorization Required",
-                        "size": "Medium",
-                        "weight": "Bolder",
-                        "horizontalAlignment": "Center"
-                    },
-                    {
-                        "type": "TextBlock",
-                        "text": "Visit the URL below and enter this code:",
+                        "text": "Enter this code to authorize:",
                         "size": "Small",
                         "wrap": true,
-                        "horizontalAlignment": "Center"
+                        "horizontalAlignment": "Center",
+                        "spacing": "None"
                     },
                     {
                         "type": "TextBlock",
                         "text": "${userCode}",
-                        "size": "ExtraLarge",
+                        "size": "Large",
                         "weight": "Bolder",
                         "horizontalAlignment": "Center",
                         "color": "Accent",
-                        "spacing": "Medium"
+                        "spacing": "Small"
                     },
                     {
                         "type": "TextBlock",
                         "text": "${verificationUri}",
                         "size": "Small",
-                        "horizontalAlignment": "Center",
-                        "spacing": "Medium"
-                    },
-                    {
-                        "type": "TextBlock",
-                        "text": "Waiting for authorization...",
-                        "size": "Small",
                         "isSubtle": true,
+                        "wrap": true,
                         "horizontalAlignment": "Center",
-                        "spacing": "Large"
+                        "spacing": "Small"
                     }
                 ],
                 "actions": [
@@ -590,16 +635,8 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
                 "body": [
                     {
                         "type": "TextBlock",
-                        "text": "Widget Settings",
-                        "size": "Medium",
-                        "weight": "Bolder"
-                    },
-                    {
-                        "type": "TextBlock",
-                        "text": "Connected to ${apiUrl}",
-                        "size": "Small",
-                        "wrap": true,
-                        "isSubtle": true,
+                        "text": "Settings",
+                        "weight": "Bolder",
                         "spacing": "None"
                     },
                     {
@@ -651,18 +688,19 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
                             {
                                 "type": "TextBlock",
                                 "text": "Setup Required",
-                                "size": "Large",
+                                "size": "Medium",
                                 "weight": "Bolder",
-                                "horizontalAlignment": "Center"
+                                "horizontalAlignment": "Center",
+                                "spacing": "None"
                             },
                             {
                                 "type": "TextBlock",
-                                "text": "Click the ... menu and select Customize to connect to your Nocturne server",
+                                "text": "Open the ... menu and select Customize to connect.",
                                 "size": "Small",
                                 "horizontalAlignment": "Center",
                                 "wrap": true,
                                 "isSubtle": true,
-                                "spacing": "Medium"
+                                "spacing": "Small"
                             }
                         ],
                         "verticalContentAlignment": "Center",
@@ -717,25 +755,25 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
             """;
     }
 
-    private string GetGlucoseTemplate(string definitionId)
+    private string GetGlucoseTemplate(string size) => GetTemplate(size switch
     {
-        if (_templateCache.TryGetValue(definitionId, out var cached))
+        "large" => "LargeTemplate.json",
+        "medium" => "MediumTemplate.json",
+        _ => "SmallTemplate.json",
+    });
+
+    /// <summary>Loads and caches an Adaptive Card template from the Templates folder by file name.</summary>
+    private string GetTemplate(string fileName)
+    {
+        if (_templateCache.TryGetValue(fileName, out var cached))
             return cached;
 
-        var templateFileName = definitionId switch
-        {
-            WidgetDefinitionIds.Small => "SmallTemplate.json",
-            WidgetDefinitionIds.Medium => "MediumTemplate.json",
-            WidgetDefinitionIds.Large => "LargeTemplate.json",
-            _ => "SmallTemplate.json",
-        };
-
-        var templatePath = Path.Combine(TemplatesPath, templateFileName);
+        var templatePath = Path.Combine(TemplatesPath, fileName);
 
         try
         {
             var template = File.ReadAllText(templatePath);
-            _templateCache[definitionId] = template;
+            _templateCache[fileName] = template;
             return template;
         }
         catch (Exception ex)
@@ -776,7 +814,7 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
 
     private static JsonObject CreateGlucoseData(
         V4SummaryResponse summary,
-        string definitionId,
+        string size,
         GlucoseUnit unit
     )
     {
@@ -807,6 +845,7 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
             ["trendRate"] = rate is not null ? $"{GlucoseFormatHelper.FormatDelta(rate, unit)}/min" : "",
             ["lastUpdate"] = lastUpdate,
             ["stale"] = stale,
+            ["refreshIcon"] = RefreshIcon.DataUri,
         };
 
         // Active-alarm banner (suppressed while the alarm is silenced)
@@ -817,95 +856,184 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
         data["alarmColor"] = IsUrgentAlarm(alarm) ? "Attention" : "Warning";
 
         // IOB, COB, and trend sparkline for Medium and Large
-        if (definitionId is WidgetDefinitionIds.Medium or WidgetDefinitionIds.Large)
+        if (size is "medium" or "large")
         {
             data["iob"] = Math.Round(summary.Iob * 100) / 100;
             data["cob"] = (int)summary.Cob;
 
-            var (chartW, chartH) = definitionId == WidgetDefinitionIds.Large ? (600, 200) : (600, 150);
+            var (chartW, chartH) = size == "large" ? (600, 200) : (600, 150);
             data["chart"] = GlucoseSparkline.RenderDataUri(summary, chartW, chartH) ?? "";
         }
 
-        // Predictions and trackers for Large
-        if (definitionId == WidgetDefinitionIds.Large)
-        {
-            data["predictions"] = BuildPredictionsArray(summary.Predictions, unit);
-            data["trackers"] = BuildTrackersArray(summary.Trackers);
-        }
-
         return data;
-    }
-
-    private static JsonArray BuildPredictionsArray(V4Predictions? predictions, GlucoseUnit unit)
-    {
-        var result = new JsonArray();
-        if (predictions?.Values is null || predictions.Values.Count == 0)
-            return result;
-
-        // Sample at +15, +30, +45, +60 minutes
-        var intervalMs = predictions.IntervalMills;
-        if (intervalMs <= 0) return result;
-
-        foreach (var targetMin in new[] { 15, 30, 45, 60 })
-        {
-            var index = (int)(targetMin * 60_000L / intervalMs);
-            if (index >= 0 && index < predictions.Values.Count)
-            {
-                result.Add(new JsonObject
-                {
-                    ["value"] = GlucoseFormatHelper.FormatValue(predictions.Values[index], unit),
-                    ["time"] = $"+{targetMin}m",
-                });
-            }
-        }
-
-        return result;
     }
 
     private static bool IsUrgentAlarm(V4AlarmState? alarm) =>
         alarm is not null
         && (alarm.Level >= 2 || alarm.Type.Contains("urgent", StringComparison.OrdinalIgnoreCase));
 
-    private static JsonArray BuildTrackersArray(List<V4TrackerStatus> trackers)
+    /// <summary>
+    /// Builds the Adaptive Card template and bound data for an authenticated widget, dispatching by
+    /// widget type. Each focused widget pulls only the data it shows from its dedicated endpoint.
+    /// </summary>
+    private async Task<(string Template, JsonObject Data)> BuildAuthenticatedContentAsync(WidgetInfo widgetInfo)
     {
-        var result = new JsonArray();
-        foreach (var tracker in trackers)
+        return widgetInfo.DefinitionId switch
         {
-            var urgencyColor = tracker.Urgency switch
-            {
-                NotificationUrgency.Urgent => "Attention",
-                NotificationUrgency.Hazard
-                    or NotificationUrgency.Warn => "Warning",
-                _ => "Default",
-            };
-
-            var age = tracker.AgeHours.HasValue
-                ? FormatTrackerAge(tracker.AgeHours.Value)
-                : tracker.HoursUntilEvent.HasValue
-                    ? $"in {FormatTrackerAge(Math.Abs(tracker.HoursUntilEvent.Value))}"
-                    : "";
-
-            // Lifespan progress (Duration trackers only); empty for event-mode trackers.
-            var percentLabel = tracker.PercentElapsed is { } pe
-                ? $"{Math.Clamp((int)Math.Round(pe), 0, 100)}% used"
-                : "";
-
-            result.Add(new JsonObject
-            {
-                ["name"] = tracker.Name ?? "",
-                ["age"] = age,
-                ["urgencyColor"] = urgencyColor,
-                ["percentLabel"] = percentLabel,
-            });
-        }
-        return result;
+            WidgetDefinitionIds.Stats => await BuildStatsContentAsync(),
+            WidgetDefinitionIds.Tir => await BuildTirContentAsync("TirTemplate.json"),
+            WidgetDefinitionIds.TirStacked => await BuildTirContentAsync("TirStackedTemplate.json"),
+            WidgetDefinitionIds.Ages => await BuildAgesContentAsync(),
+            WidgetDefinitionIds.Loop => await BuildLoopContentAsync(),
+            // The glucose widget is one definition rendered at three sizes (also the safe default).
+            WidgetDefinitionIds.Glucose => await BuildGlucoseContentAsync(widgetInfo.Size),
+            _ => await BuildGlucoseContentAsync(widgetInfo.Size),
+        };
     }
 
-    private static string FormatTrackerAge(double hours)
+    /// <summary>Connection-error card shown when an endpoint can't be reached.</summary>
+    private (string, JsonObject) ConnectionError() =>
+        (GetErrorTemplate(), new JsonObject { ["errorMessage"] = "Unable to connect to Nocturne server" });
+
+    private async Task<(string, JsonObject)> BuildGlucoseContentAsync(string size)
     {
-        if (hours < 1) return $"{(int)(hours * 60)}m";
-        if (hours < 48) return $"{hours:F0}h";
-        return $"{hours / 24:F1}d";
+        // Small shows only the current value; Medium/Large render a trend sparkline, so they
+        // request recent history (and Large, predictions to draw the dashed forecast tail).
+        var isLarge = size == "large";
+        var isSmall = size == "small";
+        var summary = await _apiClient.GetSummaryAsync(hours: isSmall ? 0 : 3, includePredictions: isLarge);
+        if (summary is null)
+        {
+            return ConnectionError();
+        }
+
+        var settings = await _settingsStore.GetAsync();
+        return (GetGlucoseTemplate(size), CreateGlucoseData(summary, size, settings.Unit));
+    }
+
+    private async Task<(string, JsonObject)> BuildStatsContentAsync()
+    {
+        var stats = await _apiClient.GetStatisticsAsync();
+        if (stats is null)
+        {
+            return ConnectionError();
+        }
+
+        var settings = await _settingsStore.GetAsync();
+        var day = stats.LastDay;
+        var analytics = day?.Analytics;
+        var has = day is { HasSufficientData: true } && analytics is not null;
+
+        var data = new JsonObject { ["hasStats"] = has, ["refreshIcon"] = RefreshIcon.DataUri };
+        if (has)
+        {
+            data["statAvg"] = GlucoseFormatHelper.FormatValue(analytics!.BasicStats.Mean, settings.Unit);
+            data["statGmi"] = day!.Gmi is { } gmi ? $"{gmi.Value:0.0}%" : "--";
+            data["statCv"] = $"{analytics.GlycemicVariability.CoefficientOfVariation:0}%";
+        }
+
+        return (GetTemplate("StatsTemplate.json"), data);
+    }
+
+    private async Task<(string, JsonObject)> BuildTirContentAsync(string templateFile)
+    {
+        var stats = await _apiClient.GetStatisticsAsync();
+        if (stats is null)
+        {
+            return ConnectionError();
+        }
+
+        var day = stats.LastDay;
+        var pct = day?.Analytics?.TimeInRange?.Percentages;
+        var has = day is { HasSufficientData: true } && pct is not null;
+
+        var data = new JsonObject { ["hasTir"] = has, ["refreshIcon"] = RefreshIcon.DataUri };
+        if (has)
+        {
+            var low = (int)Math.Round(pct!.VeryLow + pct.Low);
+            var inRange = (int)Math.Round(pct.Target);
+            var high = (int)Math.Round(pct.High + pct.VeryHigh);
+            data["tirLow"] = $"{low}%";
+            data["tirInRange"] = $"{inRange}%";
+            data["tirHigh"] = $"{high}%";
+            data["tirBar"] = TirBar.RenderDataUri(low, inRange, high, 600, 36);
+            data["tirBarVertical"] = TirBar.RenderDataUri(low, inRange, high, 40, 240, vertical: true);
+        }
+
+        return (GetTemplate(templateFile), data);
+    }
+
+    private async Task<(string, JsonObject)> BuildAgesContentAsync()
+    {
+        var ages = await _apiClient.GetDeviceAgesAsync();
+        if (ages is null)
+        {
+            return ConnectionError();
+        }
+
+        var rows = new JsonArray();
+        AddAgeRow(rows, "Cannula", ages.Cage);
+        AddAgeRow(rows, "Sensor", ages.Sage?.SensorStart.Found == true ? ages.Sage.SensorStart : ages.Sage?.SensorChange);
+        AddAgeRow(rows, "Insulin", ages.Iage);
+        AddAgeRow(rows, "Battery", ages.Bage);
+
+        var data = new JsonObject { ["ages"] = rows, ["refreshIcon"] = RefreshIcon.DataUri };
+        return (GetTemplate("AgesTemplate.json"), data);
+    }
+
+    private static void AddAgeRow(JsonArray rows, string label, DeviceAgeInfo? info)
+    {
+        if (info is not { Found: true })
+        {
+            return;
+        }
+
+        // Device-age levels: 2 = urgent, 1 = warn, else within lifespan.
+        var color = info.Level switch
+        {
+            >= 2 => "Attention",
+            1 => "Warning",
+            _ => "Default",
+        };
+
+        rows.Add(new JsonObject
+        {
+            ["label"] = label,
+            ["value"] = info.Display,
+            ["color"] = color,
+        });
+    }
+
+    private async Task<(string, JsonObject)> BuildLoopContentAsync()
+    {
+        var page = await _apiClient.GetLoopStatusAsync();
+        if (page is null)
+        {
+            return ConnectionError();
+        }
+
+        var snapshot = page.Data?.FirstOrDefault();
+        var settings = await _settingsStore.GetAsync();
+        var data = new JsonObject { ["hasLoop"] = snapshot is not null, ["refreshIcon"] = RefreshIcon.DataUri };
+
+        if (snapshot is not null)
+        {
+            var ageMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                - new DateTimeOffset(snapshot.Timestamp, TimeSpan.Zero).ToUnixTimeMilliseconds();
+            var loopStale = ageMs > 15 * 60 * 1000L;
+
+            data["algorithm"] = snapshot.AidAlgorithm.ToString();
+            data["loopStatus"] = snapshot.Enacted ? "Looping" : "Open loop";
+            data["loopColor"] = loopStale ? "Attention" : (snapshot.Enacted ? "Good" : "Warning");
+            data["lastRun"] = TimeAgoHelper.FormatMilliseconds(ageMs);
+            data["tempBasal"] = snapshot.Enacted && snapshot.EnactedRate is { } r ? $"{r:0.##} U/hr" : "";
+            data["iob"] = snapshot.Iob is { } iob ? $"{iob:0.##} U" : "--";
+            data["eventualBg"] = snapshot.EventualBg is { } ev
+                ? GlucoseFormatHelper.FormatValue(ev, settings.Unit)
+                : "--";
+        }
+
+        return (GetTemplate("LoopTemplate.json"), data);
     }
 
     private void HandleOpenAppAction(string data)
@@ -1198,6 +1326,9 @@ public sealed class NocturneWidgetProvider : IWidgetProvider, IWidgetProvider2
         public bool IsActive { get; set; }
         public string? CustomState { get; set; }
         public CustomizationState CustomizationMode { get; set; }
+
+        /// <summary>Current pinned size ("small"/"medium"/"large"); the glucose widget renders by this.</summary>
+        public string Size { get; set; } = "small";
 
         public WidgetInfo(string widgetId, string definitionId)
         {

@@ -11,6 +11,10 @@
     <NoWarn>$(NoWarn);1591;NU1608;NU1701</NoWarn>
     <!-- Container publishing configuration for Aspire -->
     <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+    <!-- Restore RID-specific assets for both container architectures so a
+         multi-arch publish (ContainerRuntimeIdentifiers) can run inner
+         per-RID publishes without a separate restore. -->
+    <RuntimeIdentifiers>linux-x64;linux-arm64</RuntimeIdentifiers>
     <ContainerRepository>nocturne-api</ContainerRepository>
     <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:10.0</ContainerBaseImage>
     <ContainerWorkingDirectory>/app/</ContainerWorkingDirectory>
@@ -63,6 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Aspire\Nocturne.Aspire.ServiceDefaults\Nocturne.Aspire.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\Core\Nocturne.Core.Alerts.Native\Nocturne.Core.Alerts.Native.csproj" />
     <ProjectReference Include="..\..\Core\Nocturne.Core.Constants\Nocturne.Core.Constants.csproj" />
     <ProjectReference Include="..\..\Core\Nocturne.Core.Contracts\Nocturne.Core.Contracts.csproj" />
     <ProjectReference Include="..\..\Core\Nocturne.Core.Models\Nocturne.Core.Models.csproj" />
@@ -92,6 +97,12 @@
     <DiagramSource Include="..\..\..\docs\diagrams\diagrams.yaml;..\..\..\docs\diagrams\*.mmd" />
     <Content Include="@(DiagramSource)" Link="wwwroot\diagrams\%(Filename)%(Extension)" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
+  <!-- The diagram Content items only exist as virtual Links; the physical wwwroot\diagrams
+       directory is never created. dotnet watch's FileSystemWatcher throws on startup when it
+       tries to watch a directory that doesn't exist, so create it eagerly before build. -->
+  <Target Name="EnsureDiagramsDir" BeforeTargets="BeforeBuild">
+    <MakeDir Directories="$(MSBuildProjectDirectory)\wwwroot\diagrams" />
+  </Target>
   <!-- NSwag TypeScript Client Generation -->
   <!-- Runs on `dotnet build` and on initial Aspire startup (first build before watch loop). -->
   <!-- Skipped on subsequent `dotnet watch` rebuilds (DOTNET_WATCH_ITERATION is set from -->

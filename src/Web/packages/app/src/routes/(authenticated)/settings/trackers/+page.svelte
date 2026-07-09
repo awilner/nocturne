@@ -15,6 +15,7 @@
   import {
     TrackerCompletionDialog,
     TrackerStartDialog,
+    ReservoirReportDialog,
     type TrackerNotification,
   } from "$lib/components/trackers";
   import ActiveTrackersTab from "$lib/components/trackers/ActiveTrackersTab.svelte";
@@ -33,7 +34,7 @@
   } from "lucide-svelte";
   import { tick } from "svelte";
   import { goto } from "$app/navigation";
-  import { getAuthStore } from "$lib/stores/auth-store.svelte";
+  import { page } from "$app/state";
   import * as trackersRemote from "$api/generated/trackers.generated.remote";
   import {
     NotificationUrgency,
@@ -47,9 +48,11 @@
     type TrackerPresetDto,
   } from "$api";
 
-  // Auth state
-  const authStore = getAuthStore();
-  const isAuthenticated = $derived(authStore.isAuthenticated);
+  // Auth state from the server-resolved session. This route sits behind the
+  // authenticated + settings layout guards, so page.data.user is populated for
+  // every visitor. The client auth store is unauthenticated until its async
+  // session load resolves, so gating actions on it bounces fast clicks to login.
+  const isAuthenticated = $derived(!!page.data.user);
 
   // State
   let activeTab = $state("active");
@@ -103,6 +106,10 @@
   let formCategory = $state<TrackerCategory>(TrackerCategory.Consumable);
   let formIcon = $state("activity");
   let formLifespanHours = $state<number | undefined>(undefined);
+  let formLowReservoirUnits = $state<number | undefined>(undefined);
+  let formLowReservoirUrgency = $state<NotificationUrgency>(
+    NotificationUrgency.Warn
+  );
   let formNotifications = $state<TrackerNotification[]>([]);
   let formIsFavorite = $state(false);
   let formDashboardVisibility = $state<DashboardVisibility>(
@@ -157,6 +164,14 @@
     completingDefinition =
       definitions.find((d) => d.id === instance.definitionId) || null;
     isCompleteDialogOpen = true;
+  }
+
+  // Reservoir report dialog
+  let isReservoirReportDialogOpen = $state(false);
+
+  function openReservoirReportDialog() {
+    if (!requireAuth()) return;
+    isReservoirReportDialogOpen = true;
   }
 
   // Derived counts
@@ -299,6 +314,8 @@
     formCategory = TrackerCategory.Consumable;
     formIcon = "activity";
     formLifespanHours = undefined;
+    formLowReservoirUnits = undefined;
+    formLowReservoirUrgency = NotificationUrgency.Warn;
     formNotifications = [];
     formIsFavorite = false;
     formDashboardVisibility = DashboardVisibility.Always;
@@ -319,6 +336,9 @@
     formCategory = def.category ?? TrackerCategory.Consumable;
     formIcon = def.icon || "activity";
     formLifespanHours = def.lifespanHours;
+    formLowReservoirUnits = def.lowReservoirUnits ?? undefined;
+    formLowReservoirUrgency =
+      def.lowReservoirUrgency ?? NotificationUrgency.Warn;
     formNotifications = definitionToNotifications(def);
     formIsFavorite = def.isFavorite ?? false;
     formDashboardVisibility =
@@ -511,6 +531,7 @@
         {activeInstances}
         {openStartDialog}
         {openCompleteDialog}
+        {openReservoirReportDialog}
         {openDeleteInstanceDialog}
         {getInstanceLevel}
         {getTimeRemaining}
@@ -563,6 +584,8 @@
   bind:formCategory
   bind:formIcon
   bind:formLifespanHours
+  bind:formLowReservoirUnits
+  bind:formLowReservoirUrgency
   bind:formNotifications
   bind:formIsFavorite
   bind:formDashboardVisibility
@@ -604,6 +627,9 @@
     loadData();
   }}
 />
+
+<!-- Reservoir Report Dialog -->
+<ReservoirReportDialog bind:open={isReservoirReportDialogOpen} defaultKind="Fill" />
 
 <!-- Delete Definition Confirmation Dialog -->
 <AlertDialog.Root bind:open={isDeleteDefinitionDialogOpen}>

@@ -114,7 +114,6 @@ src/Widgets/
 │   ├── Program.cs                    # COM server entry point
 │   ├── WidgetProvider.cs             # Widget lifecycle and data binding
 │   └── Package.appxmanifest          # Package identity and widget definitions
-├── Nocturne.Widget.Windows11.Package/ # WAP project (alternative packaging)
 ├── create-cert.ps1                   # Generate a new self-signed certificate
 ├── install-cert-root.ps1             # Install certificate to root store (admin)
 ├── NocturneWidget.pfx                # Dev signing certificate

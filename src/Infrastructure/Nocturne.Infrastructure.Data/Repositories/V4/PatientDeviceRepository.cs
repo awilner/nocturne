@@ -4,6 +4,7 @@ using Nocturne.Core.Contracts.V4.Repositories;
 using Nocturne.Core.Models.V4;
 using Nocturne.Infrastructure.Data.Mappers.V4;
 using Nocturne.Infrastructure.Data.Services;
+using Nocturne.Core.Contracts.V4;
 
 namespace Nocturne.Infrastructure.Data.Repositories.V4;
 
@@ -36,9 +37,14 @@ public class PatientDeviceRepository : IPatientDeviceRepository
     public async Task<IEnumerable<PatientDevice>> GetAllAsync(CancellationToken ct = default)
     {
         await using var ctx = await _contextFactory.CreateAsync(ct);
+        // Rank leads the sort so the management list's order IS the priority order — otherwise
+        // drag/arrow reordering (which persists rank = list index) would snap back on refresh.
+        // Unranked devices fall back to the previous current-then-recent ordering.
         var entities = await ctx.PatientDevices
             .AsNoTracking()
-            .OrderByDescending(e => e.IsCurrent)
+            .OrderBy(e => e.Rank == null)
+            .ThenBy(e => e.Rank)
+            .ThenByDescending(e => e.IsCurrent)
             .ThenByDescending(e => e.StartDate)
             .ToListAsync(ct);
 
@@ -56,7 +62,9 @@ public class PatientDeviceRepository : IPatientDeviceRepository
         var entities = await ctx.PatientDevices
             .AsNoTracking()
             .Where(e => e.IsCurrent)
-            .OrderByDescending(e => e.StartDate)
+            .OrderBy(e => e.Rank == null)
+            .ThenBy(e => e.Rank)
+            .ThenByDescending(e => e.StartDate)
             .ToListAsync(ct);
 
         return entities.Select(PatientDeviceMapper.ToDomainModel);
@@ -83,7 +91,9 @@ public class PatientDeviceRepository : IPatientDeviceRepository
             .Where(e =>
                 (e.StartDate == null || e.StartDate <= toDate) &&
                 (e.EndDate == null || e.EndDate >= fromDate))
-            .OrderByDescending(e => e.StartDate)
+            .OrderBy(e => e.Rank == null)
+            .ThenBy(e => e.Rank)
+            .ThenByDescending(e => e.StartDate)
             .ToListAsync(ct);
 
         return entities.Select(PatientDeviceMapper.ToDomainModel);
@@ -121,7 +131,7 @@ public class PatientDeviceRepository : IPatientDeviceRepository
     /// <param name="model">The patient device to create.</param>
     /// <param name="ct">The cancellation token.</param>
     /// <returns>The created patient device record.</returns>
-    public async Task<PatientDevice> CreateAsync(PatientDevice model, CancellationToken ct = default)
+    public async Task<PatientDevice> CreateAsync(PatientDevice model, WriteOrigin origin, CancellationToken ct = default)
     {
         await using var ctx = await _contextFactory.CreateAsync(ct);
         var entity = PatientDeviceMapper.ToEntity(model);
@@ -137,7 +147,7 @@ public class PatientDeviceRepository : IPatientDeviceRepository
     /// <param name="model">The updated record data.</param>
     /// <param name="ct">The cancellation token.</param>
     /// <returns>The updated patient device record.</returns>
-    public async Task<PatientDevice> UpdateAsync(Guid id, PatientDevice model, CancellationToken ct = default)
+    public async Task<PatientDevice> UpdateAsync(Guid id, PatientDevice model, WriteOrigin origin, CancellationToken ct = default)
     {
         await using var ctx = await _contextFactory.CreateAsync(ct);
         var entity = await ctx.PatientDevices.FindAsync([id], ct)
@@ -153,7 +163,7 @@ public class PatientDeviceRepository : IPatientDeviceRepository
     /// </summary>
     /// <param name="id">The unique identifier.</param>
     /// <param name="ct">The cancellation token.</param>
-    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    public async Task DeleteAsync(Guid id, WriteOrigin origin, CancellationToken ct = default)
     {
         await using var ctx = await _contextFactory.CreateAsync(ct);
         var entity = await ctx.PatientDevices.FindAsync([id], ct)
@@ -164,7 +174,34 @@ public class PatientDeviceRepository : IPatientDeviceRepository
     }
 
     /// <inheritdoc />
-    public async Task<PatientDevice> RestoreAsync(Guid id, CancellationToken ct = default)
+    public async Task<IEnumerable<PatientDevice>> ReorderAsync(
+        IReadOnlyList<(Guid Id, int Rank)> ranks, WriteOrigin origin, CancellationToken ct = default)
+    {
+        if (ranks.Count == 0) return [];
+
+        await using var ctx = await _contextFactory.CreateAsync(ct);
+        var rankById = ranks.ToDictionary(r => r.Id, r => r.Rank);
+        var ids = rankById.Keys.ToList();
+        var entities = await ctx.PatientDevices
+            .Where(e => ids.Contains(e.Id))
+            .ToListAsync(ct);
+
+        var changed = new List<PatientDevice>();
+        foreach (var entity in entities)
+        {
+            var newRank = rankById[entity.Id];
+            if (entity.Rank == newRank) continue;
+            entity.Rank = newRank;
+            changed.Add(PatientDeviceMapper.ToDomainModel(entity));
+        }
+
+        if (changed.Count > 0)
+            await ctx.SaveChangesAsync(ct);
+        return changed;
+    }
+
+    /// <inheritdoc />
+    public async Task<PatientDevice> RestoreAsync(Guid id, WriteOrigin origin, CancellationToken ct = default)
     {
         await using var ctx = await _contextFactory.CreateAsync(ct);
         var entity = await ctx.PatientDevices.IgnoreQueryFilters()
@@ -177,7 +214,7 @@ public class PatientDeviceRepository : IPatientDeviceRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<PatientDevice>> BulkRestoreAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
+    public async Task<IEnumerable<PatientDevice>> BulkRestoreAsync(IEnumerable<Guid> ids, WriteOrigin origin, CancellationToken ct = default)
     {
         await using var ctx = await _contextFactory.CreateAsync(ct);
         var idSet = ids.ToHashSet();

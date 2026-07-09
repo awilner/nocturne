@@ -2,15 +2,16 @@
   import { AlertTriangle, Check, Fingerprint, Loader2, UserPlus } from "lucide-svelte";
   import { startRegistration } from "@simplewebauthn/browser";
   import {
-    setupOptions,
-    setupComplete,
-  } from "$lib/api/generated/passkeys.generated.remote";
-  import {
     getAuthState,
     getOidcProviders,
     setAuthCookies,
   } from "$routes/(unauthenticated)/auth/auth.remote";
-  import { setupOwnerOidc, validateSetupUsername } from "../setup.remote";
+  import {
+    setupOwnerOptions,
+    setupOwnerComplete,
+    setupOwnerOidc,
+    validateSetupUsername,
+  } from "../setup.remote";
   import { Debounced } from "runed";
   import RecoveryCodes from "$lib/components/auth/RecoveryCodes.svelte";
   import OidcProviderButtons from "$lib/components/auth/OidcProviderButtons.svelte";
@@ -135,7 +136,7 @@
     passkeyError = null;
 
     try {
-      const response = await setupOptions({
+      const response = await setupOwnerOptions({
         username: username.trim().toLowerCase(),
         displayName: displayName.trim(),
       });
@@ -144,7 +145,7 @@
 
       const attestation = await startRegistration({ optionsJSON: options });
 
-      const result = await setupComplete({
+      const result = await setupOwnerComplete({
         attestationResponseJson: JSON.stringify(attestation),
         challengeToken,
       });
